@@ -1,1 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#153b48"/><path d="M14 17h10l9 26 9-26h9L36 50h-8z" fill="#dec28a"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="26" fill="#17245C"/>
+  <!-- Navy Serif V -->
+  <path d="M22 24 H48 L62 76 L78 24 H100 L76 96 H50 L22 24 Z" fill="#FFFFFF"/>
+  <!-- Inner Circuit Lines inside V -->
+  <path d="M42 42 V88 M48 52 V88 M54 62 V88" stroke="#17245C" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="42" cy="42" r="3.5" fill="#FFFFFF" stroke="#17245C" stroke-width="2"/>
+  <circle cx="48" cy="52" r="3.5" fill="#FFFFFF" stroke="#17245C" stroke-width="2"/>
+  <circle cx="54" cy="62" r="3.5" fill="#FFFFFF" stroke="#17245C" stroke-width="2"/>
+  <!-- Gold Swoosh -->
+  <path d="M14 62 C14 86, 38 92, 70 74 C86 65, 98 48, 102 42" stroke="#E5AF2E" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="106" cy="38" r="6" fill="#E5AF2E"/>
+</svg>

@@ -6,31 +6,143 @@ import {exportWork} from '@/lib/export-work';
 import {zipSync} from 'fflate';
 import {getChatGPTUser} from '@/app/chatgpt-auth';
 import {cleanAnswers,requiredAnswers,validGrade,mayReview} from '@/lib/rules';
+import {getAuthorizedLesson} from '@/lib/guided-content.server';
+import {
+  hashPassword,
+  verifyPassword,
+  generateInvitationToken,
+  hashToken,
+  getSessionTokenFromCookie,
+  buildSessionCookie,
+  buildClearSessionCookie,
+} from '@/lib/auth-crypto.server';
 const ownerEmail='vayentragurukula@gmail.com';
 const now=()=>new Date().toISOString();
 const id=()=>crypto.randomUUID();
+let authTablesReady = false;
+async function ensureAuthTables(db: any) {
+  if (authTablesReady || !db) return;
+  try {
+    await db.prepare('CREATE TABLE IF NOT EXISTS auth_credentials (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, salt TEXT NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL)').run();
+    await db.prepare('CREATE TABLE IF NOT EXISTS invitations (id TEXT PRIMARY KEY, email TEXT NOT NULL, token_hash TEXT UNIQUE NOT NULL, role TEXT NOT NULL, cohort TEXT NOT NULL, expires TEXT NOT NULL, used INTEGER NOT NULL DEFAULT 0, created TEXT NOT NULL)').run();
+    await db.prepare('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, email TEXT NOT NULL, created TEXT NOT NULL, expires TEXT NOT NULL, user_agent TEXT, ip_hash TEXT)').run();
+    authTablesReady = true;
+  } catch {}
+}
 class HttpError extends Error{constructor(public status:number,msg:string){super(msg)}}
 function fail(status:number,msg:string):never{throw new HttpError(status,msg)}
 async function bounded(req:Request,max:number){const reader=req.body?.getReader();if(!reader)return new Uint8Array();const chunks:Uint8Array[]=[];let size=0;while(true){const r=await reader.read();if(r.done)break;size+=r.value.byteLength;if(size>max){await reader.cancel();fail(413,'Request exceeds its size limit')}chunks.push(r.value)}const bytes=new Uint8Array(size);let offset=0;for(const c of chunks){bytes.set(c,offset);offset+=c.length}return bytes}
 async function readJSON(req:Request){try{return JSON.parse(new TextDecoder().decode(await bounded(req,250000)))}catch(e){if(e instanceof HttpError)throw e;fail(400,'Invalid JSON request')}}
-const json=(o:any,status=200)=>Response.json(o,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+const json=(o:any,status=200,extraHeaders:Record<string,string>={})=>Response.json(o,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...extraHeaders}});
 async function run(req:Request){
  const path=new URL(req.url).pathname.slice(5).split('/');
  const db=(env as any).DB as D1Database;const bucket=(env as any).BUCKET as R2Bucket;
  if(!db)fail(503,'The learning workspace is being configured. Downloadable worksheets remain available.');
+ await ensureAuthTables(db);
  const q=(s:string,...v:any[])=>db.prepare(s).bind(...v);
  const all=async(s:string,...v:any[])=>(await q(s,...v).all()).results as any[];
  const one=async(s:string,...v:any[])=>await q(s,...v).first<any>();
  const log=(actor:string,event:string,target:string)=>q('INSERT INTO audit VALUES(?,?,?,?,?)',id(),actor,event,target,now());
  const note=(owner:string,message:string)=>q('INSERT INTO notifications VALUES(?,?,?,?,0)',id(),owner,message,now());
- const auth=await getChatGPTUser();
+
+ if(req.method!=='GET'){
+  if(req.headers.get('origin')!==new URL(req.url).origin)fail(403,'Request origin rejected');
+  if(Number(req.headers.get('content-length')||0)>5500000)fail(413,'File or request is too large');
+ }
+
+ if(path[0]==='auth'){
+  const isHttps = new URL(req.url).protocol === 'https:';
+  if(path[1]==='signin'&&req.method==='POST'){
+   const b:any=await readJSON(req);
+   const em=String(b.email||'').trim().toLowerCase();
+   const pwd=String(b.password||'');
+   if(!em||!pwd)fail(400,'Enter your email and password');
+   const cred=await one('SELECT * FROM auth_credentials WHERE email=?',em);
+   if(!cred){
+    const rosterEntry=await one('SELECT * FROM roster WHERE email=?',em);
+    if(rosterEntry||em===ownerEmail)return json({error:'Your account is not activated yet. Use your invitation link or ask your college coordinator.',needsActivation:true},403);
+    fail(401,'Invalid email or password');
+   }
+   const valid=await verifyPassword(pwd,cred.salt,cred.password_hash);
+   if(!valid){await log(em,'auth_failed','password_mismatch').run();fail(401,'Invalid email or password');}
+   const existingUser=await one('SELECT id,name FROM users WHERE email=?',em);
+   const uid=existingUser?.id||cred.id||id();
+   const enrollment=await one('SELECT * FROM roster WHERE email=?',em);
+   const role=em===ownerEmail?'admin':enrollment?.role||'pending';
+   const cohort=enrollment?.cohort||'';
+   const name=enrollment?.name||existingUser?.name||em.split('@')[0];
+   await q('INSERT INTO users VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET email=excluded.email,name=excluded.name',uid,em,name,now()).run();
+   const sid=id();
+   const expiresAt=new Date(Date.now()+7*86400000).toISOString();
+   await q('INSERT INTO sessions VALUES(?,?,?,?,?,?,NULL)',sid,uid,em,now(),expiresAt,req.headers.get('user-agent')?.slice(0,200)||'').run();
+   await log(uid,'auth_login',sid).run();
+   const redirectUrl=role==='admin'?'/?view=admin':role==='faculty'?'/?view=faculty':role==='student'?'/':'/account/pending';
+   return json({ok:true,user:{id:uid,email:em,name,role,cohort},redirectUrl},200,{'Set-Cookie':buildSessionCookie(sid,7*86400,isHttps)});
+  }
+  if(path[1]==='signout'&&req.method==='POST'){
+   const token=getSessionTokenFromCookie(req.headers.get('cookie'));
+   if(token)await q('DELETE FROM sessions WHERE id=?',token).run();
+   return json({ok:true},200,{'Set-Cookie':buildClearSessionCookie(isHttps)});
+  }
+  if(path[1]==='invitation'&&req.method==='GET'){
+   const token=new URL(req.url).searchParams.get('token');
+   if(!token)fail(400,'Missing invitation token');
+   const tokenHash=await hashToken(token);
+   const inv=await one('SELECT * FROM invitations WHERE token_hash=? AND used=0 AND expires>?',tokenHash,now());
+   if(!inv)fail(404,'This invitation link is invalid or has expired. Ask your college coordinator for a new invitation.');
+   const cohortRecord=await one('SELECT name FROM cohorts WHERE id=?',inv.cohort);
+   return json({ok:true,email:inv.email,role:inv.role,cohort:inv.cohort,cohortName:cohortRecord?.name||inv.cohort});
+  }
+  if(path[1]==='activate'&&req.method==='POST'){
+   const b:any=await readJSON(req);
+   const token=String(b.token||'').trim();
+   const pwd=String(b.password||'');
+   const name=String(b.name||'').trim();
+   if(!token)fail(400,'Missing invitation token');
+   if(!pwd||pwd.length<8)fail(400,'Password must be at least 8 characters');
+   const tokenHash=await hashToken(token);
+   const inv=await one('SELECT * FROM invitations WHERE token_hash=? AND used=0 AND expires>?',tokenHash,now());
+   if(!inv)fail(400,'This invitation link is invalid or has expired');
+   const em=inv.email.toLowerCase();
+   const {hash:pwHash,salt}=await hashPassword(pwd);
+   const enrollment=await one('SELECT * FROM roster WHERE email=?',em);
+   const displayName=name||enrollment?.name||em.split('@')[0];
+   const existingUser=await one('SELECT id FROM users WHERE email=?',em);
+   const uid=existingUser?.id||id();
+   const credId=id();
+   await db.batch([
+    q('UPDATE invitations SET used=1 WHERE id=?',inv.id),
+    q('INSERT INTO auth_credentials VALUES(?,?,?,?,?,?) ON CONFLICT(email) DO UPDATE SET password_hash=excluded.password_hash,salt=excluded.salt,updated=excluded.updated',credId,em,pwHash,salt,now(),now()),
+    q('INSERT INTO users VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,email=excluded.email',uid,em,displayName,now()),
+    log(uid,'auth_activated',em)
+   ]);
+   const sid=id();
+   const expiresAt=new Date(Date.now()+7*86400000).toISOString();
+   await q('INSERT INTO sessions VALUES(?,?,?,?,?,?,NULL)',sid,uid,em,now(),expiresAt,req.headers.get('user-agent')?.slice(0,200)||'').run();
+   const role=em===ownerEmail?'admin':enrollment?.role||inv.role||'pending';
+   const redirectUrl=role==='admin'?'/?view=admin':role==='faculty'?'/?view=faculty':role==='student'?'/':'/account/pending';
+   return json({ok:true,user:{id:uid,email:em,name:displayName,role,cohort:inv.cohort},redirectUrl},200,{'Set-Cookie':buildSessionCookie(sid,7*86400,isHttps)});
+  }
+  fail(404,'Not found');
+ }
+
+ let auth=await getChatGPTUser();
+ if(!auth&&db){
+  const token=getSessionTokenFromCookie(req.headers.get('cookie'));
+  if(token){
+   const sess=await one('SELECT * FROM sessions WHERE id=? AND expires>?',token,now());
+   if(sess){
+    const uRec=await one('SELECT name FROM users WHERE id=?',sess.user_id)||await one('SELECT name FROM roster WHERE email=?',sess.email);
+    auth={userId:sess.user_id,email:sess.email,displayName:uRec?.name||sess.email.split('@')[0],fullName:uRec?.name||null};
+   }
+  }
+ }
  if(req.method!=='GET'){
   if(req.headers.get('origin')!==new URL(req.url).origin)fail(403,'Request origin rejected');
   if(Number(req.headers.get('content-length')||0)>5500000)fail(413,'File or request is too large');
  }
  const sessionData=async()=>{const overrides=await all('SELECT * FROM content');return baseSessions.map(s=>{const o=overrides.find(o=>o.session===s.id);return o&&JSON.parse(o.body).curriculumEdition===s.curriculumEdition?JSON.parse(o.body):s})};
- if(path[0]==='template'&&req.method==='GET'){const ss=await sessionData();if(path[1]==='all'){const entries:Record<string,Uint8Array>={};for(const s of ss)entries[`S${String(s.id).padStart(2,'0')}_Student_Worksheet.docx`]=new Uint8Array(await (await exportWork(s,{},'Student name ____________________')).arrayBuffer());return new Response(new Uint8Array(zipSync(entries)),{headers:{'Content-Type':'application/zip','Content-Disposition':'attachment; filename="VCEP_24_India_Case_Worksheets.zip"'}})}const s=ss.find(v=>v.id===Number(path[1]));if(!s)fail(404,'Session not found');return new Response(await exportWork(s,{},'Student name ____________________'),{headers:{'Content-Type':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','Content-Disposition':`attachment; filename="VCEP_S${String(s.id).padStart(2,'0')}_Worksheet.docx"`}})}
- if(!auth){if(path[0]==='boot')return json({user:null,sessions:await sessionData()});fail(401,'Sign in to continue')}
+ if(!auth){if(path[0]==='boot')return json({user:null,sessions:await sessionData()});if(path[0]==='guided')fail(401,'Sign in with an enrolled account to view this guided lesson');if(path[0]==='template')fail(401,'Sign in with an enrolled account to download worksheets');fail(401,'Sign in to continue')}
  const email=auth.email.toLowerCase();const uid=auth.userId;
  const enrollment=await one('SELECT * FROM roster WHERE email=?',email);
  const role=email===ownerEmail?'admin':enrollment?.role||'pending';
@@ -53,8 +165,81 @@ async function run(req:Request){
    const [drafts,submissions,assignments,extensions,notifications,uploads,c]=await Promise.all([all('SELECT session,revision,updated,status FROM drafts WHERE owner=?',uid),all('SELECT id,session,created,status,late,grade,feedback FROM submissions WHERE owner=? ORDER BY created DESC',uid),all('SELECT * FROM assignments WHERE cohort=?',cohort),all('SELECT * FROM extensions WHERE email=?',email),all('SELECT * FROM notifications WHERE owner=? ORDER BY created DESC LIMIT 50',uid),all('SELECT * FROM uploads WHERE owner=?',uid),one('SELECT * FROM cohorts WHERE id=?',cohort)]);
    return json({user:profile,sessions,drafts,submissions,assignments,extensions,notifications,uploads,cohort:c});
   }
-  const [cohorts,roster,queue,assignments,notifications]=await Promise.all([role==='admin'?all('SELECT * FROM cohorts'):all('SELECT * FROM cohorts WHERE id=?',cohort),role==='admin'?all('SELECT * FROM roster'):all('SELECT * FROM roster WHERE cohort=?',cohort),role==='admin'?all('SELECT id,owner,email,name,cohort,session,created,status,late,grade,feedback FROM submissions ORDER BY created DESC LIMIT 2000'):all('SELECT id,owner,email,name,cohort,session,created,status,late,grade,feedback FROM submissions WHERE cohort=? ORDER BY created DESC LIMIT 2000',cohort),role==='admin'?all('SELECT * FROM assignments'):all('SELECT * FROM assignments WHERE cohort=?',cohort),all('SELECT * FROM notifications WHERE owner=? ORDER BY created DESC LIMIT 50',uid)]);
+  const [cohorts,roster,queue,assignments,notifications]=await Promise.all([role==='admin'?all('SELECT * FROM cohorts'):all('SELECT * FROM cohorts WHERE id=?',cohort),role==='admin'?all('SELECT r.*, CASE WHEN ac.email IS NOT NULL THEN 1 ELSE 0 END as activated, (SELECT count(*) FROM invitations i WHERE lower(i.email)=lower(r.email) AND i.used=0 AND i.expires>?) as pending_invites FROM roster r LEFT JOIN auth_credentials ac ON lower(r.email)=lower(ac.email)',now()):all('SELECT r.*, CASE WHEN ac.email IS NOT NULL THEN 1 ELSE 0 END as activated, (SELECT count(*) FROM invitations i WHERE lower(i.email)=lower(r.email) AND i.used=0 AND i.expires>?) as pending_invites FROM roster r LEFT JOIN auth_credentials ac ON lower(r.email)=lower(ac.email) WHERE r.cohort=?',now(),cohort),role==='admin'?all('SELECT id,owner,email,name,cohort,session,created,status,late,grade,feedback FROM submissions ORDER BY created DESC LIMIT 2000'):all('SELECT id,owner,email,name,cohort,session,created,status,late,grade,feedback FROM submissions WHERE cohort=? ORDER BY created DESC LIMIT 2000',cohort),role==='admin'?all('SELECT * FROM assignments'):all('SELECT * FROM assignments WHERE cohort=?',cohort),all('SELECT * FROM notifications WHERE owner=? ORDER BY created DESC LIMIT 50',uid)]);
   return json({user:profile,sessions,cohorts,roster,queue,assignments,notifications});
+ }
+ if(path[0]==='guided'){
+  if(req.method!=='GET')fail(405,'Method not allowed');
+  const targetId=path[1]==='session'?Number(path[2]):Number(path[1]);
+  if(!Number.isInteger(targetId)||targetId<1||targetId>24)fail(400,'Invalid session ID');
+  if(role==='pending')fail(403,'Awaiting college enrolment confirmation');
+  if(role==='student'){
+   if(!profile.consent)fail(403,'Your college must confirm the required participation consent before you access course lessons');
+   const c=await one('SELECT * FROM cohorts WHERE id=?',cohort);
+   if(!c)fail(403,'No active cohort assigned');
+   const a=await one('SELECT * FROM assignments WHERE cohort=? AND session=?',cohort,targetId);
+   if(a?.unlock&&a.unlock>now())fail(403,'This session has not opened yet');
+   if(c.policy==='sequential'&&targetId>1){
+    const previous=await one("SELECT id FROM submissions WHERE owner=? AND session=? AND status IN ('Submitted','Under review','Graded')",uid,targetId-1);
+    if(!previous)fail(403,'Submit the previous session worksheet to unlock this lesson');
+   }
+  }else if(role==='faculty'){
+   if(!cohort)fail(403,'Faculty member has no assigned cohort');
+  }else if(role!=='admin'){
+   fail(403,'Unauthorized');
+  }
+  const lesson=getAuthorizedLesson(targetId);
+  if(!lesson)fail(404,'Lesson not found');
+  return Response.json({lesson},{status:200,headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+ }
+ if(path[0]==='template'){
+  if(req.method!=='GET')fail(405,'Method not allowed');
+  if(role==='pending')fail(403,'Awaiting college enrolment confirmation');
+  const ss=await sessionData();
+  if(path[1]==='all'){
+   if(role==='student'){
+    if(!profile.consent)fail(403,'Your college must confirm participation consent before downloading worksheets');
+    const c=await one('SELECT * FROM cohorts WHERE id=?',cohort);
+    if(!c)fail(403,'No active cohort assigned');
+    const entries:Record<string,Uint8Array>={};
+    for(const s of ss){
+     const a=await one('SELECT * FROM assignments WHERE cohort=? AND session=?',cohort,s.id);
+     if(a?.unlock&&a.unlock>now())continue;
+     if(c.policy==='sequential'&&s.id>1){
+      const prev=await one("SELECT id FROM submissions WHERE owner=? AND session=? AND status IN ('Submitted','Under review','Graded')",uid,s.id-1);
+      if(!prev)continue;
+     }
+     entries[`S${String(s.id).padStart(2,'0')}_Student_Worksheet.docx`]=new Uint8Array(await (await exportWork(s,{},profile.name||'Student name ____________________')).arrayBuffer());
+    }
+    if(Object.keys(entries).length===0)fail(403,'No session worksheets are unlocked for your cohort yet');
+    return new Response(new Uint8Array(zipSync(entries)),{headers:{'Content-Type':'application/zip','Content-Disposition':'attachment; filename="VCEP_Permitted_Worksheets.zip"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+   }
+   if(role==='faculty'&&!cohort)fail(403,'Faculty member has no assigned cohort');
+   if(!['faculty','admin'].includes(role))fail(403,'Unauthorized');
+   const entries:Record<string,Uint8Array>={};
+   for(const s of ss)entries[`S${String(s.id).padStart(2,'0')}_Student_Worksheet.docx`]=new Uint8Array(await (await exportWork(s,{},'Student name ____________________')).arrayBuffer());
+   return new Response(new Uint8Array(zipSync(entries)),{headers:{'Content-Type':'application/zip','Content-Disposition':'attachment; filename="VCEP_24_India_Case_Worksheets.zip"','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+  }
+  const targetSession=Number(path[1]);
+  if(!Number.isInteger(targetSession)||targetSession<1||targetSession>24)fail(400,'Invalid session ID');
+  if(role==='student'){
+   if(!profile.consent)fail(403,'Your college must confirm participation consent before downloading worksheets');
+   const c=await one('SELECT * FROM cohorts WHERE id=?',cohort);
+   if(!c)fail(403,'No active cohort assigned');
+   const a=await one('SELECT * FROM assignments WHERE cohort=? AND session=?',cohort,targetSession);
+   if(a?.unlock&&a.unlock>now())fail(403,'This session worksheet has not opened yet');
+   if(c.policy==='sequential'&&targetSession>1){
+    const prev=await one("SELECT id FROM submissions WHERE owner=? AND session=? AND status IN ('Submitted','Under review','Graded')",uid,targetSession-1);
+    if(!prev)fail(403,'Submit the previous session worksheet to unlock this download');
+   }
+  }else if(role==='faculty'){
+   if(!cohort)fail(403,'Faculty member has no assigned cohort');
+  }else if(role!=='admin'){
+   fail(403,'Unauthorized');
+  }
+  const s=ss.find(v=>v.id===targetSession);
+  if(!s)fail(404,'Session not found');
+  return new Response(await exportWork(s,{},profile.name||'Student name ____________________'),{headers:{'Content-Type':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','Content-Disposition':`attachment; filename="VCEP_S${String(s.id).padStart(2,'0')}_Worksheet.docx"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
  }
  if(path[0]==='notifications'&&req.method==='POST'){await q('UPDATE notifications SET seen=1 WHERE owner=?',uid).run();return json({ok:true})}
  if(path[0]==='draft'){
@@ -123,7 +308,7 @@ async function run(req:Request){
   await db.batch([q('UPDATE drafts SET status=? WHERE owner=? AND session=? AND revision=?',status,s.owner,s.session,s.revision),note(s.owner,`Session ${s.session}: ${status}. ${b.feedback||'Faculty has started reviewing your work.'}`),log(uid,status,s.id)]);return json({status});
  }
  if(path[0]==='admin'){
-  admin();const b:any=await readJSON(req);
+  if(path[1]!=='invite')admin();else if(!['admin','faculty'].includes(role))fail(403,'Coordinator access required');const b:any=await readJSON(req);
   if(path[1]==='cohort'){
    const name=String(b.name||'').trim();if(name.length<3||name.length>100)fail(400,'Enter a cohort name (3–100 characters)');
    const cid=id();await db.batch([q('INSERT INTO cohorts VALUES(?,?,?,?)',cid,name,b.policy==='sequential'?'sequential':'open',now()),log(uid,'cohort_created',cid)]);return json({id:cid});
@@ -148,6 +333,23 @@ async function run(req:Request){
    const s=sessions.find(s=>s.id===b.session);if(!s)fail(400,'Choose an existing session');
    const next={...s};for(const k of ['title','outcome','case','concept','example','task','squad','ai','stretch']){if(typeof b[k]==='string'){if(b[k].length>12000)fail(400,'Content field too long');(next as any)[k]=b[k]}}
    await db.batch([q('INSERT INTO content VALUES(?,?,?) ON CONFLICT(session) DO UPDATE SET body=excluded.body,updated=excluded.updated',s.id,JSON.stringify(next),now()),log(uid,'content_updated',String(s.id))]);return json({ok:true});
+  }
+  if(path[1]==='invite'){
+   const em=String(b.email||'').trim().toLowerCase();
+   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em))fail(400,'Invalid email address');
+   const rosterEntry=await one('SELECT * FROM roster WHERE email=?',em);
+   const targetRole=em===ownerEmail?'admin':rosterEntry?.role;
+   const targetCohort=rosterEntry?.cohort||cohort||'cohort_alpha';
+   if(!targetRole)fail(400,'User must be added to the college roster first');
+   if(role==='faculty'&&rosterEntry?.cohort!==cohort)fail(403,'Faculty can only invite members of their assigned cohort');
+   const {token,tokenHash}=await generateInvitationToken();
+   const invId=id();
+   const expiresAt=new Date(Date.now()+7*86400000).toISOString();
+   await q('UPDATE invitations SET used=1 WHERE email=? AND used=0',em).run();
+   await q('INSERT INTO invitations VALUES(?,?,?,?,?,?,0,?)',invId,em,tokenHash,targetRole,targetCohort,expiresAt,now()).run();
+   await log(uid,'invitation_created',em).run();
+   const origin=new URL(req.url).origin;
+   return json({ok:true,email:em,role:targetRole,cohort:targetCohort,token,inviteUrl:`${origin}/activate?token=${token}`,expires:expiresAt});
   }
  }
  fail(404,'Not found');

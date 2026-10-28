@@ -1,0 +1,3 @@
+# Netlify Rewrite Rules (Option B: Hybrid Architecture)
+/api/*  https://vcep-staging-worklab.vayentragurukula.workers.dev/api/:splat  200!
+/*      https://vcep-staging-worklab.vayentragurukula.workers.dev/:splat      200

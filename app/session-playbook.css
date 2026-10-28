@@ -1,0 +1,28 @@
+.vcep-playbook{color:#13263a;background:#fff;border:1px solid #cfdfe0;border-radius:17px;overflow:hidden;margin:25px 0;box-shadow:0 8px 24px rgba(15,43,49,.055)}
+.vcep-playbook *{box-sizing:border-box}
+.vcep-playbook button{cursor:pointer;font:inherit}.vcep-playbook button:focus-visible,.vcep-playbook summary:focus-visible{outline:3px solid #1aaf9a;outline-offset:3px}
+.vcep-playbook-head{display:flex;gap:25px;justify-content:space-between;align-items:center;padding:25px 28px;background:linear-gradient(115deg,#eaf4f2,#f7fafb)}
+.vcep-playbook-head-copy{max-width:800px}
+.vcep-playbook-kicker{color:#08756d;font-size:11px;letter-spacing:.1em;font-weight:800;display:inline-flex;gap:7px;align-items:center}
+.vcep-playbook h2{font-size:clamp(21px,2.2vw,30px);line-height:1.2;letter-spacing:-.025em;margin:10px 0 10px}
+.vcep-playbook-head p{font-size:13px;line-height:1.65;color:#58707b;margin:0 0 16px}
+.vcep-playbook-toggle{display:inline-flex;align-items:center;gap:8px;background:#124a4c;border:1px solid #124a4c;color:#fff;border-radius:9px;padding:10px 14px;font-size:13px!important;font-weight:800!important}
+.vcep-playbook-toggle:hover{background:#166663}
+.vcep-playbook-time{display:flex;flex-direction:column;align-items:center;background:#fff;border:1px solid #dbe7e6;border-radius:14px;padding:20px 24px;flex:none;min-width:129px}
+.vcep-playbook-time strong{font-size:39px;line-height:1;letter-spacing:-.055em}.vcep-playbook-time span{font-size:10px;font-weight:850;letter-spacing:.1em;color:#10776c;margin-top:5px}.vcep-playbook-time small{color:#617883;font-size:11px;margin-top:8px}
+.vcep-playbook-content{padding:22px 28px 28px}
+.vcep-playbook-intro{display:flex;align-items:start;gap:12px;background:#f5f9fa;border-left:3px solid #4fbaac;padding:12px 15px;color:#38505d;font-size:12px;line-height:1.65;border-radius:0 9px 9px 0}
+.vcep-playbook-intro svg{flex:none;color:#198a78;margin-top:3px}.vcep-playbook-intro p{margin:0}
+.vcep-playbook-stages{list-style:none;margin:22px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.vcep-playbook-stage{display:flex;gap:13px;padding:16px;border:1px solid #e1e9eb;border-radius:12px;background:#fff}
+.vcep-playbook-number{width:32px;height:32px;display:grid;place-items:center;background:#e5f3ef;color:#0b766c;border-radius:9px;font-size:11px;font-weight:850;flex:none}
+.vcep-playbook-stage-body{min-width:0}.vcep-playbook-stage-title{margin-bottom:10px}.vcep-playbook-stage-title h3{font-size:15px;line-height:1.35;margin:0 0 5px}.vcep-playbook-stage-title span{display:block;font-size:11px;font-weight:750;color:#168175}
+.vcep-playbook-stage-body ul{padding-left:17px;margin:0}.vcep-playbook-stage-body li{font-size:12px;line-height:1.65;color:#506773;margin:5px 0}
+.vcep-playbook-example{margin-top:23px;padding:21px;background:#f7faf9;border:1px solid #dfeae8;border-radius:13px}.vcep-playbook-example h3{font-size:21px;line-height:1.2;margin:10px 0}.vcep-playbook-example>p{font-size:13px;line-height:1.7;color:#405966}
+.vcep-playbook-ledger{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.vcep-playbook-ledger>div{background:white;border-radius:9px;border:1px solid #deebe6;padding:14px}.vcep-playbook-ledger small{display:block;color:#617782;font-size:11px}.vcep-playbook-ledger strong{display:block;font-size:18px;margin-top:6px}
+.vcep-playbook-challenge{border-top:1px solid #dae6e3;padding-top:14px;font-size:13px;line-height:1.7}.vcep-playbook-challenge p{margin:8px 0}.vcep-playbook-challenge details{margin-top:12px;background:#ecf5f2;border-radius:8px;padding:13px}.vcep-playbook-challenge summary{cursor:pointer;font-weight:750;color:#116b65}
+.vcep-playbook-source-note{font-size:11px!important;color:#71828d!important}.vcep-playbook-finish{display:flex;align-items:start;gap:9px;margin-top:18px;color:#1c6f67;font-size:12px;line-height:1.6;font-weight:700}.vcep-playbook-finish svg{flex:none}
+@media(max-width:900px){.vcep-playbook-stages{grid-template-columns:1fr}.vcep-playbook-ledger{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.vcep-playbook-head{padding:20px;align-items:start}.vcep-playbook-time{min-width:0;padding:11px}.vcep-playbook-time strong{font-size:27px}.vcep-playbook-time small{display:none}.vcep-playbook-content{padding:16px}.vcep-playbook-stage{padding:12px}.vcep-playbook-ledger{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.vcep-playbook *{scroll-behavior:auto!important}}
