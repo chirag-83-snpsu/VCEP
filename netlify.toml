@@ -8,6 +8,7 @@
 [build.environment]
   NODE_VERSION = "24.22.1"
   PNPM_VERSION = "11.25.0"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
 
 # Transparent API Proxy to Cloudflare Managed Edge Backend
 [[redirects]]
