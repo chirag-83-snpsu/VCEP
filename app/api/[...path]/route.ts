@@ -7,6 +7,8 @@ import {zipSync} from 'fflate';
 import {getChatGPTUser} from '@/app/chatgpt-auth';
 import {cleanAnswers,requiredAnswers,validGrade,mayReview} from '@/lib/rules';
 import {getAuthorizedLesson} from '@/lib/guided-content.server';
+import {handleViviChat} from '@/lib/vivi/vivi-server';
+import {handleViviSpeech} from '@/lib/vivi/vivi-speech.server';
 import {
   hashPassword,
   verifyPassword,
@@ -167,6 +169,16 @@ async function run(req:Request){
   }
   const [cohorts,roster,queue,assignments,notifications]=await Promise.all([role==='admin'?all('SELECT * FROM cohorts'):all('SELECT * FROM cohorts WHERE id=?',cohort),role==='admin'?all('SELECT r.*, CASE WHEN ac.email IS NOT NULL THEN 1 ELSE 0 END as activated, (SELECT count(*) FROM invitations i WHERE lower(i.email)=lower(r.email) AND i.used=0 AND i.expires>?) as pending_invites FROM roster r LEFT JOIN auth_credentials ac ON lower(r.email)=lower(ac.email)',now()):all('SELECT r.*, CASE WHEN ac.email IS NOT NULL THEN 1 ELSE 0 END as activated, (SELECT count(*) FROM invitations i WHERE lower(i.email)=lower(r.email) AND i.used=0 AND i.expires>?) as pending_invites FROM roster r LEFT JOIN auth_credentials ac ON lower(r.email)=lower(ac.email) WHERE r.cohort=?',now(),cohort),role==='admin'?all('SELECT id,owner,email,name,cohort,session,created,status,late,grade,feedback FROM submissions ORDER BY created DESC LIMIT 2000'):all('SELECT id,owner,email,name,cohort,session,created,status,late,grade,feedback FROM submissions WHERE cohort=? ORDER BY created DESC LIMIT 2000',cohort),role==='admin'?all('SELECT * FROM assignments'):all('SELECT * FROM assignments WHERE cohort=?',cohort),all('SELECT * FROM notifications WHERE owner=? ORDER BY created DESC LIMIT 50',uid)]);
   return json({user:profile,sessions,cohorts,roster,queue,assignments,notifications});
+ }
+ if(path[0]==='vivi'){
+  if(role==='pending')fail(403,'Awaiting college enrolment confirmation');
+  if(path[1]==='chat'){
+   return handleViviChat(req, db, profile, env);
+  }
+  if(path[1]==='speech'){
+   return handleViviSpeech(req, profile, env);
+  }
+  fail(404,'Not found');
  }
  if(path[0]==='guided'){
   if(req.method!=='GET')fail(405,'Method not allowed');

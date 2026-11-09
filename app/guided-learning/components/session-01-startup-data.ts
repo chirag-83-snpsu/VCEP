@@ -808,6 +808,281 @@ export const CRISIS_SCENARIO = {
   ]
 };
 
+export interface CustomerInterviewQuestion {
+  id: string;
+  question: string;
+  category: 'behavior' | 'friction' | 'cost' | 'leading' | 'hypothetical' | 'hearsay';
+  isRecommended: boolean;
+  typeLabel: string;
+  feedback: string;
+}
+
+export const CUSTOMER_INTERVIEW_QUESTIONS: CustomerInterviewQuestion[] = [
+  {
+    id: 'iq-past-behavior',
+    question: 'When was the last time you experienced this problem, and how did you resolve it?',
+    category: 'behavior',
+    isRecommended: true,
+    typeLabel: 'Past Behavior Evidence',
+    feedback: 'Excellent discovery question! Asking about specific past actions reveals actual customer habits rather than hypothetical promises.'
+  },
+  {
+    id: 'iq-friction-depth',
+    question: 'What is the most frustrating or time-consuming part of dealing with this issue today?',
+    category: 'friction',
+    isRecommended: true,
+    typeLabel: 'Acute Pain Point',
+    feedback: 'Great founder question! It pinpoints the exact operational friction the customer cares about most.'
+  },
+  {
+    id: 'iq-workaround-cost',
+    question: 'How much time, money, or effort do you currently spend on workarounds for this?',
+    category: 'cost',
+    isRecommended: true,
+    typeLabel: 'Current Cost of Inaction',
+    feedback: 'High-value validation question! Quantifying current spend proves genuine commercial willingness to pay.'
+  },
+  {
+    id: 'iq-leading-feature',
+    question: 'Would you use a cool, convenient digital app that solves this problem for you?',
+    category: 'leading',
+    isRecommended: false,
+    typeLabel: 'Leading Feature Trap',
+    feedback: 'Warning: Leading question! People are naturally polite and almost always answer YES to hypothetical features, giving you false validation.'
+  },
+  {
+    id: 'iq-hypothetical-pricing',
+    question: 'If this service existed tomorrow, would you pay ₹100 per week for it?',
+    category: 'hypothetical',
+    isRecommended: false,
+    typeLabel: 'Hypothetical Price Guess',
+    feedback: 'Caution: Asking for hypothetical payment promises produces false positives. Look for what they currently spend or ask for a real pre-order.'
+  },
+  {
+    id: 'iq-hearsay',
+    question: 'Do you think other students or colleagues would like an idea like this?',
+    category: 'hearsay',
+    isRecommended: false,
+    typeLabel: 'Speculative Hearsay',
+    feedback: 'Avoid: Asking respondents to speak for other people yields speculation, not reliable customer validation data.'
+  }
+];
+
+export interface PricingTradeOffOption {
+  id: string;
+  title: string;
+  badge: string;
+  consequence: string;
+  isOptimal: boolean;
+  feedback: string;
+}
+
+export const PRICING_TRADE_OFF_OPTIONS: PricingTradeOffOption[] = [
+  {
+    id: 'pt-discount',
+    title: 'Grant an immediate 30% discount to guarantee your first booking.',
+    badge: 'Cash-Burning Price War',
+    consequence: 'Generates an immediate order, but creates negative unit margin and anchors an unsustainably low price point that customers resist raising later.',
+    isOptimal: false,
+    feedback: 'Caution: Discounting below delivery costs burns cash and attracts price-sensitive churn. Initial customers must validate your core value, not subsidised prices.'
+  },
+  {
+    id: 'pt-scope',
+    title: 'Keep the price per unit firm, but reduce the order scope or volume to match their budget.',
+    badge: 'Disciplined Scope Pruning',
+    consequence: 'Protects positive unit contribution while accommodating the customer’s limited initial spend, establishing fair value per unit.',
+    isOptimal: true,
+    feedback: 'Sharp founder thinking! Reducing scope preserves unit margin and tests genuine demand without cheapening your brand value.'
+  },
+  {
+    id: 'pt-guarantee',
+    title: 'Defend standard price by demonstrating calculated ROI and backing it with a 100% satisfaction guarantee.',
+    badge: 'Value-Anchored Assurance',
+    consequence: 'Anchors premium brand positioning and builds fiduciary trust, but requires flawless operational execution to avoid refund claims.',
+    isOptimal: true,
+    feedback: 'Master-level commercial discipline! Customers pay full price when risk is removed through credible quality guarantees and proven savings.'
+  }
+];
+
+export const VAYENTRA_LABS_FINANCIAL_CASE = {
+  company: 'Vayentra Labs',
+  scenario:
+    'Vayentra Labs sells corporate support services. In September, the company earned ₹1,00,000 in revenue and incurred ₹75,000 in operating expenses. Customers paid ₹60,000 in cash towards their invoices; cash paid out for expenses was ₹70,000. Opening bank balance was ₹20,000. An operations manager proposes paying an immediate ₹15,000 vendor invoice for new office equipment, claiming that the ₹25,000 accounting profit means the money is fully available to spend.',
+  figures: {
+    revenue: 100000,
+    expenses: 75000,
+    customerCashReceipts: 60000,
+    cashExpensesPaid: 70000,
+    openingBank: 20000,
+    minimumSafetyReserve: 5000,
+    proposedSupplierPayment: 15000,
+  },
+  correctSolutions: {
+    profit: 25000,
+    netCashMovement: -10000,
+    closingBank: 10000,
+    availableAboveReserve: 5000,
+    paymentShortfall: 10000,
+  },
+  teachingExplanation:
+    'In business, accounting profit and liquid cash are completely different. While Vayentra Labs earned ₹25,000 in accounting profit, ₹40,000 of September sales remain uncollected in accounts receivable. Because actual cash paid out (₹70,000) exceeded cash receipts (₹60,000), cash flow was negative ₹10,000. After setting aside the mandatory ₹5,000 emergency reserve, only ₹5,000 of free cash is available—leaving a ₹10,000 shortfall for the proposed ₹15,000 equipment payment! Paying ₹15,000 today would breach the bank reserve and risk operational insolvency.',
+};
+
+export interface OrderToCashStep {
+  id: string;
+  stepNumber: number;
+  title: string;
+  defaultOwner: string;
+  roleOptions: string[];
+  description: string;
+  riskIfMissing: string;
+}
+
+export const ORDER_TO_CASH_STEPS: OrderToCashStep[] = [
+  {
+    id: 'enquiry',
+    stepNumber: 1,
+    title: 'Inbound Enquiry & Scope Request',
+    defaultOwner: 'Sales Lead',
+    roleOptions: ['Sales Lead', 'Delivery Manager', 'Finance Officer'],
+    description: 'Prospective client contacts business with requirement specifications.',
+    riskIfMissing: 'Misunderstood scope creates delivery disputes and delayed invoicing.'
+  },
+  {
+    id: 'order',
+    stepNumber: 2,
+    title: 'Order Confirmation & Agreement',
+    defaultOwner: 'Sales Lead',
+    roleOptions: ['Sales Lead', 'Delivery Manager', 'Finance Officer'],
+    description: 'Signed client contract, purchase order, or written confirmation.',
+    riskIfMissing: 'Commencing work without signed confirmation risks non-payment.'
+  },
+  {
+    id: 'delivery',
+    stepNumber: 3,
+    title: 'Delivery Evidence & Acceptance Note',
+    defaultOwner: 'Delivery Manager',
+    roleOptions: ['Sales Lead', 'Delivery Manager', 'Finance Officer'],
+    description: 'Signed delivery receipt, milestone acceptance sign-off, or service completion note.',
+    riskIfMissing: 'CRITICAL FAILURE: Without written proof of delivery, clients dispute invoices, freezing collections indefinitely!'
+  },
+  {
+    id: 'invoice',
+    stepNumber: 4,
+    title: 'Tax Invoice Generation',
+    defaultOwner: 'Finance Officer',
+    roleOptions: ['Sales Lead', 'Delivery Manager', 'Finance Officer'],
+    description: 'GST-compliant invoice sent with clear 15-day / 30-day payment terms.',
+    riskIfMissing: 'Delayed invoicing postpones the client payment clock, creating unnecessary cash shortfalls.'
+  },
+  {
+    id: 'collection',
+    stepNumber: 5,
+    title: 'Cash Collection Follow-up',
+    defaultOwner: 'Finance Officer',
+    roleOptions: ['Sales Lead', 'Delivery Manager', 'Finance Officer'],
+    description: 'Active reconciliation and professional reminders prior to due date.',
+    riskIfMissing: 'Unmonitored receivables turn into bad debts and starve the business of working capital.'
+  },
+  {
+    id: 'receipt',
+    stepNumber: 6,
+    title: 'Receipt Allocation & Bank Reconciliation',
+    defaultOwner: 'Finance Officer',
+    roleOptions: ['Sales Lead', 'Delivery Manager', 'Finance Officer'],
+    description: 'Match customer bank deposit credit against outstanding invoice in ledger.',
+    riskIfMissing: 'Unreconciled cash records lead to duplicate customer follow-ups and inaccurate financial reporting.'
+  }
+];
+
+export interface TrainerStageGuide {
+  stage: number;
+  title: string;
+  suggestedMinutes: number;
+  objective: string;
+  openingQuestion: string;
+  studentAction: string;
+  discussionPrompt: string;
+  expectedOutcome: string;
+  commonErrors: string;
+  offlineFallback: string;
+}
+
+export const TRAINER_GUIDELINES: TrainerStageGuide[] = [
+  {
+    stage: 1,
+    title: 'The Founder Spark',
+    suggestedMinutes: 7,
+    objective: 'Demonstrate that all business value originates from solving an acute customer inconvenience.',
+    openingQuestion: 'Think about your last 24 hours on campus. What is one daily hassle you would gladly pay ₹50 to make disappear?',
+    studentAction: 'Pick one of 4 relatable problem scenarios, define the target user, and explain why it matters.',
+    discussionPrompt: 'How can you distinguish an acute everyday problem from a minor personal annoyance?',
+    expectedOutcome: 'A concise student opportunity brief anchoring the remainder of the session.',
+    commonErrors: 'Choosing broad, vague problems without identifying who specifically suffers.',
+    offlineFallback: 'Distribute print index cards; students pair up to pitch their customer problem in 30 seconds.'
+  },
+  {
+    stage: 2,
+    title: 'Inside Real Startups',
+    suggestedMinutes: 9,
+    objective: 'Extract disciplined customer-centric principles from verified Indian unicorn journeys.',
+    openingQuestion: 'Why did Zerodha grow to dominate Indian stockbroking without spending a single rupee on TV or celebrity ads?',
+    studentAction: 'Analyze Zerodha, Nykaa, and Meesho scenarios, tackle the founder decision dilemma, and record 1 transferable lesson.',
+    discussionPrompt: 'When does deep discounting help a business, and when does it guarantee bankruptcy?',
+    expectedOutcome: 'Understanding the necessity of trust, authentic value, and positive unit contribution.',
+    commonErrors: 'Believing that massive VC funding or heavy discounting replaces good product-market fit.',
+    offlineFallback: 'Whiteboard a 3-column table comparing Zerodha, Nykaa, and Meesho customer value propositions.'
+  },
+  {
+    stage: 3,
+    title: 'Find Your Business Opportunity',
+    suggestedMinutes: 10,
+    objective: 'Structure the chosen problem into a viable commercial opportunity.',
+    openingQuestion: 'If you could ask prospective customers only three questions, what would you ask without leading them to a fake YES?',
+    studentAction: 'Answer the 5 core opportunity questions and select 3 non-leading customer interview questions.',
+    discussionPrompt: 'Why do friends always say your idea is amazing, and why is that feedback dangerous?',
+    expectedOutcome: 'Clear customer definition, core friction statement, and an unbiased validation plan.',
+    commonErrors: 'Asking leading questions like "Would you buy this cool app?" instead of uncovering past behavior.',
+    offlineFallback: 'Pair roleplay: Student A interviews Student B as a potential customer for 3 minutes.'
+  },
+  {
+    stage: 4,
+    title: 'Build Your Startup',
+    suggestedMinutes: 12,
+    objective: 'Assemble the 8-block Startup Launch Canvas and resolve a practical pricing trade-off.',
+    openingQuestion: 'Your first customer demands a 30% discount. What are the three ways to respond without losing money?',
+    studentAction: 'Review auto-populated launch canvas blocks, make the pricing trade-off choice, and justify unit margins.',
+    discussionPrompt: 'What is the long-term danger of discounting your initial orders below delivery cost?',
+    expectedOutcome: 'Completed 8-block Startup Launch Canvas with a defensible pricing strategy.',
+    commonErrors: 'Feature bloat (trying to build 10 features in Version 1) and margin-eroding discounts.',
+    offlineFallback: 'Students sketch the 8 canvas blocks on a blank sheet and annotate costs vs. revenue.'
+  },
+  {
+    stage: 5,
+    title: 'Run the Business (Vayentra Labs Case)',
+    suggestedMinutes: 14,
+    objective: 'Master the fundamental corporate separation between accounting profit and real cash liquidity.',
+    openingQuestion: 'Vayentra Labs reported ₹25,000 in net profit for September. Why can’t the manager write a ₹15,000 cheque today?',
+    studentAction: 'Predict spendability, calculate Profit (₹25k), Net Cash (−₹10k), Closing Bank (₹10k), Shortfall (₹10k), map handoffs, and recommend action.',
+    discussionPrompt: 'Where is the missing ₹40,000? What happens if the delivery evidence note was never signed by the client?',
+    expectedOutcome: 'Flawless calculation of the 5 case metrics and defensible cash-protective management advice.',
+    commonErrors: 'Confusing earned revenue (₹1,00,000) with cash collected (₹60,000) or ignoring the ₹5,000 reserve.',
+    offlineFallback: 'Step-by-step T-account / cashflow waterfall walkthrough on the classroom blackboard.'
+  },
+  {
+    stage: 6,
+    title: 'Pitch Your Business',
+    suggestedMinutes: 8,
+    objective: 'Deliver an executive summary of the venture and practice peer feedback.',
+    openingQuestion: 'Can you explain the problem, your solution, and how you make money in under 60 seconds?',
+    studentAction: 'Review auto-generated 8-slide pitch deck, edit key assumptions, conduct peer feedback, and write self-reflection.',
+    discussionPrompt: 'What is the single most uncertain assumption in your venture model today?',
+    expectedOutcome: 'Saved 8-slide presentation draft and honest reflection on what decision to change.',
+    commonErrors: 'Reading slide bullet points verbatim instead of explaining the core business logic.',
+    offlineFallback: '1-minute elevator pitch delivered standing to a squad partner.'
+  }
+];
+
 export const STARTUP_STORAGE_KEY = 'vcep:s01:edition-3.1:startup-lab';
 
 export type StageNumber = 1 | 2 | 3 | 4 | 5 | 6;
@@ -876,44 +1151,105 @@ export interface CollegeProblemOption {
 
 export const COLLEGE_PROBLEM_OPTIONS: CollegeProblemOption[] = [
   {
+    id: 'prob-laundry',
+    category: 'Hostel Operations',
+    title: 'Affordable Student Laundry',
+    description: 'Hostel students spend 4 hours hand-washing clothes or wait 6 days for local dhobis who fade fabric and mix up garments.',
+    friction: 'Hostel rooms lack drying space; students frequently run out of clean clothes before seminars and job interviews.',
+    opportunityHint: 'Standardized 24-hour wash, tumble-dry, and fold canvas bag pickup service priced transparently by weight.'
+  },
+  {
     id: 'prob-food',
     category: 'Food & Daily Living',
-    title: 'Unhealthy, Expensive or Delayed Student Food',
-    description: 'Hostellers face oily, unpalatable mess food, while food delivery apps cost ₹300 per meal with ₹40 delivery fees and take 45 minutes.',
+    title: 'Better Food Options Near Colleges',
+    description: 'Hostellers face oily, unpalatable mess food, while food delivery apps cost ₹300+ per meal with steep delivery charges and take 45 minutes.',
     friction: '45-minute lunch breaks leave students hungry, eating junk, or missing the first 10 minutes of afternoon lectures.',
     opportunityHint: 'Pre-ordered homestyle meal subscriptions delivered directly to campus gates at 1:15 PM sharp for under ₹90.'
   },
   {
-    id: 'prob-print',
-    category: 'Academic Operations',
-    title: 'Assignment Printing Chaos & Delays',
-    description: 'Submission mornings see 40 students crowded inside a single campus print shop with jamming hardware and slow USB transfers.',
-    friction: 'Deadlines missed, stress, corrupted thumb drives, and exorbitant emergency page rates.',
-    opportunityHint: 'Cloud WhatsApp queue where students send PDFs the night before and grab stapled, verified prints at a locker by 8:45 AM.'
+    id: 'prob-inventory',
+    category: 'Small Retail Operations',
+    title: 'Inventory Management for Small Shops',
+    description: 'Corner kirana shops and independent retail stores run out of fast-moving daily items or overstock slow inventory using paper notebooks.',
+    friction: 'Lost daily sales when popular products run dry, and wasted working capital locked in expired slow-moving stock.',
+    opportunityHint: 'Simple WhatsApp-based daily inventory reorder alerts and fast stock counting for neighborhood shops.'
   },
   {
-    id: 'prob-laundry',
-    category: 'Hostel Operations',
-    title: 'Weekend Laundry Bottlenecks & Damaged Garments',
-    description: 'Dormers spend 4 hours hand-washing clothes or wait 6 days for local dhobis who fade fabric and mix up garments.',
-    friction: 'Hostel rooms lack drying space; students frequently run out of clean clothes before seminars and job interviews.',
-    opportunityHint: 'Standardized 24-hour wash, tumble-dry, and fold canvas bag pickup service priced by weight.'
-  },
-  {
-    id: 'prob-merch',
-    category: 'Collegiate Events',
-    title: 'Club Apparel Minimums & Late Deliveries',
-    description: 'Fest committees and sports teams face 200-piece minimum orders and unverified print quality from industrial zone vendors.',
-    friction: 'Fest kits arriving after the event opening ceremony, ruining club reputation and wasting budget.',
-    opportunityHint: 'Fast-turnaround campus apparel with 20-piece minimums and factory-gate quality inspection.'
-  },
-  {
-    id: 'prob-sme',
+    id: 'prob-support',
     category: 'Local Commerce',
-    title: 'Campus Bakeries Losing Orders to Quick-Commerce Apps',
-    description: 'Beloved neighborhood corner bakeries are losing daily snack orders because they lack digital menus and WhatsApp ordering.',
-    friction: 'Traditional owners are skeptical of complex ERPs and refuse 25% aggregator platform cuts.',
-    opportunityHint: '48-hour turnkey WhatsApp Business catalog with acrylic tabletop QR stands for campus cafes.'
+    title: 'Digital Customer Support for Local Businesses',
+    description: 'Neighborhood clinics, repair shops, and coaching centers miss customer inquiries after hours because they cannot staff full-time support desks.',
+    friction: 'Frustrated customers switch to larger corporate chains when local businesses fail to reply promptly.',
+    opportunityHint: 'Turnkey WhatsApp automated inquiry responder and booking manager tailored for neighborhood businesses.'
+  }
+];
+
+export interface OpportunityQuestionConfig {
+  id: 'q1-who' | 'q2-what' | 'q3-why' | 'q4-how';
+  number: string;
+  question: string;
+  prompt: string;
+  example: string;
+  chips: string[];
+  whyMatters: string;
+}
+
+export const OPPORTUNITY_QUESTIONS: OpportunityQuestionConfig[] = [
+  {
+    id: 'q1-who',
+    number: '01',
+    question: 'Who has the problem?',
+    prompt: 'Identify the exact customer group experiencing this daily friction.',
+    example: 'e.g., 1st & 2nd year undergraduates living in campus hostels/PGs without kitchen or laundry access.',
+    chips: [
+      'Hostel students & PG residents without kitchen/laundry access',
+      'Local kirana and independent retail shopkeepers',
+      'Neighborhood clinics, tutors & service providers',
+      'College club organizers & sports team leads'
+    ],
+    whyMatters: 'If you try to serve everybody on day one, you build for nobody. A narrow beachhead customer segment gives you a focused group of people you can personally interview, observe, and delight.'
+  },
+  {
+    id: 'q2-what',
+    number: '02',
+    question: 'What problem will you solve?',
+    prompt: 'Describe the specific pain, delay, or frustration your business eliminates.',
+    example: 'e.g., Eliminate 45-minute lunch friction with scheduled, healthy ₹90 homestyle meal deliveries.',
+    chips: [
+      'Eliminate 45-min lunch break delay with ₹90 gate delivery',
+      'Prevent laundry fabric damage with 24-hr wash-and-fold service',
+      'Stop daily stockouts with simple WhatsApp inventory alerts',
+      'Prevent lost customers with 24/7 automated inquiry responses'
+    ],
+    whyMatters: 'A business exists to solve a real human inconvenience. Customers don’t buy products; they buy a solution to a problem they want gone.'
+  },
+  {
+    id: 'q3-why',
+    number: '03',
+    question: 'Why would customers choose or pay for your solution?',
+    prompt: 'What makes your offer better, faster, or more reliable than their existing alternatives?',
+    example: 'e.g., Half the cost of food delivery apps, zero delivery surcharges, and guaranteed delivery before 1:15 PM.',
+    chips: [
+      'Guaranteed punctuality at half the cost of commercial apps',
+      'Individual barcode laundry bags ensure zero lost garments',
+      'Operates 100% inside WhatsApp with zero software training needed',
+      'Instant replies within 30 seconds with automated appointment booking'
+    ],
+    whyMatters: 'Your value proposition explains why someone will pull money out of their pocket for your solution instead of sticking with free alternatives or old habits.'
+  },
+  {
+    id: 'q4-how',
+    number: '04',
+    question: 'How will you reach your first customers?',
+    prompt: 'What grassroots founder hustle will secure your first 10 paying customers?',
+    example: 'e.g., In-person sample tasting outside hostel gates and word-of-mouth WhatsApp community groups.',
+    chips: [
+      'In-person sample tasting & table setup outside hostel gates',
+      'Direct walk-ins & 10-minute demonstrations for 15 local shopkeepers',
+      'Word-of-mouth referral cards with 10% off for roommates',
+      'Free 3-day trial for the first 5 neighborhood businesses'
+    ],
+    whyMatters: 'Real founders don’t burn money on expensive city-wide digital ads before launch. They personally visit early customers, earn trust, and iterate based on direct feedback.'
   }
 ];
 
@@ -944,6 +1280,7 @@ export interface StartupLabState {
     targetCampusPersona: string;
     opportunityStatement: string; // One-sentence business opportunity
     whyItMatters: string;
+    validationApproach?: string;
   };
   // Stage 2
   storyDecisions: Record<string, string>; // { zerodha, nykaa, meesho }
@@ -960,6 +1297,7 @@ export interface StartupLabState {
     whyItMatters: string;
     validationEvidence: string;
   };
+  selectedInterviewQuestions?: string[]; // Stage 3 customer interview validation questions
   // Stage 4
   decisions: {
     decisionA?: string;
@@ -968,7 +1306,24 @@ export interface StartupLabState {
     decisionD?: string;
     decisionE?: string;
   };
-  // Stage 5
+  pricingTradeOff?: {
+    choice: string;
+    rationale: string;
+  };
+  // Stage 5: Approved Vayentra Labs Case & Process Handoffs
+  vlab?: {
+    prediction: 'yes' | 'no' | 'not-sure' | '';
+    calcProfit: string;
+    calcNetCash: string;
+    calcClosingBank: string;
+    calcAvailableAboveReserve: string;
+    calcPaymentShortfall: string;
+    calcAttempted: boolean;
+    processOrder: string[];
+    processOwners: Record<string, string>;
+    paymentRecommendation: string;
+    paymentRationale: string;
+  };
   boardroom: {
     roleId?: string;
     crisisChoice?: string;
@@ -988,6 +1343,13 @@ export interface StartupLabState {
     activeSlideIndex: number;
     lastSaved?: string;
   };
+  peerFeedback?: {
+    problemClear: boolean | null;
+    solutionBelievable: boolean | null;
+    businessModelClear: boolean | null;
+    tradeoffExplained: boolean | null;
+  };
+  reflectionChange?: string;
   lastSaved?: string;
 }
 
@@ -1010,7 +1372,7 @@ export function buildDefaultPitchDeck(caseObj: VentureCase, decisions: StartupLa
     {
       id: 1,
       number: '01',
-      title: 'Our Startup',
+      title: 'Startup Name and Vision',
       subtitle: 'Startup Name, Tagline & Business Idea',
       fields: [
         { key: 'name', label: 'Venture Name', value: caseObj.name, placeholder: 'e.g. QuickBite Fresh' },
@@ -1022,7 +1384,7 @@ export function buildDefaultPitchDeck(caseObj: VentureCase, decisions: StartupLa
     {
       id: 2,
       number: '02',
-      title: 'The Problem',
+      title: 'The Customer Problem',
       subtitle: 'Customer Pain Point & Real Evidence',
       fields: [
         { key: 'problem', label: 'Core Customer Friction', value: probText, placeholder: 'What acute inconvenience do customers face daily?', isTextArea: true },
@@ -1070,7 +1432,7 @@ export function buildDefaultPitchDeck(caseObj: VentureCase, decisions: StartupLa
     {
       id: 6,
       number: '06',
-      title: 'Market Entry',
+      title: 'Customer Acquisition Plan',
       subtitle: 'Acquiring the First 10 Paying Customers',
       fields: [
         { key: 'first10Plan', label: 'First 10 Customers Acquisition Strategy', value: first10Text, placeholder: 'What specific founder hustle secures your first 10 paying customers?', isTextArea: true },
@@ -1082,7 +1444,7 @@ export function buildDefaultPitchDeck(caseObj: VentureCase, decisions: StartupLa
     {
       id: 7,
       number: '07',
-      title: 'Operations & Risks',
+      title: 'Operations and Key Risks',
       subtitle: 'Delivery Fulfilment, Governance & Contingency',
       fields: [
         { key: 'deliveryProcess', label: 'Standard Delivery & Fulfilment Workflow', value: deliveryText, placeholder: 'How does an order travel from supplier to customer hands reliably?', isTextArea: true },
@@ -1094,7 +1456,7 @@ export function buildDefaultPitchDeck(caseObj: VentureCase, decisions: StartupLa
     {
       id: 8,
       number: '08',
-      title: 'Our Ask & Next Steps',
+      title: 'Ask and Next Steps',
       subtitle: 'Immediate Validation Experiment & Support Required',
       fields: [
         { key: 'nextExperiment', label: 'Immediate Next Experiment (7-Day Milestone)', value: 'Conduct 15 in-person interviews with campus hostel students and run a 1-day pilot with 10 pre-orders to validate pricing willingness.', placeholder: 'What will you test in the next 7 days to prove your assumptions?', isTextArea: true },
@@ -1162,12 +1524,44 @@ export function loadStartupLabState(): StartupLabState {
     },
     selectedCaseId: 'quickbite',
     opportunityBrief: defaultBrief,
+    selectedInterviewQuestions: ['iq-past-behavior', 'iq-friction-depth', 'iq-workaround-cost'],
     decisions: defaultDecisions,
+    pricingTradeOff: {
+      choice: 'pt-scope',
+      rationale: 'Keeping price per unit firm while reducing initial delivery scope protects unit economics and establishes fair value.'
+    },
+    vlab: {
+      prediction: '',
+      calcProfit: '',
+      calcNetCash: '',
+      calcClosingBank: '',
+      calcAvailableAboveReserve: '',
+      calcPaymentShortfall: '',
+      calcAttempted: false,
+      processOrder: ['enquiry', 'order', 'delivery', 'invoice', 'collection', 'receipt'],
+      processOwners: {
+        enquiry: 'Sales Lead',
+        order: 'Sales Lead',
+        delivery: 'Delivery Manager',
+        invoice: 'Finance Officer',
+        collection: 'Finance Officer',
+        receipt: 'Finance Officer',
+      },
+      paymentRecommendation: 'reschedule',
+      paymentRationale: 'Pay ₹5,000 from available cash above safety reserve; defer remaining ₹10,000 until client receivables are collected.',
+    },
     boardroom: defaultBoardroom,
     pitchDeck: {
       slides: buildDefaultPitchDeck(defaultCase, defaultDecisions, defaultStage1, defaultBoardroom),
       activeSlideIndex: 0
-    }
+    },
+    peerFeedback: {
+      problemClear: null,
+      solutionBelievable: null,
+      businessModelClear: null,
+      tradeoffExplained: null,
+    },
+    reflectionChange: 'I would spend more time interviewing early adopters directly rather than relying on initial assumptions.'
   };
 
   if (typeof window === 'undefined') return defaultState;
@@ -1187,6 +1581,7 @@ export function loadStartupLabState(): StartupLabState {
       stage1: { ...defaultState.stage1, ...(parsed.stage1 || {}) },
       storyInspiration: { ...defaultState.storyInspiration, ...(parsed.storyInspiration || {}) },
       opportunityBrief: { ...defaultState.opportunityBrief, ...(parsed.opportunityBrief || {}) },
+      vlab: { ...defaultState.vlab, ...(parsed.vlab || {}) },
       boardroom: { ...defaultState.boardroom, ...(parsed.boardroom || {}) },
       pitchDeck: {
         slides: mergedSlides,

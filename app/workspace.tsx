@@ -3,6 +3,7 @@ import {useState,useEffect,lazy,Suspense} from 'react';import baseSessions from 
 import PremiumJourney from './premium-journey';
 import BrandLogo from '@/components/brand-logo';
 import VcepNavbar from '@/components/vcep-navbar';
+import ViviWidget from '@/components/vivi/vivi-widget';
 const PracticeLab=lazy(()=>import('./practice-lab'));const Worksheet=lazy(()=>import('./worksheet'));const Staff=lazy(()=>import('./staff'));
 export default function Workspace(){const[boot,setBoot]=useState<any>({sessions:baseSessions,user:null}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[selected,setSelected]=useState(0),[browse,setBrowse]=useState(true),[practiceMode,setPracticeMode]=useState(false),[notice,setNotice]=useState(false);
  async function refresh(){try{const d=await api('boot');setBoot(d);setError('');return d}catch(e:any){setError(e.message)}finally{setLoading(false)}}
@@ -21,5 +22,7 @@ export default function Workspace(){const[boot,setBoot]=useState<any>({sessions:
  <PremiumJourney sessions={sessions} submissions={latest} drafts={boot.drafts||[]} role={user?.role} cohortName={boot.cohort?.name} onOpen={open} lockReason={locked} onOpenManagement={staff?()=>{setSelected(0);setBrowse(false);history.replaceState(null,'',location.pathname)}:undefined}/>
  {student&&<><div className="metrics"><section><strong>{done}<small> / 24</small></strong><span>Sessions submitted</span><Progress value={done/24*100}/></section><section><strong>{graded.length}</strong><span>Sessions graded</span></section><section><strong>{graded.length?(graded.reduce((sum:number,g:any)=>sum+totalGrade(JSON.parse(g.grade)),0)/graded.length).toFixed(1):'—'}<small> / 10</small></strong><span>Mean graded session score</span></section><section><strong>{latest.filter((q:any)=>q.status==='Returned').length}</strong><span>Returned for improvement</span></section></div><div className="deadline-strip"><b>Upcoming deadlines</b>{boot.assignments?.filter((a:any)=>a.due&&!latest.some((q:any)=>q.session===a.session&&q.status!=='Returned')).sort((a:any,b:any)=>a.due.localeCompare(b.due)).slice(0,3).map((a:any)=><button key={a.id} onClick={()=>open(a.session)}>Session {a.session} · {new Date(boot.extensions?.find((e:any)=>e.session===a.session)?.due||a.due).toLocaleString()}</button>)}{!boot.assignments?.some((a:any)=>a.due)&&<span>Your college will publish session dates here.</span>}</div></>}
  </>}
- </main><footer className="vcep-footer no-print"><div className="vcep-footer-brand"><b>VAYENTRA / VCEP</b><p>Experience corporate before you enter corporate.</p></div><div className="vcep-footer-links"><p>Fictional cases. Real professional habits.</p><a href="/privacy">Privacy & participation</a><span> · </span><a href="/programme">Programme vision & delivery</a></div></footer></div>
+ </main><footer className="vcep-footer no-print"><div className="vcep-footer-brand"><b>VAYENTRA / VCEP</b><p>Experience corporate before you enter corporate.</p></div><div className="vcep-footer-links"><p>Fictional cases. Real professional habits.</p><a href="/privacy">Privacy & participation</a><span> · </span><a href="/programme">Programme vision & delivery</a></div></footer>
+ <ViviWidget currentSessionId={selected || undefined} currentSessionTitle={session?.title} user={user} />
+ </div>
 }

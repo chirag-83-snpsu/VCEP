@@ -1,126 +1,254 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  S01_STAGES,
-  COLLEGE_PROBLEM_OPTIONS,
   STARTUP_STORIES,
+  COLLEGE_PROBLEM_OPTIONS,
+  OPPORTUNITY_QUESTIONS,
   VENTURE_CASES,
   BOARDROOM_ROLES,
   CRISIS_SCENARIO,
-  StageNumber,
-  PitchSlide,
-  StartupLabState,
+  CUSTOMER_INTERVIEW_QUESTIONS,
+  PRICING_TRADE_OFF_OPTIONS,
+  VAYENTRA_LABS_FINANCIAL_CASE,
+  ORDER_TO_CASH_STEPS,
+  TRAINER_GUIDELINES,
+  STARTUP_STORAGE_KEY,
   loadStartupLabState,
-  saveStartupLabState,
   buildDefaultPitchDeck,
-} from './session-01-startup-data';
-import { ControlledAssessmentShield } from '../workstations/components/controlled-assessment-shield';
+  type StartupLabState,
+  type VentureCase,
+  type PitchSlide,
+  type CollegeProblemOption,
+  type OrderToCashStep,
+} from './session-01-startup-data.ts';
+import { ControlledAssessmentShield } from '../workstations/components/controlled-assessment-shield.tsx';
 import {
-  Rocket,
   ShieldCheck,
   CheckCircle2,
-  Clock,
-  ExternalLink,
+  AlertCircle,
+  HelpCircle,
   ChevronDown,
   ChevronUp,
-  Users,
-  Target,
   ArrowRight,
   ArrowLeft,
   Sparkles,
-  HelpCircle,
-  AlertTriangle,
-  Play,
-  RotateCcw,
-  Presentation,
-  Maximize2,
-  Minimize2,
-  Edit3,
-  Layers,
-  FileCheck,
+  Sliders,
+  DollarSign,
+  Users,
+  Target,
+  FileText,
+  Lightbulb,
   Check,
-  ChevronRight,
-  ChevronLeft,
+  TrendingUp,
+  AlertTriangle,
+  Send,
   RefreshCw,
-  Eye,
+  ExternalLink,
   Info,
+  Layers,
+  Briefcase,
+  Workflow,
+  CheckSquare,
 } from 'lucide-react';
 
 interface Session01StartupJourneyProps {
-  initialStage?: number;
-  initialSection?: string;
-  onNavigateSection?: (section: any) => void;
   onUpdateDraft?: (key: string, value: string) => void;
 }
 
+interface TaskCardProps {
+  taskId: string;
+  taskNumber: string;
+  title: string;
+  instruction: string;
+  whyMatters?: string;
+  statusText?: string;
+  isActive?: boolean;
+  onSelectTask?: () => void;
+  children: React.ReactNode;
+}
+
+/**
+ * Unified Premium TaskCard Component
+ * Implements the VCEP single-task bordered card pattern.
+ * Neutral 1px #DCE5E9 border, 16px radius, 3px teal left accent on active task.
+ */
+function TaskCard({
+  taskId,
+  taskNumber,
+  title,
+  instruction,
+  whyMatters,
+  statusText,
+  isActive,
+  onSelectTask,
+  children,
+}: TaskCardProps) {
+  const [whyOpen, setWhyOpen] = useState(false);
+
+  return (
+    <article
+      id={taskId.toLowerCase()}
+      data-task-id={taskId}
+      onClick={onSelectTask}
+      tabIndex={0}
+      aria-label={`${taskNumber}: ${title}`}
+      style={{
+        background: '#ffffff',
+        border: '1px solid #DCE5E9',
+        borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
+        borderRadius: '16px',
+        padding: 'clamp(18px, 2.5vw, 24px)',
+        marginBottom: '28px',
+        boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+        outline: 'none',
+      }}
+    >
+      {/* Task Card Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '10px',
+          marginBottom: '10px',
+        }}
+      >
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#0F766E',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {taskNumber}
+            </span>
+            <span style={{ color: '#cbd5e1' }}>·</span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
+              Ref: {taskId}
+            </span>
+          </div>
+          <h3
+            style={{
+              fontSize: 'clamp(17px, 2vw, 20px)',
+              fontWeight: 800,
+              color: '#17245C',
+              margin: 0,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {title}
+          </h3>
+        </div>
+
+        {statusText && (
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#f0fdfa',
+              border: '1px solid #99f6e4',
+              padding: '4px 10px',
+              borderRadius: '16px',
+              fontSize: '11.5px',
+              color: '#0F766E',
+              fontWeight: 600,
+            }}
+          >
+            <CheckCircle2 size={13} />
+            <span>{statusText}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Task Instruction (1-2 sentences) */}
+      <p style={{ fontSize: '13.5px', color: '#64748B', margin: '0 0 14px', lineHeight: 1.55 }}>
+        {instruction}
+      </p>
+
+      {/* Accessible Collapsible Why This Matters */}
+      {whyMatters && (
+        <div style={{ marginBottom: '18px' }}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setWhyOpen(!whyOpen);
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              fontSize: '11.5px',
+              fontWeight: 600,
+              color: '#0F766E',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <HelpCircle size={13} />
+            <span>{whyOpen ? 'Hide founder principle' : 'Why this matters'}</span>
+            {whyOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+
+          {whyOpen && (
+            <div
+              style={{
+                marginTop: '8px',
+                padding: '12px 14px',
+                background: '#f0fdfa',
+                border: '1px solid #ccfbf1',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                color: '#0F766E',
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>Founder Commercial Principle:</strong> {whyMatters}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Inner Task Body */}
+      <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+        {children}
+      </div>
+    </article>
+  );
+}
+
 export function Session01StartupJourney({
-  initialStage,
-  initialSection,
-  onNavigateSection,
   onUpdateDraft,
 }: Session01StartupJourneyProps) {
   const [labState, setLabState] = useState<StartupLabState>(loadStartupLabState);
   const [shieldConfirmed, setShieldConfirmed] = useState(false);
-  const [expandedStory, setExpandedStory] = useState<string | null>(null);
-
-  // Full-screen presentation mode
-  const [isFullScreenPitch, setIsFullScreenPitch] = useState(false);
-  const [showSpeakerNotes, setShowSpeakerNotes] = useState(false);
-
-  // Boardroom timer state (180s = 3 minutes)
-  const [timerSeconds, setTimerSeconds] = useState(180);
-  const [timerRunning, setTimerRunning] = useState(false);
-
-  // Determine active stage from props or URL
-  const [currentStage, setCurrentStage] = useState<StageNumber>(() => {
-    if (initialStage && initialStage >= 1 && initialStage <= 6) {
-      return initialStage as StageNumber;
-    }
-    if (initialSection) {
-      const map: Record<string, StageNumber> = {
-        Overview: 1,
-        Learn: 2,
-        Case: 3,
-        Work: 4,
-        Team: 5,
-        Review: 6,
-      };
-      if (map[initialSection]) return map[initialSection];
-    }
-    return 1;
-  });
-
-  // Sync with URL query parameter changes
-  useEffect(() => {
-    const handleUrlSync = () => {
-      const params = new URLSearchParams(window.location.search);
-      const stageParam = Number(params.get('stage'));
-      const secParam = params.get('section');
-      if (Number.isInteger(stageParam) && stageParam >= 1 && stageParam <= 6) {
-        setCurrentStage(stageParam as StageNumber);
-      } else if (secParam) {
-        const map: Record<string, StageNumber> = {
-          Overview: 1,
-          Learn: 2,
-          Case: 3,
-          Work: 4,
-          Team: 5,
-          Review: 6,
-        };
-        if (map[secParam]) setCurrentStage(map[secParam]);
-      }
-    };
-
-    handleUrlSync();
-    window.addEventListener('popstate', handleUrlSync);
-    return () => window.removeEventListener('popstate', handleUrlSync);
-  }, []);
+  const [saveStatus, setSaveStatus] = useState('Saved in this browser');
+  const [showTrainerGuidance, setShowTrainerGuidance] = useState(false);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [activeTaskId, setActiveTaskId] = useState('S01-T01');
+  const [expandedWhyMatters, setExpandedWhyMatters] = useState<Record<string, boolean>>({});
+  const [isCustomIdea, setIsCustomIdea] = useState(false);
+  const [customIdeaText, setCustomIdeaText] = useState('');
 
   // Hydrate from localStorage and check Baseline A shield
   useEffect(() => {
     const loaded = loadStartupLabState();
     setLabState(loaded);
+    if (loaded.pitchDeck?.activeSlideIndex !== undefined) {
+      setActiveSlideIndex(loaded.pitchDeck.activeSlideIndex);
+    }
     try {
       const draft = JSON.parse(sessionStorage.getItem('vcep-drive-edition3:session:1:preview') || '{}');
       if (draft['check:0'] === 'yes') {
@@ -129,81 +257,71 @@ export function Session01StartupJourney({
     } catch {}
   }, []);
 
-  // Countdown timer for Boardroom
-  useEffect(() => {
-    if (!timerRunning || timerSeconds <= 0) return;
-    const interval = setInterval(() => {
-      setTimerSeconds((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [timerRunning, timerSeconds]);
+  // Save state to localStorage and sync backward-compatible draft keys
+  const saveLabState = (next: StartupLabState) => {
+    setLabState(next);
+    setSaveStatus('Saving…');
 
-  // Navigate to stage with URL update & scroll
-  const goToStage = useCallback((stage: StageNumber, pushHistory = true) => {
-    setCurrentStage(stage);
-    if (pushHistory && typeof window !== 'undefined') {
-      const u = new URL(window.location.href);
-      u.searchParams.set('session', '1');
-      u.searchParams.set('stage', String(stage));
-      // Map to section for compatibility with legacy routers
-      const sectionNames: Record<StageNumber, string> = {
-        1: 'Overview',
-        2: 'Learn',
-        3: 'Case',
-        4: 'Work',
-        5: 'Team',
-        6: 'Review',
-      };
-      u.searchParams.set('section', sectionNames[stage]);
-      window.history.pushState({ session: 1, stage }, '', u.toString());
-      if (onNavigateSection) {
-        onNavigateSection(sectionNames[stage]);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STARTUP_STORAGE_KEY, JSON.stringify(next));
       }
-    }
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [onNavigateSection]);
+    } catch {}
 
-  // State updater helper
-  const updateState = (updater: (prev: StartupLabState) => StartupLabState) => {
-    setLabState((prev) => {
-      const next = updater(prev);
-      saveStartupLabState(next);
-      syncToSessionStorage(next);
-      return next;
-    });
+    syncDraftKeys(next);
+
+    setTimeout(() => {
+      setSaveStatus('Saved in this browser');
+    }, 300);
   };
 
-  // Sync to legacy sessionStorage so review engine & other components receive data
-  const syncToSessionStorage = (state: StartupLabState) => {
+  // Sync draft keys for review engine & platform grading compatibility
+  const syncDraftKeys = (state: StartupLabState) => {
     try {
       const raw = sessionStorage.getItem('vcep-drive-edition3:session:1:preview');
       const draft = raw ? JSON.parse(raw) : {};
 
-      // Stage 1 Concept Explanation
-      if (state.stage1?.opportunityStatement) {
-        draft['concept:explain'] = `Opportunity Spotting: ${state.stage1.opportunityStatement}. Target: ${state.stage1.targetCampusPersona}. Why it matters: ${state.stage1.whyItMatters}`;
+      // Stage 1 Concept & Opportunity
+      if (state.stage1) {
+        draft['concept:explain'] = `Opportunity: ${state.stage1.opportunityStatement}. Target: ${state.stage1.targetCampusPersona}. Why: ${state.stage1.whyItMatters}`;
         onUpdateDraft?.('concept:explain', draft['concept:explain']);
       }
 
-      // Stage 3 & 4 Work Analysis
+      // Stage 4 Canvas & Analysis
       const activeCase = VENTURE_CASES.find((c) => c.id === state.selectedCaseId) || VENTURE_CASES[0];
-      const prob = activeCase.decisions.decisionA.options.find((o) => o.id === state.decisions.decisionA)?.text || '';
-      const persona = activeCase.decisions.decisionB.options.find((o) => o.id === state.decisions.decisionB)?.text || '';
-      const mvp = activeCase.decisions.decisionC.options.find((o) => o.id === state.decisions.decisionC)?.text || '';
-      const first10 = activeCase.decisions.decisionD.options.find((o) => o.id === state.decisions.decisionD)?.text || '';
-      const delivery = activeCase.decisions.decisionE.options.find((o) => o.id === state.decisions.decisionE)?.text || '';
-
-      draft['work:analysis'] = `Selected Venture: ${activeCase.name}. Problem: ${prob}. Persona: ${persona}. MVP: ${mvp}. First 10 Users: ${first10}. Delivery Plan: ${delivery}.`;
+      const prob = state.stage1?.opportunityStatement || activeCase.summary;
+      const persona = state.stage1?.targetCampusPersona || activeCase.persona;
+      const pricing = state.pricingTradeOff?.choice || 'Scope Pruning';
+      draft['work:analysis'] = `Venture: ${activeCase.name}. Problem: ${prob}. Customer: ${persona}. Pricing Trade-off: ${pricing}.`;
       onUpdateDraft?.('work:analysis', draft['work:analysis']);
 
-      // Stage 5 Team
-      const roleObj = BOARDROOM_ROLES.find((r) => r.id === state.boardroom.roleId) || BOARDROOM_ROLES[0];
-      draft['team:contribution'] = `Executive Role: ${roleObj.title}. Focus: ${roleObj.focus}. Mandate: ${roleObj.mandate}`;
-      onUpdateDraft?.('team:contribution', draft['team:contribution']);
+      // Stage 5 Approved Vayentra Labs Financial figures sync
+      if (state.vlab) {
+        draft['work:1:0:0:2'] = String(state.vlab.calcProfit || '');
+        draft['work:1:0:1:2'] = String(state.vlab.calcNetCash || '');
+        draft['work:1:0:2:2'] = String(state.vlab.calcClosingBank || '');
+        draft['work:1:0:3:2'] = String(state.vlab.calcAvailableAboveReserve || '');
+        draft['work:1:0:4:2'] = String(state.vlab.calcPaymentShortfall || '');
 
-      if (state.boardroom.crisisRationale) {
-        draft['team:judgement'] = `Crisis Strategy: ${state.boardroom.crisisChoice}. Rationale: ${state.boardroom.crisisRationale}`;
+        onUpdateDraft?.('work:1:0:0:2', draft['work:1:0:0:2']);
+        onUpdateDraft?.('work:1:0:1:2', draft['work:1:0:1:2']);
+        onUpdateDraft?.('work:1:0:2:2', draft['work:1:0:2:2']);
+        onUpdateDraft?.('work:1:0:3:2', draft['work:1:0:3:2']);
+        onUpdateDraft?.('work:1:0:4:2', draft['work:1:0:4:2']);
+
+        // Process handoffs
+        draft['team:contribution'] = `Order-to-Cash Process: ${state.vlab.processOrder.join(' -> ')}. Delivery Owner: ${state.vlab.processOwners?.delivery || 'Delivery Manager'}.`;
+        onUpdateDraft?.('team:contribution', draft['team:contribution']);
+
+        // Management payment recommendation
+        draft['team:judgement'] = `Payment Decision: ${state.vlab.paymentRecommendation}. Rationale: ${state.vlab.paymentRationale}`;
         onUpdateDraft?.('team:judgement', draft['team:judgement']);
+      }
+
+      // Stage 6 Reflection
+      if (state.reflectionChange) {
+        draft['review:reflection'] = state.reflectionChange;
+        onUpdateDraft?.('review:reflection', state.reflectionChange);
       }
 
       sessionStorage.setItem('vcep-drive-edition3:session:1:preview', JSON.stringify(draft));
@@ -221,1443 +339,1605 @@ export function Session01StartupJourney({
     } catch {}
   };
 
+  // Active venture case helper
   const activeCase = useMemo(() => {
-    return VENTURE_CASES.find((c) => c.id === labState.selectedCaseId) || VENTURE_CASES[0];
+    return VENTURE_CASES.find((c) => c.id === (labState.selectedCaseId || 'quickbite')) || VENTURE_CASES[0];
   }, [labState.selectedCaseId]);
 
-  const activeRole = useMemo(() => {
-    return BOARDROOM_ROLES.find((r) => r.id === labState.boardroom.roleId) || BOARDROOM_ROLES[0];
-  }, [labState.boardroom.roleId]);
+  // Handle problem selection from 4 relatable options or custom
+  const handleSelectProblemOption = (opt: CollegeProblemOption) => {
+    setIsCustomIdea(false);
+    let mappedCaseId = 'quickbite';
+    if (opt.id === 'prob-laundry') mappedCaseId = 'cleanwash';
+    else if (opt.id === 'prob-food') mappedCaseId = 'quickbite';
+    else if (opt.id === 'prob-inventory') mappedCaseId = 'digitlocal';
+    else if (opt.id === 'prob-support') mappedCaseId = 'digitlocal';
 
-  // Stage completion flags
-  const stageCompletion = useMemo(() => {
-    const s1Complete = shieldConfirmed && Boolean(labState.stage1?.opportunityStatement);
-    const s2Complete = Object.keys(labState.storyDecisions).length === 3;
-    const s3Complete = Boolean(labState.selectedCaseId && labState.opportunityBrief?.customerProblem);
-    const s4Complete = Boolean(
-      labState.decisions.decisionA &&
-      labState.decisions.decisionB &&
-      labState.decisions.decisionC &&
-      labState.decisions.decisionD &&
-      labState.decisions.decisionE
-    );
-    const s5Complete = Boolean(labState.boardroom?.crisisChoice && labState.boardroom?.crisisRationale);
-    const s6Complete = Boolean(labState.pitchDeck?.slides?.length === 8);
+    const caseObj = VENTURE_CASES.find((c) => c.id === mappedCaseId) || VENTURE_CASES[0];
 
-    return {
-      1: s1Complete,
-      2: s2Complete,
-      3: s3Complete,
-      4: s4Complete,
-      5: s5Complete,
-      6: s6Complete,
-    };
-  }, [shieldConfirmed, labState]);
-
-  // Slide helpers for Stage 6
-  const activeSlideIndex = labState.pitchDeck?.activeSlideIndex || 0;
-  const slides = labState.pitchDeck?.slides || [];
-  const currentSlide: PitchSlide | undefined = slides[activeSlideIndex] || slides[0];
-
-  const handleSlideFieldChange = (slideId: number, fieldKey: string, newValue: string) => {
-    updateState((prev) => {
-      const updatedSlides = (prev.pitchDeck?.slides || []).map((slide) => {
-        if (slide.id !== slideId) return slide;
-        return {
-          ...slide,
-          fields: slide.fields.map((f) => (f.key === fieldKey ? { ...f, value: newValue } : f)),
-        };
-      });
-      return {
-        ...prev,
-        pitchDeck: {
-          ...prev.pitchDeck,
-          slides: updatedSlides,
-          lastSaved: new Date().toLocaleTimeString(),
-        },
-      };
-    });
-  };
-
-  const handleSpeakerNotesChange = (slideId: number, notes: string) => {
-    updateState((prev) => {
-      const updatedSlides = (prev.pitchDeck?.slides || []).map((slide) => {
-        if (slide.id !== slideId) return slide;
-        return { ...slide, speakerNotes: notes };
-      });
-      return {
-        ...prev,
-        pitchDeck: {
-          ...prev.pitchDeck,
-          slides: updatedSlides,
-        },
-      };
-    });
-  };
-
-  const handleSyncPitchFromStages = () => {
-    const fresh = buildDefaultPitchDeck(activeCase, labState.decisions, labState.stage1, labState.boardroom);
-    updateState((prev) => ({
-      ...prev,
-      pitchDeck: {
-        ...prev.pitchDeck,
-        slides: fresh,
-        lastSaved: new Date().toLocaleTimeString(),
+    const nextState: StartupLabState = {
+      ...labState,
+      selectedCaseId: mappedCaseId,
+      stage1: {
+        ...labState.stage1,
+        selectedProblemId: opt.id,
+        opportunityStatement: opt.opportunityHint,
+        targetCampusPersona: caseObj.persona,
+        whyItMatters: opt.friction,
       },
+      opportunityBrief: {
+        ...labState.opportunityBrief,
+        customerProblem: opt.description,
+        targetPersona: caseObj.persona,
+        existingAlternatives: opt.friction,
+        whyItMatters: opt.friction,
+      },
+      // Keep pitch deck slides in sync
+      pitchDeck: {
+        ...labState.pitchDeck,
+        slides: buildDefaultPitchDeck(caseObj, labState.decisions, {
+          selectedProblemId: opt.id,
+          targetCampusPersona: caseObj.persona,
+          opportunityStatement: opt.opportunityHint,
+          whyItMatters: opt.friction,
+        }, labState.boardroom),
+      },
+    };
+    saveLabState(nextState);
+  };
+
+  // Handle custom venture input
+  const handleCustomVentureSubmit = () => {
+    if (!customIdeaText.trim()) return;
+    setIsCustomIdea(true);
+    const customCaseObj = VENTURE_CASES[0]; // Quickbite baseline
+    const nextState: StartupLabState = {
+      ...labState,
+      stage1: {
+        ...labState.stage1,
+        selectedProblemId: 'custom-idea',
+        opportunityStatement: customIdeaText.trim(),
+        targetCampusPersona: 'Campus Students & Faculty',
+        whyItMatters: 'Direct custom market friction identified by student founder.',
+      },
+      opportunityBrief: {
+        ...labState.opportunityBrief,
+        customerProblem: customIdeaText.trim(),
+        targetPersona: 'Campus Students & Faculty',
+        existingAlternatives: 'Manual workarounds and delays.',
+        whyItMatters: 'Direct custom market friction identified by student founder.',
+      },
+      pitchDeck: {
+        ...labState.pitchDeck,
+        slides: buildDefaultPitchDeck(customCaseObj, labState.decisions, {
+          selectedProblemId: 'custom-idea',
+          targetCampusPersona: 'Campus Students & Faculty',
+          opportunityStatement: customIdeaText.trim(),
+          whyItMatters: 'Direct custom market friction identified by student founder.',
+        }, labState.boardroom),
+      },
+    };
+    saveLabState(nextState);
+  };
+
+  // Handle question updates
+  const handleUpdateQuestion = (field: 'targetCampusPersona' | 'opportunityStatement' | 'whyItMatters' | 'validationApproach', val: string) => {
+    const updatedStage1 = {
+      ...labState.stage1,
+      [field]: val,
+    };
+    const nextState: StartupLabState = {
+      ...labState,
+      stage1: updatedStage1,
+      pitchDeck: {
+        ...labState.pitchDeck,
+        slides: buildDefaultPitchDeck(activeCase, labState.decisions, updatedStage1, labState.boardroom),
+      },
+    };
+    saveLabState(nextState);
+  };
+
+  // Toggle "Why this matters" accordion
+  const toggleWhyMatters = (qId: string) => {
+    setExpandedWhyMatters((prev) => ({
+      ...prev,
+      [qId]: !prev[qId],
     }));
   };
 
-  const handleNextSlide = () => {
-    if (activeSlideIndex < slides.length - 1) {
-      updateState((prev) => ({
-        ...prev,
-        pitchDeck: {
-          ...prev.pitchDeck,
-          activeSlideIndex: activeSlideIndex + 1,
-        },
-      }));
-    }
-  };
-
-  const handlePrevSlide = () => {
-    if (activeSlideIndex > 0) {
-      updateState((prev) => ({
-        ...prev,
-        pitchDeck: {
-          ...prev.pitchDeck,
-          activeSlideIndex: activeSlideIndex - 1,
-        },
-      }));
-    }
-  };
-
-  // Keyboard navigation for presentation mode
-  useEffect(() => {
-    if (!isFullScreenPitch) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' || e.key === 'Space') {
-        handleNextSlide();
-      } else if (e.key === 'ArrowLeft') {
-        handlePrevSlide();
-      } else if (e.key === 'Escape') {
-        setIsFullScreenPitch(false);
-      }
+  // Handle story decision
+  const handleSelectStoryDecision = (storyId: string, optId: string) => {
+    const nextState: StartupLabState = {
+      ...labState,
+      storyDecisions: {
+        ...labState.storyDecisions,
+        [storyId]: optId,
+      },
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFullScreenPitch, activeSlideIndex, slides.length]);
-
-  const formatTimer = (sec: number) => {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    saveLabState(nextState);
   };
+
+  // Handle pricing trade-off
+  const handleSelectPricingTradeOff = (choiceId: string, rationale: string) => {
+    const nextState: StartupLabState = {
+      ...labState,
+      pricingTradeOff: {
+        choice: choiceId,
+        rationale,
+      },
+    };
+    saveLabState(nextState);
+  };
+
+  // Handle Vayentra Labs calculation update
+  const handleVlabCalcChange = (field: string, val: string) => {
+    const cur = labState.vlab || {
+      prediction: '',
+      calcProfit: '',
+      calcNetCash: '',
+      calcClosingBank: '',
+      calcAvailableAboveReserve: '',
+      calcPaymentShortfall: '',
+      calcAttempted: true,
+      processOrder: ['enquiry', 'order', 'delivery', 'invoice', 'collection', 'receipt'],
+      processOwners: {
+        enquiry: 'Sales Lead',
+        order: 'Sales Lead',
+        delivery: 'Delivery Manager',
+        invoice: 'Finance Officer',
+        collection: 'Finance Officer',
+        receipt: 'Finance Officer',
+      },
+      paymentRecommendation: 'reschedule',
+      paymentRationale: 'Pay ₹5,000 from available cash above safety reserve; defer remaining ₹10,000 until client receivables are collected.',
+    };
+    const nextVlab = {
+      ...cur,
+      [field]: val,
+      calcAttempted: true,
+    };
+    const nextState: StartupLabState = {
+      ...labState,
+      vlab: nextVlab,
+    };
+    saveLabState(nextState);
+  };
+
+  // Handle process owner change in Order-to-Cash
+  const handleProcessOwnerChange = (stepId: string, newOwner: string) => {
+    const cur = labState.vlab || {
+      prediction: '',
+      calcProfit: '',
+      calcNetCash: '',
+      calcClosingBank: '',
+      calcAvailableAboveReserve: '',
+      calcPaymentShortfall: '',
+      calcAttempted: true,
+      processOrder: ['enquiry', 'order', 'delivery', 'invoice', 'collection', 'receipt'],
+      processOwners: {
+        enquiry: 'Sales Lead',
+        order: 'Sales Lead',
+        delivery: 'Delivery Manager',
+        invoice: 'Finance Officer',
+        collection: 'Finance Officer',
+        receipt: 'Finance Officer',
+      },
+      paymentRecommendation: 'reschedule',
+      paymentRationale: 'Pay ₹5,000 from available cash above safety reserve; defer remaining ₹10,000 until client receivables are collected.',
+    };
+    const nextOwners = {
+      ...(cur.processOwners || {}),
+      [stepId]: newOwner,
+    };
+    const nextState: StartupLabState = {
+      ...labState,
+      vlab: {
+        ...cur,
+        processOwners: nextOwners,
+      },
+    };
+    saveLabState(nextState);
+  };
+
+  // Handle slide field change
+  const handleUpdateSlideField = (slideIndex: number, fieldKey: string, newVal: string) => {
+    const curSlides = [...(labState.pitchDeck?.slides || [])];
+    if (!curSlides[slideIndex]) return;
+
+    const targetSlide = { ...curSlides[slideIndex] };
+    targetSlide.fields = targetSlide.fields.map((f) =>
+      f.key === fieldKey ? { ...f, value: newVal } : f
+    );
+    curSlides[slideIndex] = targetSlide;
+
+    const nextState: StartupLabState = {
+      ...labState,
+      pitchDeck: {
+        ...labState.pitchDeck,
+        slides: curSlides,
+      },
+    };
+    saveLabState(nextState);
+  };
+
+  // Navigation helpers to scroll smoothly to areas
+  const scrollToArea = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const slides = labState.pitchDeck?.slides || [];
+  const currentSlide = slides[activeSlideIndex] || slides[0];
 
   return (
-    <div className="vcep-startup-journey-container">
-      {/* =========================================================================
-          STAGE NAVIGATION BAR (Shared Header)
-          ========================================================================= */}
-      <div className="vcep-journey-nav-header">
-        <div className="vcep-journey-progress-track">
-          {S01_STAGES.map((stg) => {
-            const isActive = currentStage === stg.number;
-            const isCompleted = stageCompletion[stg.number];
-            return (
-              <button
-                key={stg.number}
-                type="button"
-                className={`vcep-journey-step-btn ${isActive ? 'is-active' : ''} ${isCompleted ? 'is-completed' : ''}`}
-                onClick={() => goToStage(stg.number)}
-                aria-current={isActive ? 'step' : undefined}
-              >
-                <div className="vcep-journey-step-badge">
-                  {isCompleted ? <Check size={12} strokeWidth={3} /> : `0${stg.number}`}
-                </div>
-                <div className="vcep-journey-step-info">
-                  <span className="vcep-journey-step-num">Stage 0{stg.number}</span>
-                  <span className="vcep-journey-step-title">{stg.title}</span>
-                </div>
-              </button>
-            );
-          })}
+    <div
+      className="vcep-simplified-workspace"
+      style={{
+        width: '100%',
+        maxWidth: '1040px',
+        margin: '0 auto',
+        padding: '0 16px 64px',
+        color: '#1e293b',
+        fontFamily: 'inherit',
+      }}
+    >
+      {/* ========================================================================= */}
+      {/* 1. CONTROLLED ASSESSMENT BARRIER: BASELINE DIAGNOSTIC A (60 MIN)          */}
+      {/* ========================================================================= */}
+      {!shieldConfirmed ? (
+        <div style={{ marginBottom: '24px' }}>
+          <ControlledAssessmentShield
+            assessmentName="Baseline Diagnostic A (Trainer-Controlled)"
+            sessionMinutes={60}
+            instructions="Complete your 60-minute diagnostic baseline independently on paper/faculty sheet before starting the founder workshop. Baseline results diagnose authentic prior competence."
+            isConfirmed={shieldConfirmed}
+            onConfirmChange={(c) => {
+              if (c) handleConfirmShield();
+            }}
+          />
         </div>
-
-        {/* Mobile Stage Selector Dropdown */}
-        <div className="vcep-journey-mobile-selector">
-          <label htmlFor="stage-mobile-select">Select Active Stage</label>
-          <select
-            id="stage-mobile-select"
-            value={currentStage}
-            onChange={(e) => goToStage(Number(e.target.value) as StageNumber)}
-          >
-            {S01_STAGES.map((stg) => (
-              <option key={stg.number} value={stg.number}>
-                Stage 0{stg.number}: {stg.title} {stageCompletion[stg.number] ? '✓' : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* =========================================================================
-          STAGE 1: DISCOVER THE FOUNDER MINDSET
-          ========================================================================= */}
-      {currentStage === 1 && (
-        <section className="vcep-stage-view" aria-labelledby="stage-1-heading">
-          {/* Stage Hero */}
-          <div className="vcep-startup-overview-hero">
-            <span className="v3-eyebrow">STAGE 1 · FOUNDER FOUNDATIONS</span>
-            <h2 id="stage-1-heading">Every Business Begins With a Problem.</h2>
-            <p className="vcep-hero-lead">
-              Look around you. Every service, product, and app exists because somebody identified an acute problem worth
-              solving and built something people genuinely value.
-            </p>
-
-            <div className="vcep-founder-challenge-box">
-              <strong>The Founder Challenge:</strong>
-              <p>
-                “You have a business idea. Can you turn it into something customers genuinely want, trust, and will pay for?”
-              </p>
-            </div>
-
-            {/* Everyday Examples Students Recognise */}
-            <div className="vcep-realworld-examples-grid">
-              <div className="vcep-example-pill">
-                <strong>Zomato & Swiggy:</strong> Solved late-night hostel hunger and unpalatable PG messes.
-              </div>
-              <div className="vcep-example-pill">
-                <strong>UPI & PhonePe:</strong> Eliminated the daily frustration of finding exact ₹5 coin change.
-              </div>
-              <div className="vcep-example-pill">
-                <strong>Zerodha:</strong> Abolished opaque 1% broker fees so regular Indians could invest freely.
-              </div>
-              <div className="vcep-example-pill">
-                <strong>Ola & Uber:</strong> Replaced auto-rickshaw fare haggling with one-tap transparent rides.
-              </div>
-            </div>
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 20px',
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '12px',
+            fontSize: '13px',
+            color: '#166534',
+            marginBottom: '28px',
+            flexWrap: 'wrap',
+            gap: '10px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+            <ShieldCheck size={18} color="#0f766e" />
+            <span>Baseline Diagnostic A Completed Independently · Founder Workstation Active</span>
           </div>
-
-          {/* Controlled Assessment Boundary Notice (Protected Baseline A) */}
-          {!shieldConfirmed ? (
-            <ControlledAssessmentShield
-              assessmentName="Baseline Diagnostic A (Trainer-Controlled)"
-              sessionMinutes={60}
-              instructions="Complete your 60-minute diagnostic baseline independently on paper/faculty sheet before starting the founder workshop. Baseline results diagnose authentic prior competence."
-              isConfirmed={shieldConfirmed}
-              onConfirmChange={(c) => {
-                if (c) handleConfirmShield();
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <button
+              type="button"
+              onClick={() => setShowTrainerGuidance(!showTrainerGuidance)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: showTrainerGuidance ? '#ffffff' : '#0f766e',
+                background: showTrainerGuidance ? '#0f766e' : '#ffffff',
+                border: '1px solid #99f6e4',
+                borderRadius: '8px',
+                cursor: 'pointer',
               }}
-            />
-          ) : (
-            <div className="vcep-shield-confirmed-bar">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                <ShieldCheck size={18} color="#0f766e" />
-                <span>Baseline Diagnostic A Completed Independently · Founder Workstation Active</span>
-              </div>
-              <span style={{ fontSize: '12px', color: '#047857', fontWeight: 600 }}>Ready for Startup Lab</span>
-            </div>
-          )}
-
-          {/* Core Interactive Activity: Spot an Opportunity */}
-          <div className="v3-panel">
-            <div className="v3-panel-head-flex">
-              <div>
-                <span className="v3-eyebrow">PRACTICAL ACTIVITY · PROBLEM DISCOVERY</span>
-                <h3>Spot a Real Business Opportunity Around Your College</h3>
-                <p>
-                  Founders don’t start with grand calculations—they notice everyday friction. Select a campus problem
-                  you have personally witnessed or experienced.
-                </p>
-              </div>
-            </div>
-
-            <div className="vcep-problem-options-stack">
-              {COLLEGE_PROBLEM_OPTIONS.map((opt) => {
-                const isSelected = labState.stage1?.selectedProblemId === opt.id;
-                return (
-                  <div
-                    key={opt.id}
-                    className={`vcep-problem-card ${isSelected ? 'is-selected' : ''}`}
-                    onClick={() => {
-                      updateState((prev) => ({
-                        ...prev,
-                        stage1: {
-                          ...prev.stage1,
-                          selectedProblemId: opt.id,
-                          opportunityStatement: opt.opportunityHint,
-                          targetCampusPersona: opt.description.slice(0, 100),
-                        },
-                      }));
-                    }}
-                  >
-                    <div className="vcep-problem-card-top">
-                      <span className="vcep-category-badge">{opt.category}</span>
-                      <h4>{opt.title}</h4>
-                    </div>
-                    <p className="vcep-problem-desc">{opt.description}</p>
-                    <div className="vcep-problem-friction">
-                      <strong>Daily Friction: </strong>
-                      <span>{opt.friction}</span>
-                    </div>
-                    <div className="vcep-problem-hint">
-                      <strong>Founder Opportunity Hint: </strong>
-                      <span>{opt.opportunityHint}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Student Output: One-Sentence Opportunity Brief */}
-            <div className="vcep-opportunity-brief-box">
-              <h4>Your Stage 1 Deliverable: One-Sentence Opportunity Brief</h4>
-              <p>State the problem, who suffers from it, and what simple value your venture could create.</p>
-
-              <div style={{ marginTop: '12px' }}>
-                <label className="v3-field">
-                  <span>One-Sentence Business Opportunity:</span>
-                  <input
-                    type="text"
-                    value={labState.stage1?.opportunityStatement || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      updateState((prev) => ({
-                        ...prev,
-                        stage1: { ...prev.stage1, opportunityStatement: val },
-                      }));
-                    }}
-                    placeholder="e.g., Deliver hot, healthy homestyle lunches directly to campus hostel gates at 1:15 PM sharp for ₹90."
-                  />
-                </label>
-              </div>
-
-              <div style={{ marginTop: '12px' }}>
-                <label className="v3-field">
-                  <span>Why This Problem Matters (Why will customers pay for a solution?):</span>
-                  <textarea
-                    rows={2}
-                    value={labState.stage1?.whyItMatters || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      updateState((prev) => ({
-                        ...prev,
-                        stage1: { ...prev.stage1, whyItMatters: val },
-                      }));
-                    }}
-                    placeholder="e.g., Hostellers face oily mess food and expensive food delivery apps; saving 45 minutes of daily stress is worth ₹90."
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="vcep-stage-actions-bar">
-            <span className="vcep-stage-action-hint">Stage 01 of 06 · Founder Foundations</span>
-            <button type="button" className="v3-primary" onClick={() => goToStage(2)}>
-              Proceed to Stage 2: Inside Real Startups <ArrowRight size={15} />
+            >
+              <Info size={14} />
+              <span>{showTrainerGuidance ? 'Hide Trainer Guide' : 'Trainer Guidance'}</span>
             </button>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>{saveStatus}</span>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* =========================================================================
-          STAGE 2: INSIDE REAL STARTUPS
-          ========================================================================= */}
-      {currentStage === 2 && (
-        <section className="vcep-stage-view" aria-labelledby="stage-2-heading">
-          <div className="v3-section-intro">
-            <span className="v3-eyebrow">STAGE 2 · REAL INDIAN VENTURES</span>
-            <h2 id="stage-2-heading">Three Inspiring Indian Startup Stories</h2>
-            <p>
-              Discover how three transformative Indian companies began. Learn how real founders solved customer trust,
-              brand authenticity, and unit economics.
-            </p>
-          </div>
-
-          <div className="vcep-unit-economics-callout">
-            <Info size={18} color="#0f766e" style={{ flexShrink: 0 }} />
-            <div>
-              <strong>A Critical Founder Lesson: Revenue vs GMV vs Profitability</strong>
-              <p>
-                Gross Merchandise Value (GMV) is the total transaction volume passing through a platform. Revenue is
-                what the company actually earns. Profit is what remains after all delivery, marketing, and operational
-                costs are paid. A startup with ₹10,000 Cr in GMV can quickly go bankrupt if each delivery loses money!
-              </p>
+      {/* Trainer Guidance Drawer (Faculty Only) */}
+      {showTrainerGuidance && (
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '1.5px solid #0f766e',
+            borderRadius: '12px',
+            padding: '20px 24px',
+            marginBottom: '32px',
+            boxShadow: '0 6px 18px rgba(15, 118, 110, 0.08)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sliders size={16} color="#0f766e" />
+              <strong style={{ fontSize: '13px', color: '#17245c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Trainer Classroom Facilitator Guide (135-Minute Cadence)
+              </strong>
             </div>
-          </div>
-
-          {/* 3 Interactive Startup Story Cards */}
-          <div className="vcep-stories-grid">
-            {STARTUP_STORIES.map((story) => {
-              const chosenOptId = labState.storyDecisions[story.id];
-              const chosenOpt = story.options.find((o) => o.id === chosenOptId);
-              const isExpanded = expandedStory === story.id;
-
-              return (
-                <div key={story.id} className="vcep-startup-story-card">
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className={`vcep-story-badge ${story.badgeClass}`}>
-                        {story.company} · {story.location} ({story.foundingYear})
-                      </span>
-                      <button
-                        type="button"
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#0f766e',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '2px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => setExpandedStory(isExpanded ? null : story.id)}
-                      >
-                        {isExpanded ? 'Less' : 'Details'} {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                      </button>
-                    </div>
-
-                    <h4 className="vcep-story-hook">{story.hook}</h4>
-                    <p className="vcep-story-problem">{story.problem}</p>
-
-                    <div className="vcep-verified-fact-box">
-                      <strong>Verified Business Fact ({story.reportingPeriod})</strong>
-                      <span>{story.verifiedFact}</span>
-                    </div>
-
-                    {isExpanded && (
-                      <div className="vcep-story-expanded-body">
-                        <strong style={{ display: 'block', marginBottom: '4px', color: '#17245c' }}>
-                          Business Approach:
-                        </strong>
-                        <p style={{ margin: 0 }}>{story.model}</p>
-                        <a
-                          href={story.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="vcep-story-source-link"
-                        >
-                          Official Source Documentation <ExternalLink size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
-                        </a>
-                      </div>
-                    )}
-
-                    <div className="vcep-story-decision-prompt">{story.decisionPrompt}</div>
-
-                    <div className="vcep-story-options">
-                      {story.options.map((opt) => {
-                        const isSelected = chosenOptId === opt.id;
-                        return (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            className={`vcep-story-opt-btn ${isSelected ? 'is-selected' : ''}`}
-                            onClick={() => {
-                              updateState((prev) => ({
-                                ...prev,
-                                storyDecisions: {
-                                  ...prev.storyDecisions,
-                                  [story.id]: opt.id,
-                                },
-                              }));
-                            }}
-                          >
-                            {opt.text}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {chosenOpt && (
-                    <div className={`vcep-story-feedback ${chosenOpt.isOptimal ? '' : 'is-suboptimal'}`}>
-                      <strong>{chosenOpt.isOptimal ? '✓ Founder Insight:' : '⚠️ Caution:'} </strong>
-                      {chosenOpt.feedback}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Student Model Selection & Rationale */}
-          <div className="v3-panel" style={{ marginTop: '24px' }}>
-            <span className="v3-eyebrow">SYNTHESIS & INSPIRATION</span>
-            <h3>Which Startup Model Inspires Your Venture?</h3>
-            <p>Connect what you learned to your own venture thinking.</p>
-
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', margin: '14px 0' }}>
-              {(['zerodha', 'nykaa', 'meesho'] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  className={`vcep-model-choice-btn ${labState.storyInspiration?.chosenModel === m ? 'is-selected' : ''}`}
-                  onClick={() => {
-                    updateState((prev) => ({
-                      ...prev,
-                      storyInspiration: {
-                        ...prev.storyInspiration,
-                        chosenModel: m,
-                      },
-                    }));
-                  }}
-                >
-                  <strong style={{ textTransform: 'capitalize' }}>{m}</strong>
-                  <span>
-                    {m === 'zerodha'
-                      ? 'Bootstrapping & Radical Pricing Transparency'
-                      : m === 'nykaa'
-                      ? 'Curated Authenticity & Omnichannel Trust'
-                      : 'Zero Commission & Ruthless Unit-Cost Logistics'}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <label className="v3-field">
-              <span>Why does this model inspire your venture?</span>
-              <textarea
-                rows={2}
-                value={labState.storyInspiration?.inspirationReason || ''}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  updateState((prev) => ({
-                    ...prev,
-                    storyInspiration: {
-                      ...prev.storyInspiration,
-                      inspirationReason: val,
-                    },
-                  }));
-                }}
-                placeholder="e.g., Zerodha shows that transparent pricing and customer education build more viral trust than paying social media influencers."
-              />
-            </label>
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="vcep-stage-actions-bar">
-            <button type="button" className="v3-outline" onClick={() => goToStage(1)}>
-              <ArrowLeft size={15} /> Previous: Founder Mindset
-            </button>
-            <button type="button" className="v3-primary" onClick={() => goToStage(3)}>
-              Proceed to Stage 3: Business Opportunity <ArrowRight size={15} />
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* =========================================================================
-          STAGE 3: FIND YOUR BUSINESS OPPORTUNITY
-          ========================================================================= */}
-      {currentStage === 3 && (
-        <section className="vcep-stage-view" aria-labelledby="stage-3-heading">
-          <div className="v3-section-intro">
-            <span className="v3-eyebrow">STAGE 3 · VENTURE SELECTION</span>
-            <h2 id="stage-3-heading">Select Your Collegiate Venture Simulation</h2>
-            <p>
-              Pick one of four realistic startup opportunities. You will formulate your value proposition and take this
-              concept through the Founder Lab, Boardroom crisis, and Investor Pitch Deck.
-            </p>
-          </div>
-
-          {/* 4 Venture Cases Grid */}
-          <div className="vcep-case-grid">
-            {VENTURE_CASES.map((c) => {
-              const isSelected = c.id === activeCase.id;
-              return (
-                <div
-                  key={c.id}
-                  className={`vcep-case-card ${isSelected ? 'is-selected' : ''}`}
-                  onClick={() => {
-                    updateState((prev) => ({
-                      ...prev,
-                      selectedCaseId: c.id,
-                      opportunityBrief: {
-                        customerProblem: c.inconvenience,
-                        targetPersona: c.persona,
-                        existingAlternatives: 'Expensive traditional alternatives or unpalatable hostel mess.',
-                        whyItMatters: 'Daily friction that disrupts study time and student peace of mind.',
-                        validationEvidence: '15 preliminary interviews in Block A confirmed acute daily pain.',
-                      },
-                    }));
-                  }}
-                >
-                  <div className="vcep-case-card-head">
-                    <h4>{c.name}</h4>
-                    <span className="vcep-case-tag">{c.tag}</span>
-                  </div>
-                  <p className="vcep-case-desc">{c.summary}</p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Active Case Factsheet */}
-          <div className="vcep-case-active-brief">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#17245c', margin: 0 }}>
-                Active Venture Profile · {activeCase.name}
-              </h4>
-              <span className="vcep-simulation-badge">Simulated Venture Opportunity</span>
-            </div>
-
-            <div className="vcep-case-brief-grid">
-              <div className="vcep-case-brief-item">
-                <strong>Target Customer Persona</strong>
-                <span>{activeCase.persona}</span>
-              </div>
-              <div className="vcep-case-brief-item">
-                <strong>Daily Inconvenience & Friction</strong>
-                <span>{activeCase.inconvenience}</span>
-              </div>
-              <div className="vcep-case-brief-item">
-                <strong>Available Seed Resources</strong>
-                <span>{activeCase.resources}</span>
-              </div>
-              <div className="vcep-case-brief-item">
-                <strong>Operational Hurdle to Overcome</strong>
-                <span>{activeCase.friction}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Startup Opportunity Brief Output */}
-          <div className="v3-panel" style={{ marginTop: '24px' }}>
-            <span className="v3-eyebrow">YOUR DELIVERABLE</span>
-            <h3>Startup Opportunity Brief</h3>
-            <p>Define the opportunity clearly before building your service in the Founder Lab.</p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginTop: '14px' }}>
-              <label className="v3-field">
-                <span>Core Customer Pain Point:</span>
-                <textarea
-                  rows={3}
-                  value={labState.opportunityBrief?.customerProblem || activeCase.inconvenience}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    updateState((prev) => ({
-                      ...prev,
-                      opportunityBrief: { ...prev.opportunityBrief, customerProblem: val },
-                    }));
-                  }}
-                />
-              </label>
-
-              <label className="v3-field">
-                <span>Beachhead Customer Persona:</span>
-                <textarea
-                  rows={3}
-                  value={labState.opportunityBrief?.targetPersona || activeCase.persona}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    updateState((prev) => ({
-                      ...prev,
-                      opportunityBrief: { ...prev.opportunityBrief, targetPersona: val },
-                    }));
-                  }}
-                />
-              </label>
-
-              <label className="v3-field">
-                <span>Existing Inadequate Alternatives:</span>
-                <textarea
-                  rows={3}
-                  value={labState.opportunityBrief?.existingAlternatives || ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    updateState((prev) => ({
-                      ...prev,
-                      opportunityBrief: { ...prev.opportunityBrief, existingAlternatives: val },
-                    }));
-                  }}
-                  placeholder="What are customers forced to use right now?"
-                />
-              </label>
-
-              <label className="v3-field">
-                <span>Field Evidence to Validate Demand:</span>
-                <textarea
-                  rows={3}
-                  value={labState.opportunityBrief?.validationEvidence || ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    updateState((prev) => ({
-                      ...prev,
-                      opportunityBrief: { ...prev.opportunityBrief, validationEvidence: val },
-                    }));
-                  }}
-                  placeholder="How will you prove customers genuinely care before building?"
-                />
-              </label>
-            </div>
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="vcep-stage-actions-bar">
-            <button type="button" className="v3-outline" onClick={() => goToStage(2)}>
-              <ArrowLeft size={15} /> Previous: Inside Real Startups
-            </button>
-            <button type="button" className="v3-primary" onClick={() => goToStage(4)}>
-              Proceed to Stage 4: Build Your Startup <ArrowRight size={15} />
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* =========================================================================
-          STAGE 4: BUILD YOUR STARTUP (FOUNDER LAB & LAUNCH CANVAS)
-          ========================================================================= */}
-      {currentStage === 4 && (
-        <section className="vcep-stage-view" aria-labelledby="stage-4-heading">
-          <div className="v3-section-intro">
-            <span className="v3-eyebrow">STAGE 4 · INTERACTIVE FOUNDER LAB</span>
-            <h2 id="stage-4-heading">Build Your Startup: The 5 Connected Decisions</h2>
-            <p>
-              A business is an interconnected operating system. Make five critical choices for {activeCase.name} to
-              define your problem, audience, MVP scope, customer acquisition, and fulfilment controls.
-            </p>
-          </div>
-
-          {/* Stepper with the 5 Decisions */}
-          <div className="vcep-founder-lab-stepper">
-            {/* Decision A */}
-            <div className={`vcep-decision-card ${labState.decisions.decisionA ? 'is-active' : ''}`}>
-              <div className="vcep-decision-header">
-                <span className={`vcep-decision-badge ${labState.decisions.decisionA ? 'is-completed' : ''}`}>A</span>
-                <h4>{activeCase.decisions.decisionA.question}</h4>
-              </div>
-              <div className="vcep-decision-options-stack">
-                {activeCase.decisions.decisionA.options.map((opt) => {
-                  const isSelected = labState.decisions.decisionA === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      className={`vcep-decision-choice-btn ${isSelected ? 'is-selected' : ''}`}
-                      onClick={() => {
-                        updateState((prev) => ({
-                          ...prev,
-                          decisions: { ...prev.decisions, decisionA: opt.id },
-                        }));
-                      }}
-                    >
-                      <div className="vcep-choice-radio">{isSelected && <div className="vcep-choice-radio-inner" />}</div>
-                      <div>
-                        <span className="vcep-choice-tag">{opt.label}</span>
-                        <span>{opt.text}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              {labState.decisions.decisionA && (
-                <div className="vcep-decision-feedback">
-                  <strong>Founder Logic: </strong>
-                  {activeCase.decisions.decisionA.options.find((o) => o.id === labState.decisions.decisionA)?.feedback}
-                </div>
-              )}
-            </div>
-
-            {/* Decision B */}
-            <div className={`vcep-decision-card ${labState.decisions.decisionB ? 'is-active' : ''}`}>
-              <div className="vcep-decision-header">
-                <span className={`vcep-decision-badge ${labState.decisions.decisionB ? 'is-completed' : ''}`}>B</span>
-                <h4>{activeCase.decisions.decisionB.question}</h4>
-              </div>
-              <div className="vcep-decision-options-stack">
-                {activeCase.decisions.decisionB.options.map((opt) => {
-                  const isSelected = labState.decisions.decisionB === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      className={`vcep-decision-choice-btn ${isSelected ? 'is-selected' : ''}`}
-                      onClick={() => {
-                        updateState((prev) => ({
-                          ...prev,
-                          decisions: { ...prev.decisions, decisionB: opt.id },
-                        }));
-                      }}
-                    >
-                      <div className="vcep-choice-radio">{isSelected && <div className="vcep-choice-radio-inner" />}</div>
-                      <div>
-                        <span className="vcep-choice-tag">{opt.label}</span>
-                        <span>{opt.text}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              {labState.decisions.decisionB && (
-                <div className="vcep-decision-feedback">
-                  <strong>Founder Logic: </strong>
-                  {activeCase.decisions.decisionB.options.find((o) => o.id === labState.decisions.decisionB)?.feedback}
-                </div>
-              )}
-            </div>
-
-            {/* Decision C */}
-            <div className={`vcep-decision-card ${labState.decisions.decisionC ? 'is-active' : ''}`}>
-              <div className="vcep-decision-header">
-                <span className={`vcep-decision-badge ${labState.decisions.decisionC ? 'is-completed' : ''}`}>C</span>
-                <h4>{activeCase.decisions.decisionC.question}</h4>
-              </div>
-              <div className="vcep-decision-options-stack">
-                {activeCase.decisions.decisionC.options.map((opt) => {
-                  const isSelected = labState.decisions.decisionC === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      className={`vcep-decision-choice-btn ${isSelected ? 'is-selected' : ''}`}
-                      onClick={() => {
-                        updateState((prev) => ({
-                          ...prev,
-                          decisions: { ...prev.decisions, decisionC: opt.id },
-                        }));
-                      }}
-                    >
-                      <div className="vcep-choice-radio">{isSelected && <div className="vcep-choice-radio-inner" />}</div>
-                      <div>
-                        <span className="vcep-choice-tag">{opt.label}</span>
-                        <span>{opt.text}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              {labState.decisions.decisionC && (
-                <div className="vcep-decision-feedback">
-                  <strong>Founder Logic: </strong>
-                  {activeCase.decisions.decisionC.options.find((o) => o.id === labState.decisions.decisionC)?.feedback}
-                </div>
-              )}
-            </div>
-
-            {/* Decision D */}
-            <div className={`vcep-decision-card ${labState.decisions.decisionD ? 'is-active' : ''}`}>
-              <div className="vcep-decision-header">
-                <span className={`vcep-decision-badge ${labState.decisions.decisionD ? 'is-completed' : ''}`}>D</span>
-                <h4>{activeCase.decisions.decisionD.question}</h4>
-              </div>
-              <div className="vcep-decision-options-stack">
-                {activeCase.decisions.decisionD.options.map((opt) => {
-                  const isSelected = labState.decisions.decisionD === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      className={`vcep-decision-choice-btn ${isSelected ? 'is-selected' : ''}`}
-                      onClick={() => {
-                        updateState((prev) => ({
-                          ...prev,
-                          decisions: { ...prev.decisions, decisionD: opt.id },
-                        }));
-                      }}
-                    >
-                      <div className="vcep-choice-radio">{isSelected && <div className="vcep-choice-radio-inner" />}</div>
-                      <div>
-                        <span className="vcep-choice-tag">{opt.label}</span>
-                        <span>{opt.text}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              {labState.decisions.decisionD && (
-                <div className="vcep-decision-feedback">
-                  <strong>Founder Logic: </strong>
-                  {activeCase.decisions.decisionD.options.find((o) => o.id === labState.decisions.decisionD)?.feedback}
-                </div>
-              )}
-            </div>
-
-            {/* Decision E */}
-            <div className={`vcep-decision-card ${labState.decisions.decisionE ? 'is-active' : ''}`}>
-              <div className="vcep-decision-header">
-                <span className={`vcep-decision-badge ${labState.decisions.decisionE ? 'is-completed' : ''}`}>E</span>
-                <h4>{activeCase.decisions.decisionE.question}</h4>
-              </div>
-              <div className="vcep-decision-options-stack">
-                {activeCase.decisions.decisionE.options.map((opt) => {
-                  const isSelected = labState.decisions.decisionE === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      className={`vcep-decision-choice-btn ${isSelected ? 'is-selected' : ''}`}
-                      onClick={() => {
-                        updateState((prev) => ({
-                          ...prev,
-                          decisions: { ...prev.decisions, decisionE: opt.id },
-                        }));
-                      }}
-                    >
-                      <div className="vcep-choice-radio">{isSelected && <div className="vcep-choice-radio-inner" />}</div>
-                      <div>
-                        <span className="vcep-choice-tag">{opt.label}</span>
-                        <span>{opt.text}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              {labState.decisions.decisionE && (
-                <div className="vcep-decision-feedback">
-                  <strong>Founder Logic: </strong>
-                  {activeCase.decisions.decisionE.options.find((o) => o.id === labState.decisions.decisionE)?.feedback}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Compiled Live Startup Launch Canvas */}
-          <div className="vcep-startup-canvas-container">
-            <div className="vcep-canvas-head">
-              <div>
-                <span className="v3-eyebrow" style={{ color: '#0f766e' }}>STAGE 4 DELIVERABLE</span>
-                <h3>Startup Launch Canvas · {activeCase.name}</h3>
-              </div>
-              <span className="vcep-status-pill">
-                {stageCompletion[4] ? '✓ Ready for Classroom Defence' : 'Complete All 5 Decisions'}
-              </span>
-            </div>
-
-            <div className="vcep-canvas-grid">
-              <div className="vcep-canvas-cell cell-highlight">
-                <span className="vcep-canvas-cell-title">1. Startup Concept</span>
-                <div className="vcep-canvas-cell-body">
-                  <strong>{activeCase.name}</strong>
-                  <p>{activeCase.summary}</p>
-                </div>
-              </div>
-
-              <div className="vcep-canvas-cell">
-                <span className="vcep-canvas-cell-title">2. Customer Problem</span>
-                <div className="vcep-canvas-cell-body">
-                  {activeCase.decisions.decisionA.options.find((o) => o.id === labState.decisions.decisionA)?.text || (
-                    <span className="vcep-canvas-empty">Pending Decision A</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="vcep-canvas-cell">
-                <span className="vcep-canvas-cell-title">3. Target Persona</span>
-                <div className="vcep-canvas-cell-body">
-                  {activeCase.decisions.decisionB.options.find((o) => o.id === labState.decisions.decisionB)?.text || (
-                    <span className="vcep-canvas-empty">Pending Decision B</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="vcep-canvas-cell cell-highlight">
-                <span className="vcep-canvas-cell-title">4. Minimum Viable Product (MVP)</span>
-                <div className="vcep-canvas-cell-body">
-                  {activeCase.decisions.decisionC.options.find((o) => o.id === labState.decisions.decisionC)?.text || (
-                    <span className="vcep-canvas-empty">Pending Decision C</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="vcep-canvas-cell">
-                <span className="vcep-canvas-cell-title">5. First 10 Customers</span>
-                <div className="vcep-canvas-cell-body">
-                  {activeCase.decisions.decisionD.options.find((o) => o.id === labState.decisions.decisionD)?.text || (
-                    <span className="vcep-canvas-empty">Pending Decision D</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="vcep-canvas-cell">
-                <span className="vcep-canvas-cell-title">6. Fulfilment & Controls</span>
-                <div className="vcep-canvas-cell-body">
-                  {activeCase.decisions.decisionE.options.find((o) => o.id === labState.decisions.decisionE)?.text || (
-                    <span className="vcep-canvas-empty">Pending Decision E</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="vcep-canvas-cell">
-                <span className="vcep-canvas-cell-title">7. Core Vulnerability</span>
-                <div className="vcep-canvas-cell-body">
-                  <span>{activeCase.friction}</span>
-                </div>
-              </div>
-
-              <div className="vcep-canvas-cell cell-highlight">
-                <span className="vcep-canvas-cell-title">8. Immediate Next Experiment</span>
-                <div className="vcep-canvas-cell-body">
-                  <span>Conduct 10 in-person customer interviews on campus to validate price willingness.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="vcep-stage-actions-bar">
-            <button type="button" className="v3-outline" onClick={() => goToStage(3)}>
-              <ArrowLeft size={15} /> Previous: Opportunity Selection
-            </button>
-            <button type="button" className="v3-primary" onClick={() => goToStage(5)}>
-              Proceed to Stage 5: Run the Business <ArrowRight size={15} />
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* =========================================================================
-          STAGE 5: RUN THE BUSINESS (STARTUP BOARDROOM)
-          ========================================================================= */}
-      {currentStage === 5 && (
-        <section className="vcep-stage-view" aria-labelledby="stage-5-heading">
-          <div className="vcep-boardroom-card">
-            <div className="v3-panel-head-flex">
-              <div>
-                <span className="v3-eyebrow">STAGE 5 · STARTUP BOARDROOM SIMULATION</span>
-                <h2 id="stage-5-heading">Executive Boardroom: Handling an Operational Crisis</h2>
-                <p>
-                  Form a 5-person executive team. Navigate an unexpected delivery breakdown at 8:00 PM before tomorrow’s
-                  orders dispatch.
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="vcep-timer-pill">
-                  <Clock size={13} /> {formatTimer(timerSeconds)}
-                </span>
-                <button
-                  type="button"
-                  className="v3-action-mini-btn"
-                  onClick={() => setTimerRunning(!timerRunning)}
-                >
-                  {timerRunning ? 'Pause' : 'Start Timer'}
-                </button>
-                <button
-                  type="button"
-                  className="v3-action-mini-btn"
-                  onClick={() => {
-                    setTimerRunning(false);
-                    setTimerSeconds(180);
-                  }}
-                >
-                  <RotateCcw size={12} />
-                </button>
-              </div>
-            </div>
-
-            {/* Role Selector */}
-            <div style={{ marginTop: '18px' }}>
-              <label className="vcep-section-label">Select Your Executive Position (5 Classroom Roles):</label>
-              <div className="vcep-role-selector-grid">
-                {BOARDROOM_ROLES.map((r) => {
-                  const isSelected = r.id === activeRole.id;
-                  return (
-                    <button
-                      key={r.id}
-                      type="button"
-                      className={`vcep-role-btn ${isSelected ? 'is-selected' : ''}`}
-                      onClick={() => {
-                        updateState((prev) => ({
-                          ...prev,
-                          boardroom: { ...prev.boardroom, roleId: r.id },
-                        }));
-                      }}
-                    >
-                      {r.title}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="vcep-role-duty-box">
-                <strong>{activeRole.title} Duty: </strong>
-                <span>
-                  {activeRole.mandate} — <em>Key Priority: {activeRole.focus}</em>
-                </span>
-              </div>
-            </div>
-
-            {/* Fictional Crisis Scenario */}
-            <div className="vcep-crisis-banner">
-              <h4>⚠️ {CRISIS_SCENARIO.title}</h4>
-              <p>{CRISIS_SCENARIO.scenario}</p>
-
-              <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {CRISIS_SCENARIO.options.map((opt) => {
-                  const isSelected = labState.boardroom.crisisChoice === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      className={`vcep-decision-choice-btn ${isSelected ? 'is-selected' : ''}`}
-                      onClick={() => {
-                        updateState((prev) => ({
-                          ...prev,
-                          boardroom: { ...prev.boardroom, crisisChoice: opt.id },
-                        }));
-                      }}
-                    >
-                      <div className="vcep-choice-radio">{isSelected && <div className="vcep-choice-radio-inner" />}</div>
-                      <div>
-                        <strong style={{ display: 'block', color: '#17245c', marginBottom: '2px' }}>{opt.title}</strong>
-                        <span style={{ fontSize: '12px', color: '#475569' }}>{opt.summary}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {labState.boardroom.crisisChoice && (
-                <div className="vcep-decision-feedback" style={{ marginTop: '14px' }}>
-                  <strong>Boardroom Analysis: </strong>
-                  {CRISIS_SCENARIO.options.find((o) => o.id === labState.boardroom.crisisChoice)?.feedback}
-                </div>
-              )}
-            </div>
-
-            {/* Boardroom Decision Record */}
-            <div className="v3-panel" style={{ marginTop: '20px' }}>
-              <span className="v3-eyebrow">STAGE 5 DELIVERABLE</span>
-              <h3>Startup Boardroom Decision Record</h3>
-              <p>Document the rationale, consequences, and recovery plan agreed upon by the team.</p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px', marginTop: '12px' }}>
-                <label className="v3-field">
-                  <span>Executive Justification for Strategy:</span>
-                  <textarea
-                    rows={2}
-                    value={labState.boardroom.crisisRationale || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      updateState((prev) => ({
-                        ...prev,
-                        boardroom: { ...prev.boardroom, crisisRationale: val },
-                      }));
-                    }}
-                    placeholder="Why does this choice protect customer trust and enterprise solvency?"
-                  />
-                </label>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-                  <label className="v3-field">
-                    <span>Identified Operational Consequence:</span>
-                    <input
-                      type="text"
-                      value={labState.boardroom.consequencesAnalysis || ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        updateState((prev) => ({
-                          ...prev,
-                          boardroom: { ...prev.boardroom, consequencesAnalysis: val },
-                        }));
-                      }}
-                      placeholder="e.g. 25 orders rescheduled with discount vouchers; 15 delivered manually."
-                    />
-                  </label>
-
-                  <label className="v3-field">
-                    <span>Designated Operational Risk Owner:</span>
-                    <input
-                      type="text"
-                      value={labState.boardroom.assignedOwner || activeRole.title}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        updateState((prev) => ({
-                          ...prev,
-                          boardroom: { ...prev.boardroom, assignedOwner: val },
-                        }));
-                      }}
-                      placeholder="e.g. Operations Lead and Founder & Strategy Lead"
-                    />
-                  </label>
-                </div>
-
-                <label className="v3-field">
-                  <span>Recovery Plan & Future Preventative Control:</span>
-                  <textarea
-                    rows={2}
-                    value={labState.boardroom.recoveryPlan || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      updateState((prev) => ({
-                        ...prev,
-                        boardroom: { ...prev.boardroom, recoveryPlan: val },
-                      }));
-                    }}
-                    placeholder="What standby backup arrangements prevent this breakdown from repeating next week?"
-                  />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="vcep-stage-actions-bar">
-            <button type="button" className="v3-outline" onClick={() => goToStage(4)}>
-              <ArrowLeft size={15} /> Previous: Build Your Startup
-            </button>
-            <button type="button" className="v3-primary" onClick={() => goToStage(6)}>
-              Proceed to Stage 6: Investor Pitch Deck <ArrowRight size={15} />
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* =========================================================================
-          STAGE 6: CREATE YOUR INVESTOR PITCH DECK
-          ========================================================================= */}
-      {currentStage === 6 && (
-        <section className="vcep-stage-view" aria-labelledby="stage-6-heading">
-          <div className="vcep-pitch-deck-header-bar">
-            <div>
-              <span className="v3-eyebrow">STAGE 6 · EXECUTIVE PRESENTATION BUILDER</span>
-              <h2 id="stage-6-heading">Investor Pitch Deck: {activeCase.name}</h2>
-              <p>
-                Synthesize your venture into an 8-slide executive pitch. Fields are pre-filled from your work in Stages
-                1–5 and remain fully editable.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="v3-outline"
-                style={{ fontSize: '12px', padding: '7px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                onClick={handleSyncPitchFromStages}
-                title="Pull latest answers from Stages 1-5"
-              >
-                <RefreshCw size={13} /> Refresh From Stages 1–5
-              </button>
-
-              <button
-                type="button"
-                className="vcep-btn-primary"
-                style={{ fontSize: '12px', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                onClick={() => setIsFullScreenPitch(true)}
-              >
-                <Presentation size={14} /> Launch Presentation Mode
-              </button>
-            </div>
-          </div>
-
-          {/* Unverified Assumptions Notice */}
-          <div className="vcep-pitch-assumptions-notice">
-            <Info size={16} color="#0f766e" style={{ flexShrink: 0 }} />
-            <span>
-              <strong>Professional Academic Integrity:</strong> All market figures, traction projections, and unit
-              economics represent <em>Proposed Hypotheses</em>. Never fabricate sales, traction, or revenue.
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#0f766e', background: '#ccfbf1', padding: '3px 8px', borderRadius: '4px' }}>
+              Faculty Pacing
             </span>
           </div>
-
-          {/* Interactive 8-Slide Pitch Studio */}
-          <div className="vcep-pitch-studio-layout">
-            {/* Left Rail: 8 Slide Thumbnails */}
-            <div className="vcep-pitch-thumbnails-rail">
-              <span className="vcep-rail-title">PITCH SLIDES (8)</span>
-              {slides.map((s, idx) => {
-                const isCurrent = idx === activeSlideIndex;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className={`vcep-slide-thumbnail-btn ${isCurrent ? 'is-current' : ''}`}
-                    onClick={() => {
-                      updateState((prev) => ({
-                        ...prev,
-                        pitchDeck: { ...prev.pitchDeck, activeSlideIndex: idx },
-                      }));
-                    }}
-                  >
-                    <div className="vcep-slide-thumb-num">{s.number}</div>
-                    <div className="vcep-slide-thumb-meta">
-                      <strong className="vcep-slide-thumb-title">{s.title}</strong>
-                      <span className="vcep-slide-thumb-sub">{s.subtitle}</span>
-                    </div>
-                  </button>
-                );
-              })}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', fontSize: '12.5px', color: '#334155' }}>
+            <div style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>00–05m: Mission Orientation</div>
+              <div>Frame the core objective: Identify a customer friction point and develop an investable proposition.</div>
             </div>
+            <div style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>05–65m: Baseline Diagnostic A</div>
+              <div>Strict independent invigilated assessment without AI or peer assistance (10-point rubric).</div>
+            </div>
+            <div style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>65–75m: Health & Mental Break</div>
+              <div>10-minute reset before commencing hands-on entrepreneurial simulation.</div>
+            </div>
+            <div style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontWeight: 700, color: '#0f766e', marginBottom: '4px' }}>75–135m: Opportunity & Pitch Challenge</div>
+              <div>Students work through Tasks 01–04 in Area A and compile Task 05 (8-Slide Investor Pitch) in Area B.</div>
+            </div>
+          </div>
+        </div>
+      )}
 
-            {/* Right Workstation: Current Slide Editor & Live In-Platform Preview */}
-            {currentSlide && (
-              <div className="vcep-pitch-slide-editor-card">
-                {/* Slide Card Header */}
-                <div className="vcep-slide-card-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span className="vcep-slide-hero-num">{currentSlide.number}</span>
-                    <div>
-                      <h3 className="vcep-slide-hero-title">{currentSlide.title}</h3>
-                      <span className="vcep-slide-hero-subtitle">{currentSlide.subtitle}</span>
-                    </div>
-                  </div>
+      {/* ========================================================================= */}
+      {/* AREA A: UNDERSTAND THE BUSINESS OPPORTUNITY (#vcep-area-opportunity)       */}
+      {/* ========================================================================= */}
+      <section
+        id="vcep-area-opportunity"
+        style={{
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '16px',
+          padding: 'clamp(20px, 3.5vw, 36px)',
+          marginBottom: '36px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        }}
+      >
+        {/* Area A Header */}
+        <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '20px', marginBottom: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#0f766e' }}>
+              AREA A · FOUNDER WORKLAB
+            </span>
+          </div>
+          <h2 style={{ fontSize: 'clamp(22px, 2.5vw, 28px)', fontWeight: 800, color: '#17245c', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+            Understand the Business Opportunity
+          </h2>
+          <p style={{ fontSize: '15px', color: '#64748b', margin: 0, lineHeight: '1.6' }}>
+            Find a real problem. Build a business idea. Pitch your solution.
+          </p>
+        </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="vcep-slide-counter">
-                      Slide {activeSlideIndex + 1} of {slides.length}
-                    </span>
-                    <button
-                      type="button"
-                      className="v3-action-mini-btn"
-                      onClick={handlePrevSlide}
-                      disabled={activeSlideIndex === 0}
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      className="v3-action-mini-btn"
-                      onClick={handleNextSlide}
-                      disabled={activeSlideIndex === slides.length - 1}
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Slide Fields Editor */}
-                <div className="vcep-slide-fields-grid">
-                  {currentSlide.fields.map((field) => (
-                    <div key={field.key} className="vcep-slide-field-block">
-                      <div className="vcep-field-head">
-                        <label>{field.label}</label>
-                        {field.isAssumption && (
-                          <span className="vcep-assumption-tag">Proposed Plan / Hypothesis</span>
-                        )}
-                      </div>
-                      {field.isTextArea ? (
-                        <textarea
-                          rows={3}
-                          value={field.value}
-                          onChange={(e) => handleSlideFieldChange(currentSlide.id, field.key, e.target.value)}
-                          placeholder={field.placeholder}
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={field.value}
-                          onChange={(e) => handleSlideFieldChange(currentSlide.id, field.key, e.target.value)}
-                          placeholder={field.placeholder}
-                        />
+        {/* ------------------------------------------------------------------------- */}
+        {/* TASK 01: IDENTIFY THE OPPORTUNITY (S01-T01)                               */}
+        {/* ------------------------------------------------------------------------- */}
+        <TaskCard
+          taskId="S01-T01"
+          taskNumber="TASK 01"
+          title="Identify the Opportunity"
+          instruction="Select a relatable campus scenario or propose an original one to target an acute daily customer friction."
+          whyMatters="Great ventures start from genuine customer friction rather than abstract technical ideas. Choosing a clear persona focuses your value proposition and saves development capital."
+          statusText={labState.stage1?.selectedProblemId ? 'Problem Selected' : 'Not started'}
+          isActive={activeTaskId === 'S01-T01'}
+          onSelectTask={() => setActiveTaskId('S01-T01')}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+              gap: '14px',
+              marginBottom: '16px',
+            }}
+          >
+            {COLLEGE_PROBLEM_OPTIONS.map((opt) => {
+              const isSelected = !isCustomIdea && labState.stage1?.selectedProblemId === opt.id;
+              return (
+                <div
+                  key={opt.id}
+                  onClick={() => handleSelectProblemOption(opt)}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={isSelected}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleSelectProblemOption(opt);
+                    }
+                  }}
+                  style={{
+                    padding: '16px 18px',
+                    borderRadius: '12px',
+                    background: isSelected ? '#f0fdfa' : '#ffffff',
+                    border: isSelected ? '2px solid #0f766e' : '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isSelected ? '0 4px 12px rgba(15, 118, 110, 0.08)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    outline: 'none',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          color: isSelected ? '#0f766e' : '#64748b',
+                        }}
+                      >
+                        {opt.category}
+                      </span>
+                      {isSelected && (
+                        <span style={{ color: '#0f766e' }}>
+                          <CheckCircle2 size={16} />
+                        </span>
                       )}
                     </div>
-                  ))}
-                </div>
-
-                {/* Speaker Notes */}
-                <div className="vcep-slide-notes-box">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <strong>Speaker Presentation Notes:</strong>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>What to say during your classroom pitch</span>
+                    <div style={{ fontSize: '14.5px', fontWeight: 700, color: '#17245c', marginBottom: '6px' }}>
+                      {opt.title}
+                    </div>
+                    <p style={{ fontSize: '12.5px', color: '#475569', margin: 0, lineHeight: '1.5' }}>
+                      {opt.description}
+                    </p>
                   </div>
-                  <textarea
-                    rows={2}
-                    value={currentSlide.speakerNotes || ''}
-                    onChange={(e) => handleSpeakerNotesChange(currentSlide.id, e.target.value)}
-                    placeholder="Key talking points for this slide..."
-                  />
+                  <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '11.5px', color: '#0f766e', fontWeight: 600 }}>
+                    Hint: {opt.opportunityHint}
+                  </div>
                 </div>
+              );
+            })}
+
+            {/* Custom Business Idea Option */}
+            <div
+              onClick={() => setIsCustomIdea(true)}
+              tabIndex={0}
+              role="button"
+              aria-pressed={isCustomIdea}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsCustomIdea(true);
+                }
+              }}
+              style={{
+                padding: '16px 18px',
+                borderRadius: '12px',
+                background: isCustomIdea ? '#f0fdfa' : '#ffffff',
+                border: isCustomIdea ? '2px solid #0f766e' : '1px dashed #cbd5e1',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                outline: 'none',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: isCustomIdea ? '#0f766e' : '#64748b' }}>
+                    Custom Venture
+                  </span>
+                  {isCustomIdea && (
+                    <span style={{ color: '#0f766e' }}>
+                      <CheckCircle2 size={16} />
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: '14.5px', fontWeight: 700, color: '#17245c', marginBottom: '6px' }}>
+                  Enter Your Own Business Idea
+                </div>
+                <p style={{ fontSize: '12.5px', color: '#475569', margin: 0, lineHeight: '1.5' }}>
+                  Have a specific campus or local market problem in mind? Craft your own custom venture.
+                </p>
               </div>
-            )}
+
+              {isCustomIdea ? (
+                <div style={{ marginTop: '12px', display: 'flex', gap: '6px' }}>
+                  <input
+                    type="text"
+                    value={customIdeaText}
+                    onChange={(e) => setCustomIdeaText(e.target.value)}
+                    placeholder="Describe problem & solution..."
+                    style={{
+                      flex: 1,
+                      padding: '6px 8px',
+                      fontSize: '12px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCustomVentureSubmit();
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      background: '#0f766e',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+              ) : (
+                <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '11.5px', color: '#0f766e', fontWeight: 600 }}>
+                  Click to type custom problem & solution
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Full-Screen Presentation Mode Modal */}
-          {isFullScreenPitch && currentSlide && (
-            <div className="vcep-presentation-fullscreen-overlay">
-              <div className="vcep-fullscreen-toolbar">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span className="vcep-fs-brand">VAYENTRA VCEP FOUNDER ACCELERATOR</span>
-                  <span className="vcep-fs-dot">·</span>
-                  <span className="vcep-fs-session">Session 01 Pitch Deck</span>
-                </div>
+          <div style={{ fontSize: '11.5px', color: '#64748b', fontStyle: 'italic' }}>
+            Note: The opportunity scenarios above are educational illustrations designed to practice commercial thinking, not formal market research.
+          </div>
+        </TaskCard>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button
-                    type="button"
-                    className="vcep-fs-btn"
-                    onClick={() => setShowSpeakerNotes(!showSpeakerNotes)}
-                  >
-                    {showSpeakerNotes ? 'Hide Notes' : 'Show Speaker Notes'}
-                  </button>
-                  <span className="vcep-fs-slide-tracker">
-                    Slide {activeSlideIndex + 1} / {slides.length}
-                  </span>
-                  <button
-                    type="button"
-                    className="vcep-fs-exit-btn"
-                    onClick={() => setIsFullScreenPitch(false)}
-                  >
-                    Exit Full-Screen (Esc)
-                  </button>
-                </div>
-              </div>
+        {/* ------------------------------------------------------------------------- */}
+        {/* TASK 02: TEST THE IDEA (S01-T02)                                          */}
+        {/* ------------------------------------------------------------------------- */}
+        <TaskCard
+          taskId="S01-T02"
+          taskNumber="TASK 02"
+          title="Test the Idea"
+          instruction="Structure your proposition by defining the customer persona, core problem, unique value, and early validation method."
+          whyMatters="Validating early assumptions with direct customer conversations prevents building services that nobody is willing to pay for."
+          statusText={labState.stage1?.opportunityStatement ? '4 Questions Synced' : 'In progress'}
+          isActive={activeTaskId === 'S01-T02'}
+          onSelectTask={() => setActiveTaskId('S01-T02')}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {OPPORTUNITY_QUESTIONS.map((cfg) => {
+              let curValue = '';
+              let updateKey: 'targetCampusPersona' | 'opportunityStatement' | 'whyItMatters' | 'validationApproach' = 'targetCampusPersona';
 
-              {/* Live Fullscreen Slide Canvas */}
-              <div className="vcep-fs-slide-canvas">
-                <div className="vcep-fs-slide-inner">
-                  <div className="vcep-fs-slide-head">
-                    <span className="vcep-fs-num">{currentSlide.number}</span>
+              if (cfg.id === 'q1-who') {
+                curValue = labState.stage1?.targetCampusPersona || '';
+                updateKey = 'targetCampusPersona';
+              } else if (cfg.id === 'q2-what') {
+                curValue = labState.stage1?.opportunityStatement || '';
+                updateKey = 'opportunityStatement';
+              } else if (cfg.id === 'q3-why') {
+                curValue = labState.stage1?.whyItMatters || '';
+                updateKey = 'whyItMatters';
+              } else if (cfg.id === 'q4-how') {
+                curValue = labState.stage1?.validationApproach || (labState.decisions?.decisionD ? 'Grassroots direct customer demonstration' : '');
+                updateKey = 'validationApproach';
+              }
+
+              const isWhyOpen = Boolean(expandedWhyMatters[cfg.id]);
+
+              return (
+                <div
+                  key={cfg.id}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '18px 20px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
                     <div>
-                      <h2>{currentSlide.title}</h2>
-                      <p>{currentSlide.subtitle}</p>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase' }}>
+                        Question {cfg.number}
+                      </span>
+                      <h4 style={{ fontSize: '15.5px', fontWeight: 700, color: '#17245c', margin: '2px 0 4px' }}>
+                        {cfg.question}
+                      </h4>
+                      <div style={{ fontSize: '12.5px', color: '#64748b' }}>{cfg.prompt}</div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleWhyMatters(cfg.id)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        color: '#0f766e',
+                        background: '#f0fdfa',
+                        border: '1px solid #ccfbf1',
+                        borderRadius: '6px',
+                        padding: '4px 10px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span>Why this matters</span>
+                      {isWhyOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                    </button>
                   </div>
 
-                  <div className="vcep-fs-slide-content-grid">
-                    {currentSlide.fields.map((f) => (
-                      <div key={f.key} className="vcep-fs-content-item">
-                        <span className="vcep-fs-label">{f.label}</span>
-                        <div className="vcep-fs-value">{f.value || <em style={{ opacity: 0.6 }}>Unspecified</em>}</div>
-                      </div>
+                  {/* Optional Collapsed Explanation */}
+                  {isWhyOpen && (
+                    <div
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #99f6e4',
+                        borderRadius: '8px',
+                        padding: '12px 14px',
+                        fontSize: '12.5px',
+                        color: '#0f766e',
+                        lineHeight: '1.5',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      <strong>Founder Commercial Principle:</strong> {cfg.whyMatters}
+                    </div>
+                  )}
+
+                  {/* Suggestion Chips */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '12px 0 10px' }}>
+                    <span style={{ fontSize: '11.5px', color: '#64748b', alignSelf: 'center', fontWeight: 600 }}>Suggestions:</span>
+                    {cfg.chips.map((chip, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleUpdateQuestion(updateKey, chip)}
+                        style={{
+                          fontSize: '11.5px',
+                          padding: '4px 10px',
+                          borderRadius: '16px',
+                          background: curValue === chip ? '#ccfbf1' : '#ffffff',
+                          border: curValue === chip ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                          color: curValue === chip ? '#0f766e' : '#475569',
+                          cursor: 'pointer',
+                          fontWeight: curValue === chip ? 600 : 500,
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        + {chip}
+                      </button>
                     ))}
                   </div>
 
-                  {showSpeakerNotes && currentSlide.speakerNotes && (
-                    <div className="vcep-fs-notes-drawer">
-                      <strong>Speaker Notes:</strong> {currentSlide.speakerNotes}
-                    </div>
-                  )}
-                </div>
+                  {/* Text Input Area */}
+                  <textarea
+                    rows={2}
+                    value={curValue}
+                    onChange={(e) => handleUpdateQuestion(updateKey, e.target.value)}
+                    placeholder={cfg.example}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      fontSize: '13.5px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      color: '#1e293b',
+                      lineHeight: '1.5',
+                      boxSizing: 'border-box',
+                      fontFamily: 'inherit',
+                    }}
+                  />
 
-                {/* Left & Right Controls */}
-                <button
-                  type="button"
-                  className="vcep-fs-nav-arrow arrow-left"
-                  onClick={handlePrevSlide}
-                  disabled={activeSlideIndex === 0}
-                  aria-label="Previous slide"
+                  {/* Live Feedback Indicator */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '11.5px' }}>
+                    <span style={{ color: curValue.trim().length >= 10 ? '#166534' : '#64748b', fontWeight: 500 }}>
+                      {curValue.trim().length >= 10 ? '✓ Response recorded & synced' : 'Enter at least a few words'}
+                    </span>
+                    <span style={{ color: '#94a3b8' }}>{curValue.split(/\s+/).filter(Boolean).length} words</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </TaskCard>
+
+        {/* ------------------------------------------------------------------------- */}
+        {/* TASK 03: SHAPE THE BUSINESS (S01-T03)                                     */}
+        {/* ------------------------------------------------------------------------- */}
+        <TaskCard
+          taskId="S01-T03"
+          taskNumber="TASK 03"
+          title="Shape the Business"
+          instruction="Analyze proven founder models, establish your startup's unit economics, and resolve early customer pricing trade-offs."
+          whyMatters="Startups do not fail from a lack of ideas; they fail when unit contribution margin is negative or when unsustainable discounts exhaust operational capacity."
+          statusText="Economics Configured"
+          isActive={activeTaskId === 'S01-T03'}
+          onSelectTask={() => setActiveTaskId('S01-T03')}
+        >
+          {/* Part A: Real-World Startup Inspiration Decisions */}
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#17245c', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '8px' }}>
+              1. Real Indian Startup Model Lessons
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+              {STARTUP_STORIES.map((story) => {
+                const userChoice = labState.storyDecisions?.[story.id] || '';
+                return (
+                  <div
+                    key={story.id}
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '16px 18px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 800, color: '#17245c' }}>
+                          {story.company}
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#64748b', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px' }}>
+                          {story.location} · {story.foundingYear}
+                        </span>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase' }}>Customer Friction:</div>
+                        <p style={{ fontSize: '12px', color: '#475569', margin: '2px 0 0', lineHeight: '1.4' }}>{story.problem}</p>
+                      </div>
+
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#0f766e', textTransform: 'uppercase' }}>Founder Solution:</div>
+                        <p style={{ fontSize: '12px', color: '#475569', margin: '2px 0 0', lineHeight: '1.4' }}>{story.model}</p>
+                      </div>
+
+                      <div style={{ background: '#ffffff', padding: '8px 10px', borderRadius: '6px', borderLeft: '3px solid #0f766e', marginBottom: '12px' }}>
+                        <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase' }}>Practical Founder Lesson:</div>
+                        <div style={{ fontSize: '11.5px', color: '#1e293b', marginTop: '2px', lineHeight: '1.35' }}>
+                          {story.id === 'zerodha' && 'Radical pricing transparency and user trust create a durable word-of-mouth moat with zero advertising spend.'}
+                          {story.id === 'nykaa' && 'Verified authenticity and curated customer experience beat race-to-the-bottom discounting.'}
+                          {story.id === 'meesho' && 'Removing friction and logistics costs for unorganized sellers unlocks mass grassroots network effects.'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#17245c', marginBottom: '6px' }}>
+                        Decision: {story.decisionPrompt}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {story.options.map((opt) => {
+                          const isChosen = userChoice === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => handleSelectStoryDecision(story.id, opt.id)}
+                              style={{
+                                textAlign: 'left',
+                                padding: '8px 10px',
+                                borderRadius: '6px',
+                                fontSize: '11.5px',
+                                background: isChosen ? (opt.isOptimal ? '#f0fdf4' : '#fef2f2') : '#ffffff',
+                                border: isChosen ? (opt.isOptimal ? '1px solid #16a34a' : '1px solid #dc2626') : '1px solid #e2e8f0',
+                                color: '#1e293b',
+                                cursor: 'pointer',
+                                lineHeight: '1.35',
+                              }}
+                            >
+                              <span style={{ fontWeight: 600 }}>{opt.text}</span>
+                              {isChosen && (
+                                <div style={{ marginTop: '4px', fontSize: '11px', color: opt.isOptimal ? '#166534' : '#991b1b' }}>
+                                  {opt.feedback}
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Part B: Your Startup Unit Economics */}
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '18px 20px',
+              marginBottom: '20px',
+            }}
+          >
+            <div style={{ fontWeight: 700, color: '#17245c', fontSize: '14.5px', marginBottom: '12px' }}>
+              2. Your Startup Unit Economics & Commercial Model
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  Revenue Model
+                </label>
+                <select
+                  value={labState.pricingTradeOff?.choice || 'pt-scope'}
+                  onChange={(e) => handleSelectPricingTradeOff(e.target.value, 'Commercial trade-off chosen')}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    fontSize: '13px',
+                    color: '#1e293b',
+                  }}
                 >
-                  <ChevronLeft size={32} />
-                </button>
-                <button
-                  type="button"
-                  className="vcep-fs-nav-arrow arrow-right"
-                  onClick={handleNextSlide}
-                  disabled={activeSlideIndex === slides.length - 1}
-                  aria-label="Next slide"
+                  <option value="pt-scope">Subscription Pass (Weekly / Monthly)</option>
+                  <option value="pt-discount">Pay-per-Order / Pay-as-you-go</option>
+                  <option value="pt-value">Flat Monthly Convenience Fee</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  Illustrative Selling Price / Unit
+                </label>
+                <input
+                  type="text"
+                  defaultValue="₹90 per meal / delivery"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    fontSize: '13px',
+                    color: '#1e293b',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  Estimated Direct Cost / Unit
+                </label>
+                <input
+                  type="text"
+                  defaultValue="₹55 (ingredients, runner, container)"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    fontSize: '13px',
+                    color: '#1e293b',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  Unit Contribution Margin
+                </label>
+                <div
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#166534',
+                  }}
                 >
-                  <ChevronRight size={32} />
+                  ₹35 / unit (+38.8% margin)
+                </div>
+              </div>
+            </div>
+
+            {/* Part C: Early-Customer Pricing Trade-Off Strategy */}
+            <div>
+              <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '8px' }}>
+                Early-Customer Pricing Trade-Off: How do you handle early price resistance?
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+                {PRICING_TRADE_OFF_OPTIONS.map((pto) => {
+                  const isChosen = (labState.pricingTradeOff?.choice || 'pt-scope') === pto.id;
+                  return (
+                    <div
+                      key={pto.id}
+                      onClick={() => handleSelectPricingTradeOff(pto.id, pto.consequence)}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '8px',
+                        background: isChosen ? '#ffffff' : '#f1f5f9',
+                        border: isChosen ? '2px solid #0f766e' : '1px solid #cbd5e1',
+                        cursor: 'pointer',
+                        boxShadow: isChosen ? '0 2px 8px rgba(15, 118, 110, 0.08)' : 'none',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: pto.isOptimal ? '#0f766e' : '#b91c1c', textTransform: 'uppercase' }}>
+                          {pto.badge}
+                        </span>
+                        {isChosen && <Check size={14} color="#0f766e" strokeWidth={3} />}
+                      </div>
+                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                        {pto.title}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#475569', lineHeight: '1.4' }}>
+                        {pto.consequence}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </TaskCard>
+
+        {/* ------------------------------------------------------------------------- */}
+        {/* TASK 04: CHECK BUSINESS REALITY (S01-T04)                                  */}
+        {/* ------------------------------------------------------------------------- */}
+        <TaskCard
+          taskId="S01-T04"
+          taskNumber="TASK 04"
+          title="Check Business Reality"
+          instruction="Inspect the separate Vayentra Labs September records to distinguish accounting profit from cash solvency, map order-to-cash handoffs, and recommend a solvent payment decision."
+          whyMatters="A company can show healthy accounting profits on accrual while simultaneously experiencing negative cash flow and facing imminent payroll insolvency."
+          statusText={labState.vlab?.calcAttempted ? 'Financial Audit Complete' : 'In progress'}
+          isActive={activeTaskId === 'S01-T04'}
+          onSelectTask={() => setActiveTaskId('S01-T04')}
+        >
+          {/* Institutional Boundary Warning */}
+          <div
+            style={{
+              background: '#fef3c7',
+              border: '1px solid #fde68a',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              fontSize: '12px',
+              color: '#92400e',
+              lineHeight: 1.45,
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <AlertCircle size={16} color="#d97706" style={{ flexShrink: 0 }} />
+            <span>
+              <strong>Institutional Boundary Notice:</strong> These figures belong strictly to the approved Vayentra Labs commercial simulation and are completely separate from your student startup projections.
+            </span>
+          </div>
+
+          <p style={{ fontSize: '13px', color: '#475569', lineHeight: '1.5', margin: '0 0 14px' }}>
+            {VAYENTRA_LABS_FINANCIAL_CASE.scenario}
+          </p>
+
+          {/* Quick Prediction Challenge */}
+          <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e2e8f0' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#17245c', marginBottom: '8px' }}>
+              Founder Prediction: Can Vayentra Labs safely pay this ₹15,000 equipment bill today?
+            </div>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {[
+                { id: 'yes', label: 'YES — ₹25,000 profit covers the bill' },
+                { id: 'no', label: 'NO — Cash liquidity is insufficient' },
+                { id: 'not-sure', label: 'NOT SURE — Must inspect cash timing' },
+              ].map((p) => {
+                const isSel = labState.vlab?.prediction === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handleVlabCalcChange('prediction', p.id)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      background: isSel ? '#0f766e' : '#ffffff',
+                      border: isSel ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                      color: isSel ? '#ffffff' : '#334155',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 5 Financial Inputs */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
+                1. Accounting Profit
+              </label>
+              <input
+                type="text"
+                value={labState.vlab?.calcProfit || ''}
+                onChange={(e) => handleVlabCalcChange('calcProfit', e.target.value)}
+                placeholder="₹25,000"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <span style={{ fontSize: '10.5px', color: '#64748b' }}>₹1,00,000 − ₹75,000</span>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
+                2. Net Cash Movement
+              </label>
+              <input
+                type="text"
+                value={labState.vlab?.calcNetCash || ''}
+                onChange={(e) => handleVlabCalcChange('calcNetCash', e.target.value)}
+                placeholder="-₹10,000"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <span style={{ fontSize: '10.5px', color: '#64748b' }}>₹60,000 − ₹70,000</span>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
+                3. Closing Bank Balance
+              </label>
+              <input
+                type="text"
+                value={labState.vlab?.calcClosingBank || ''}
+                onChange={(e) => handleVlabCalcChange('calcClosingBank', e.target.value)}
+                placeholder="₹10,000"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <span style={{ fontSize: '10.5px', color: '#64748b' }}>₹20,000 + (-₹10,000)</span>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
+                4. Free Cash (Above Reserve)
+              </label>
+              <input
+                type="text"
+                value={labState.vlab?.calcAvailableAboveReserve || ''}
+                onChange={(e) => handleVlabCalcChange('calcAvailableAboveReserve', e.target.value)}
+                placeholder="₹5,000"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <span style={{ fontSize: '10.5px', color: '#64748b' }}>₹10,000 − ₹5,000 reserve</span>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
+                5. Payment Shortfall
+              </label>
+              <input
+                type="text"
+                value={labState.vlab?.calcPaymentShortfall || ''}
+                onChange={(e) => handleVlabCalcChange('calcPaymentShortfall', e.target.value)}
+                placeholder="₹10,000"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <span style={{ fontSize: '10.5px', color: '#64748b' }}>₹15,000 bill − ₹5,000 free</span>
+            </div>
+          </div>
+
+          {/* Verification Insight */}
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '12px 16px', fontSize: '12.5px', color: '#991b1b', lineHeight: '1.5', marginBottom: '20px' }}>
+            <strong>The Reality Check Lesson:</strong> Vayentra Labs earned ₹25,000 in profit, but experienced a −₹10,000 net cash outflow. After safeguarding the ₹5,000 safety reserve, only ₹5,000 in free cash remains. Paying ₹15,000 today would trigger a <strong>₹10,000 cash deficit</strong> and risk payroll insolvency.
+          </div>
+
+          {/* Order-to-Cash Process Mapping & Handoff Controls */}
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 18px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <Workflow size={16} color="#0f766e" />
+              <strong style={{ fontSize: '13px', color: '#17245c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Order-to-Cash Business Process Mapping & Operational Handoffs
+              </strong>
+            </div>
+            <p style={{ fontSize: '12.5px', color: '#64748b', margin: '0 0 12px', lineHeight: 1.4 }}>
+              Map the 6 stages of revenue realization. Every handoff requires an explicit role owner and evidence control to prevent cash leakage.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+              {ORDER_TO_CASH_STEPS.map((step) => {
+                const currentOwner = labState.vlab?.processOwners?.[step.id] || step.defaultOwner;
+                return (
+                  <div
+                    key={step.id}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '10px 12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#0f766e' }}>
+                          Stage 0{step.stepNumber}
+                        </span>
+                        <select
+                          value={currentOwner}
+                          onChange={(e) => handleProcessOwnerChange(step.id, e.target.value)}
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            border: '1px solid #cbd5e1',
+                            background: '#f8fafc',
+                            color: '#1e293b',
+                          }}
+                        >
+                          {step.roleOptions.map((r) => (
+                            <option key={r} value={r}>
+                              {r}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                        {step.title}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#475569', lineHeight: 1.35, marginBottom: '6px' }}>
+                        {step.description}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '10.5px', color: '#b91c1c', borderTop: '1px dashed #f1f5f9', paddingTop: '4px', lineHeight: 1.3 }}>
+                      <strong>Risk if missing:</strong> {step.riskIfMissing}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Payment Recommendation & Reserve Preservation */}
+          <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '10px', padding: '14px 16px' }}>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f766e', marginBottom: '6px' }}>
+              Managerial Payment Recommendation:
+            </div>
+            <p style={{ fontSize: '12px', color: '#115e59', margin: '0 0 10px', lineHeight: 1.45 }}>
+              Recommendation: <strong>Reschedule / Defer</strong>. Pay ₹5,000 from available free cash above the safety reserve; defer remaining ₹10,000 until client receivables are collected.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', background: '#ccfbf1', color: '#0f766e', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                Safety Reserve Protected: ₹5,000
+              </span>
+              <span style={{ fontSize: '11px', background: '#ccfbf1', color: '#0f766e', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                Cash Solvency Preserved
+              </span>
+              <span style={{ fontSize: '11px', background: '#ccfbf1', color: '#0f766e', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                ICAI Accrual Discipline Observed
+              </span>
+            </div>
+          </div>
+        </TaskCard>
+
+        {/* Transition Callout Card */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #17245c 0%, #0f766e 100%)',
+            borderRadius: '14px',
+            padding: '24px 28px',
+            color: '#ffffff',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+            boxShadow: '0 8px 24px rgba(23, 36, 92, 0.15)',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#99f6e4' }}>
+              Your Business Idea Is Taking Shape
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '4px 0 6px', color: '#ffffff' }}>
+              Synthesize Your Work into a Professional Pitch Deck
+            </h3>
+            <p style={{ fontSize: '13.5px', color: '#ccfbf1', margin: 0, maxWidth: '600px', lineHeight: '1.5' }}>
+              We have organized your customer problem, target persona, unit economics, and operational controls into an 8-slide executive pitch deck ready for presentation.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => scrollToArea('vcep-area-pitch-deck')}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '10px',
+              background: '#e5af2e',
+              border: 'none',
+              color: '#17245c',
+              fontSize: '14px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(229, 175, 46, 0.3)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <span>Build My Pitch Deck ↓</span>
+          </button>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* AREA B: CREATE YOUR INVESTOR PITCH DECK (#vcep-area-pitch-deck)            */}
+      {/* ========================================================================= */}
+      <section
+        id="vcep-area-pitch-deck"
+        style={{
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '16px',
+          padding: 'clamp(20px, 3.5vw, 36px)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        }}
+      >
+        {/* Area B Header */}
+        <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '20px', marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#0f766e' }}>
+                AREA B · EXECUTIVE DELIVERABLE
+              </span>
+            </div>
+            <h2 style={{ fontSize: 'clamp(22px, 2.5vw, 28px)', fontWeight: 800, color: '#17245c', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+              Create Your Investor Pitch Deck
+            </h2>
+            <p style={{ fontSize: '15px', color: '#64748b', margin: 0, lineHeight: '1.6' }}>
+              8 editable slides automatically synthesized from your business decisions. Edit, preview, and practice your pitch.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => scrollToArea('vcep-area-opportunity')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              color: '#0f766e',
+              background: '#f0fdfa',
+              border: '1px solid #99f6e4',
+              borderRadius: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            <span>↑ Refine Business Inputs</span>
+          </button>
+        </div>
+
+        {/* ------------------------------------------------------------------------- */}
+        {/* TASK 05: BUILD THE PITCH DECK (S01-T05)                                   */}
+        {/* ------------------------------------------------------------------------- */}
+        <TaskCard
+          taskId="S01-T05"
+          taskNumber="TASK 05"
+          title="Build the Pitch Deck"
+          instruction="Populate, edit, and rehearse your eight-slide investor pitch synthesized automatically from your business decisions."
+          whyMatters="Clear communication and defensible unit economics convince partners and investors that your operational model is sound."
+          statusText="8 Slides Active"
+          isActive={activeTaskId === 'S01-T05'}
+          onSelectTask={() => setActiveTaskId('S01-T05')}
+        >
+          {/* 8-Slide Thumbnails / Selector */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+              gap: '8px',
+              marginBottom: '24px',
+            }}
+          >
+            {slides.map((s, idx) => {
+              const isActive = activeSlideIndex === idx;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setActiveSlideIndex(idx)}
+                  style={{
+                    padding: '10px 8px',
+                    borderRadius: '8px',
+                    background: isActive ? '#17245c' : '#f8fafc',
+                    border: isActive ? '1px solid #17245c' : '1px solid #e2e8f0',
+                    color: isActive ? '#ffffff' : '#475569',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ fontSize: '10px', fontWeight: 800, opacity: isActive ? 0.9 : 0.6, textTransform: 'uppercase' }}>
+                    Slide 0{idx + 1}
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {s.title.split(' ')[0]}
+                  </div>
                 </button>
+              );
+            })}
+          </div>
+
+          {/* Active Slide Presentation Canvas */}
+          {currentSlide && (
+            <div
+              style={{
+                background: '#f8fafc',
+                border: '2px solid #e2e8f0',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                marginBottom: '28px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+              }}
+            >
+              {/* Slide Top Banner */}
+              <div
+                style={{
+                  background: '#17245c',
+                  padding: '16px 24px',
+                  color: '#ffffff',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                }}
+              >
+                <div>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#e5af2e', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    SLIDE 0{activeSlideIndex + 1} OF 08 · {currentSlide.subtitle}
+                  </span>
+                  <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '2px 0 0', color: '#ffffff' }}>
+                    {currentSlide.title}
+                  </h3>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    disabled={activeSlideIndex === 0}
+                    onClick={() => setActiveSlideIndex(activeSlideIndex - 1)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      background: activeSlideIndex === 0 ? 'rgba(255,255,255,0.1)' : '#ffffff',
+                      border: 'none',
+                      color: activeSlideIndex === 0 ? 'rgba(255,255,255,0.4)' : '#17245c',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: activeSlideIndex === 0 ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    type="button"
+                    disabled={activeSlideIndex === slides.length - 1}
+                    onClick={() => setActiveSlideIndex(activeSlideIndex + 1)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      background: activeSlideIndex === slides.length - 1 ? 'rgba(255,255,255,0.1)' : '#ffffff',
+                      border: 'none',
+                      color: activeSlideIndex === slides.length - 1 ? 'rgba(255,255,255,0.4)' : '#17245c',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: activeSlideIndex === slides.length - 1 ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+
+              {/* Slide Fields Editor */}
+              <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {currentSlide.fields.map((f) => (
+                  <div key={f.key}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                      {f.label}
+                    </label>
+                    {f.isTextArea ? (
+                      <textarea
+                        rows={3}
+                        value={f.value}
+                        onChange={(e) => handleUpdateSlideField(activeSlideIndex, f.key, e.target.value)}
+                        placeholder={f.placeholder}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          fontSize: '13.5px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          background: '#ffffff',
+                          color: '#1e293b',
+                          lineHeight: '1.5',
+                          boxSizing: 'border-box',
+                          fontFamily: 'inherit',
+                        }}
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={f.value}
+                        onChange={(e) => handleUpdateSlideField(activeSlideIndex, f.key, e.target.value)}
+                        placeholder={f.placeholder}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          fontSize: '13.5px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          background: '#ffffff',
+                          color: '#1e293b',
+                          boxSizing: 'border-box',
+                          fontFamily: 'inherit',
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+
+                {/* Speaker Notes */}
+                <div
+                  style={{
+                    background: '#f1f5f9',
+                    borderLeft: '4px solid #e5af2e',
+                    padding: '12px 16px',
+                    borderRadius: '0 8px 8px 0',
+                    marginTop: '8px',
+                  }}
+                >
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#17245c', textTransform: 'uppercase', marginBottom: '2px' }}>
+                    Founder Pitch Coaching Notes:
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.45' }}>
+                    {currentSlide.speakerNotes}
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Navigation Controls */}
-          <div className="vcep-stage-actions-bar">
-            <button type="button" className="v3-outline" onClick={() => goToStage(5)}>
-              <ArrowLeft size={15} /> Previous: Run the Business
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: '#166534', fontWeight: 600 }}>
-                ✓ Complete Startup Journey Finished
+          {/* Peer Review Rubric & Metacognitive Reflection */}
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '22px 24px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+              <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#17245c', margin: 0 }}>
+                Classroom Pitch Practice & Self-Reflection
+              </h4>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
+                Final Student Review Step
               </span>
             </div>
+
+            <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px', lineHeight: '1.5' }}>
+              Practice presenting your 8 slides in 2 minutes with a peer founder. Use this rubric to audit pitch defensibility.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', marginBottom: '18px' }}>
+              {[
+                { id: 'problemClear', label: '1. Problem Clarity', desc: 'Audience feels acute customer friction immediately.' },
+                { id: 'solutionBelievable', label: '2. Solution Believability', desc: 'MVP can realistically be delivered on day one.' },
+                { id: 'businessModelClear', label: '3. Financial Realism', desc: 'Unit contribution margin is positive without burn.' },
+                { id: 'tradeoffExplained', label: '4. Trade-off Justification', desc: 'Founder defends pricing and operational choices.' },
+              ].map((crit) => (
+                <div
+                  key={crit.id}
+                  style={{
+                    background: '#ffffff',
+                    padding: '12px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                  }}
+                >
+                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '2px' }}>
+                    {crit.label}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', lineHeight: '1.4' }}>
+                    {crit.desc}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Founder Self-Reflection Input */}
+            <div>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '6px' }}>
+                Founder Reflection: "One decision I would change or test further before launching is..."
+              </label>
+              <textarea
+                rows={2}
+                value={labState.reflectionChange || ''}
+                onChange={(e) => {
+                  const nextState: StartupLabState = {
+                    ...labState,
+                    reflectionChange: e.target.value,
+                  };
+                  saveLabState(nextState);
+                }}
+                placeholder="e.g., I would spend more time interviewing early customers directly rather than assuming their willingness to pay upfront."
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  fontSize: '13.5px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#1e293b',
+                  lineHeight: '1.5',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                }}
+              />
+            </div>
           </div>
-        </section>
-      )}
+        </TaskCard>
+      </section>
     </div>
   );
 }

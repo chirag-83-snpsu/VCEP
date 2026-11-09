@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { ReviewContext, SessionReviewReport } from './types';
-import { evaluateReview } from './registry';
+import type { ReviewContext, SessionReviewReport } from './types.ts';
+import { evaluateReview } from './registry.ts';
 
 export function runAutomaticReview(ctx: ReviewContext): SessionReviewReport {
   return evaluateReview(ctx);

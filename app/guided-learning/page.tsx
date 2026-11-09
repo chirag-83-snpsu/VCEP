@@ -35,6 +35,29 @@ import { Session23Workstation } from './workstations/session-23-workstation';
 import { Session24Workstation } from './workstations/session-24-workstation';
 import { Session01PracticeLab } from './components/session-01-practice-lab';
 import { Session01StartupJourney } from './components/session-01-startup-journey';
+import { Session02TeamworkJourney } from './components/session-02-teamwork-journey';
+import { Session03CommunicationJourney } from './components/session-03-communication-journey';
+import { Session04MeetingJourney } from './components/session-04-meeting-journey';
+import { Session05AccountingJourney } from './components/session-05-accounting-journey';
+import { Session06LedgerJourney } from './components/session-06-ledger-journey';
+import { Session07CleaningJourney } from './components/session-07-cleaning-journey';
+import { Session08ReconciliationJourney } from './components/session-08-reconciliation-journey';
+import { Session09PerformanceJourney } from './components/session-09-performance-journey';
+import { Session10DashboardJourney } from './components/session-10-dashboard-journey';
+import { Session11GSTJourney } from './components/session-11-gst-journey';
+import { Session12ReceivablesJourney } from './components/session-12-receivables-journey';
+import { Session13AIJourney } from './components/session-13-ai-journey';
+import { Session14AIJourney } from './components/session-14-ai-journey';
+import { Session15SalesJourney } from './components/session-15-sales-journey';
+import { Session16DecisionJourney } from './components/session-16-decision-journey';
+import { Session17DiscoveryJourney } from './components/session-17-discovery-journey';
+import { Session18PlanningJourney } from './components/session-18-planning-journey';
+import { Session19ExecutionJourney } from './components/session-19-execution-journey';
+import { Session20ChangeJourney } from './components/session-20-change-journey';
+import { Session21PortfolioJourney } from './components/session-21-portfolio-journey';
+import { Session22HiringJourney } from './components/session-22-hiring-journey';
+import { Session23PresentationJourney } from './components/session-23-presentation-journey';
+import { Session24PassportJourney } from './components/session-24-passport-journey';
 import { useAutomaticReview } from '@/lib/review-engine/engine';
 import { StageStatus, StageName, ReviewCheckItem } from '@/lib/review-engine/types';
 import { CheckCircle2, AlertCircle, Clock, ShieldCheck, ArrowRight } from 'lucide-react';
@@ -317,14 +340,114 @@ export default function GuidedLearningPage(){
         <SessionIcon session={selected} size="lg" />
         <div>
           <div className="v3-eyebrow">
-            {selected === 1 ? (
-              <>SESSION 01 OF 24 <span className="v3-dot">·</span> STARTUP EXPERIENCE</>
+            {selected >= 1 && selected <= 15 ? (
+              <>VCEP COMMERCE WORKLAB</>
             ) : (
               <>SESSION {padded(selected)} OF 24 <span className="v3-dot">·</span> 135 MINUTES</>
             )}
           </div>
-          <h1>{selected === 1 ? 'Start a Business. Think Like a Founder.' : (lesson?.title||meta.title)}</h1>
-          <p>{selected === 1 ? 'Discover how real businesses grow, then build your own startup idea.' : (lesson?.outcome||meta.summary)}</p>
+          <h1>
+            {selected === 1
+              ? 'Start a Business. Think Like a Founder.'
+              : selected === 2
+              ? 'Professional Identity and Teamwork'
+              : selected === 3
+              ? 'Workplace Communication'
+              : selected === 4
+              ? 'Meetings and Reporting'
+              : selected === 5
+              ? 'Accounting Transactions'
+              : selected === 6
+              ? 'Ledger and Month End Close'
+              : selected === 7
+              ? 'Excel and Data Cleaning'
+              : selected === 8
+              ? 'Bank Reconciliation'
+              : selected === 9
+              ? 'Business Finance and Performance'
+              : selected === 10
+              ? 'MIS Dashboard Development'
+              : selected === 11
+              ? 'GST and Invoice Review'
+              : selected === 12
+              ? 'Receivables and Working Capital'
+              : selected === 13
+              ? 'AI for Commerce Professionals'
+              : selected === 14
+              ? 'AI Verification and Automation'
+              : selected === 15
+              ? 'Customer and Sales Operations'
+              : selected === 16
+              ? 'Commercial Decision Making'
+              : selected === 17
+              ? 'Industry Challenge Discovery'
+              : selected === 18
+              ? 'Solution Design and Project Planning'
+              : selected === 19
+              ? 'Project Execution and Quality Assurance'
+              : selected === 20
+              ? 'Management Review and Change Control'
+              : selected === 21
+              ? 'Resume and Portfolio Development'
+              : selected === 22
+              ? 'Hiring Simulation and Exit Assessment'
+              : selected === 23
+              ? 'Corporate Presentation Preparation'
+              : selected === 24
+              ? 'Corporate Demo Day and Industry Passport'
+              : (lesson?.title || meta.title)}
+          </h1>
+          <p>
+            {selected === 1
+              ? 'Find a real problem. Build a business idea. Pitch your solution.'
+              : selected === 2
+              ? 'Join the team. Own the work.'
+              : selected === 3
+              ? 'Write like a professional.'
+              : selected === 4
+              ? 'Run the meeting. Capture the decision.'
+              : selected === 5
+              ? 'Work as an accounts executive.'
+              : selected === 6
+              ? 'Close the books with confidence.'
+              : selected === 7
+              ? 'Turn messy data into reliable data.'
+              : selected === 8
+              ? 'Find the difference. Prove the balance.'
+              : selected === 9
+              ? 'Read the numbers. Challenge the story.'
+              : selected === 10
+              ? 'Build a dashboard that supports decisions.'
+              : selected === 11
+              ? 'Review the invoice before you approve it.'
+              : selected === 12
+              ? 'Turn overdue invoices into a cash plan.'
+              : selected === 13
+              ? 'Use AI responsibly. Verify the work.'
+              : selected === 14
+              ? 'Audit the AI. Control the workflow.'
+              : selected === 15
+              ? 'Manage the pipeline. Own the follow-up.'
+              : selected === 16
+              ? 'Make the decision with numbers.'
+              : selected === 17
+              ? 'Discover the problem before building.'
+              : selected === 18
+              ? 'Choose a solution. Plan the delivery.'
+              : selected === 19
+              ? 'Build the prototype. Prove it works.'
+              : selected === 20
+              ? 'Control the change. Keep the evidence.'
+              : selected === 21
+              ? 'Turn real work into a credible resume.'
+              : selected === 22
+              ? 'Show your skills independently.'
+              : selected === 23
+              ? 'Present the work. Defend the decision.'
+              : selected === 24
+              ? 'Show the evidence. Own your growth.'
+              : (lesson?.outcome || meta.summary)}
+          </p>
         </div>
       </div>
       <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
@@ -334,40 +457,603 @@ export default function GuidedLearningPage(){
               type="button"
               className="vcep-btn-primary"
               onClick={() => {
-                setSessionStage(4);
-                if (typeof window !== 'undefined') {
-                  const u = new URL(window.location.href);
-                  u.searchParams.set('session', '1');
-                  u.searchParams.set('stage', '4');
-                  u.searchParams.set('section', 'Work');
-                  window.history.pushState({ session: 1, stage: 4 }, '', u.toString());
-                }
+                const el = document.getElementById('vcep-area-pitch-deck');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
               style={{ padding: '8px 14px', fontSize: '12px' }}
             >
-              <span>Launch Founder Lab →</span>
+              <span>Create Your Pitch Deck →</span>
             </button>
             <button
               className="v3-outline"
               type="button"
               onClick={() => {
-                setSessionStage(6);
-                if (typeof window !== 'undefined') {
-                  const u = new URL(window.location.href);
-                  u.searchParams.set('session', '1');
-                  u.searchParams.set('stage', '6');
-                  u.searchParams.set('section', 'Review');
-                  window.history.pushState({ session: 1, stage: 6 }, '', u.toString());
-                }
+                const el = document.getElementById('vcep-area-opportunity');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
               style={{ padding: '8px 14px', fontSize: '12px' }}
             >
-              <span>Investor Pitch Deck →</span>
+              <span>Understand the Opportunity</span>
+            </button>
+          </>
+        ) : selected === 2 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-charter');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Build Profile & Charter →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-join');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Join Your Team</span>
+            </button>
+          </>
+        ) : selected === 3 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-compose');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Compose the Response →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-request');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Understand the Request</span>
+            </button>
+          </>
+        ) : selected === 4 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-meeting');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Run Meeting & Record Actions →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-crisis');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Understand Delivery Crisis</span>
+            </button>
+          </>
+        ) : selected === 5 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-journal');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Prepare the Journal →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-transactions');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Read Source Transactions</span>
+            </button>
+          </>
+        ) : selected === 6 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-close');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Complete Month-End Close →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-investigate');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Investigate Ledger Error</span>
+            </button>
+          </>
+        ) : selected === 7 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-clean');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Clean, Validate & Report →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-raw');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Inspect Raw Receipts</span>
+            </button>
+          </>
+        ) : selected === 8 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-reconcile');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Prepare the Reconciliation →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-compare');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Compare Bank & Books</span>
+            </button>
+          </>
+        ) : selected === 9 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-findings');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Write Management Findings →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-performance');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Review Business Performance</span>
+            </button>
+          </>
+        ) : selected === 10 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-dashboard');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Build MIS Dashboard →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-question');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Choose Management Question</span>
+            </button>
+          </>
+        ) : selected === 11 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-tax');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Verify Tax & Exceptions →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-invoices');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Inspect Invoice Evidence</span>
+            </button>
+          </>
+        ) : selected === 12 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-plan');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Build Collection & Cash Plan →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-ageing');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Understand Who Owes What</span>
+            </button>
+          </>
+        ) : selected === 13 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-verify');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Create & Verify Output →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-task');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Choose Safe AI Task</span>
+            </button>
+          </>
+        ) : selected === 14 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-workflow');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Build Verified Workflow →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-audit');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Challenge the AI Report</span>
+            </button>
+          </>
+        ) : selected === 15 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-crm');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Build CRM Action Queue →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-pipeline');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Review Sales Pipeline</span>
+            </button>
+          </>
+        ) : selected === 16 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-decide');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Compare Scenarios & Decide →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-proposal');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Understand Pricing Proposal</span>
+            </button>
+          </>
+        ) : selected === 17 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-brief');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Write Discovery Brief →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-client');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Listen to Client Challenge</span>
+            </button>
+          </>
+        ) : selected === 18 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-plan');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Plan Tasks & Acceptance Tests →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-solution');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Select Feasible Solution</span>
+            </button>
+          </>
+        ) : selected === 19 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-test');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Test & Record Evidence →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-build');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Build Approved Solution</span>
+            </button>
+          </>
+        ) : selected === 20 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-update');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Update & Retest the Model →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-review');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Review Approved Change</span>
+            </button>
+          </>
+        ) : selected === 21 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-portfolio');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Build Resume & Portfolio →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-evidence');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Find Evidence</span>
+            </button>
+          </>
+        ) : selected === 22 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-review');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Complete Verified Review →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-prepare');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Prepare for Interview</span>
+            </button>
+          </>
+        ) : selected === 23 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-rehearsal');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Rehearse Demonstration →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-management');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Choose Management Needs</span>
+            </button>
+          </>
+        ) : selected === 24 ? (
+          <>
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-passport');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Verify Industry Passport →</span>
+            </button>
+            <button
+              className="v3-outline"
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('vcep-area-present');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Present & Defend Work</span>
             </button>
           </>
         ) : (
           <>
-            {selected <= 7 && (
+            {selected <= 21 && (
               <button
                 type="button"
                 className="vcep-btn-primary"
@@ -411,7 +1097,7 @@ export default function GuidedLearningPage(){
      <span className="v3-status-notice">In-Platform Work · Practice saved in this browser</span>
    </div>
    <div className="v3-mobile-selector"><label htmlFor="v3-mobile-select">Choose session</label><select id="v3-mobile-select" value={selected} onChange={e=>choose(Number(e.target.value))}>{safeCatalogue.map(s=><option key={s.id} value={s.id}>{padded(s.id)} · {s.title}</option>)}</select></div>
-   {selected !== 1 && (
+   {selected > 24 && (
      <nav aria-label="Lesson stages" className="v3-tabs">{sections.map((s,i)=><button key={s} type="button" className={section===s?'is-active':''} aria-current={section===s?'step':undefined} onClick={()=>setSection(s)}><span className="v3-tab-number">{padded(i+1)}</span>{s}{s==='Work' ? ' · Workstation' : ''}</button>)}</nav>
    )}
 
@@ -449,9 +1135,144 @@ export default function GuidedLearningPage(){
      selected === 1 ? (
        <div className="v3-content" key="session-1-journey">
          <Session01StartupJourney
-           initialStage={sessionStage}
-           initialSection={section}
-           onNavigateSection={(sec) => setSection(sec)}
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 2 ? (
+       <div className="v3-content" key="session-2-journey">
+         <Session02TeamworkJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 3 ? (
+       <div className="v3-content" key="session-3-journey">
+         <Session03CommunicationJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 4 ? (
+       <div className="v3-content" key="session-4-journey">
+         <Session04MeetingJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 5 ? (
+       <div className="v3-content" key="session-5-journey">
+         <Session05AccountingJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 6 ? (
+       <div className="v3-content" key="session-6-journey">
+         <Session06LedgerJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 7 ? (
+       <div className="v3-content" key="session-7-journey">
+         <Session07CleaningJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 8 ? (
+       <div className="v3-content" key="session-8-journey">
+         <Session08ReconciliationJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 9 ? (
+       <div className="v3-content" key="session-9-journey">
+         <Session09PerformanceJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 10 ? (
+       <div className="v3-content" key="session-10-journey">
+         <Session10DashboardJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 11 ? (
+       <div className="v3-content" key="session-11-journey">
+         <Session11GSTJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 12 ? (
+       <div className="v3-content" key="session-12-journey">
+         <Session12ReceivablesJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 13 ? (
+       <div className="v3-content" key="session-13-journey">
+         <Session13AIJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 14 ? (
+       <div className="v3-content" key="session-14-journey">
+         <Session14AIJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 15 ? (
+       <div className="v3-content" key="session-15-journey">
+         <Session15SalesJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 16 ? (
+       <div className="v3-content" key="session-16-journey">
+         <Session16DecisionJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 17 ? (
+       <div className="v3-content" key="session-17-journey">
+         <Session17DiscoveryJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 18 ? (
+       <div className="v3-content" key="session-18-journey">
+         <Session18PlanningJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 19 ? (
+       <div className="v3-content" key="session-19-journey">
+         <Session19ExecutionJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 20 ? (
+       <div className="v3-content" key="session-20-journey">
+         <Session20ChangeJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 21 ? (
+       <div className="v3-content" key="session-21-journey">
+         <Session21PortfolioJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 22 ? (
+       <div className="v3-content" key="session-22-journey">
+         <Session22HiringJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 23 ? (
+       <div className="v3-content" key="session-23-journey">
+         <Session23PresentationJourney
+           onUpdateDraft={update}
+         />
+       </div>
+     ) : selected === 24 ? (
+       <div className="v3-content" key="session-24-journey">
+         <Session24PassportJourney
            onUpdateDraft={update}
          />
        </div>

@@ -119,6 +119,16 @@ export default function PremiumJourney({
   const [activeTrack, setActiveTrack] = useState(recommendedTrack);
   const rate = sessions.length ? Math.round((completedCount / sessions.length) * 100) : 0;
 
+  // Curriculum-verified metrics (dynamically resolved from loaded sessions and defined tracks)
+  const verifiedSessionsCount = useMemo(() => {
+    return sessions && sessions.length > 0 ? sessions.length : 24;
+  }, [sessions]);
+
+  const verifiedTracksCount = useMemo(() => {
+    const count = tracks && tracks.length > 0 ? tracks.length : 4;
+    return String(count).padStart(2, '0');
+  }, []);
+
   function handleTrackChange(newIndex: number, shouldScroll = false) {
     if (newIndex < 0 || newIndex >= tracks.length || newIndex === activeTrack) return;
     setActiveTrack(newIndex);
@@ -609,89 +619,62 @@ export default function PremiumJourney({
         </div>
       </section>
 
-      {/* Enterprise Governance & Academic Rigour Standards */}
-      <section className="vcep-standards-section" aria-labelledby="vcep-standards-heading">
-        <div className="vcep-standards-header">
-          <div>
-            <span className="vcep-overline">INSTITUTIONAL STANDARDS</span>
-            <h2 id="vcep-standards-heading">Enterprise Governance & Academic Rigour</h2>
-            <p>Engineered to deliver verifiable placement readiness for undergraduate commerce students.</p>
-          </div>
-          <div className="vcep-standards-badge">
-            <CheckCircle2 size={15} color="#0f766e" />
-            <span>Drive Edition 3.0 Verified</span>
-          </div>
-        </div>
-
-        <div className="vcep-standards-grid">
-          <div className="vcep-standard-card">
-            <div className="vcep-standard-card-head">
-              <div className="vcep-standard-icon-wrap">
-                <Clock size={18} color="#0f766e" />
-              </div>
-              <span className="vcep-standard-status">Active Cadence</span>
+      {/* VCEP Commerce WorkLab — Minimal Premium Section */}
+      <section className="vcep-worklab-section" aria-labelledby="vcep-worklab-heading">
+        <div className="vcep-worklab-card">
+          <div className="vcep-worklab-header">
+            <div className="vcep-worklab-copy">
+              <span className="vcep-worklab-eyebrow">VCEP COMMERCE WORKLAB</span>
+              <h2 id="vcep-worklab-heading">Built for Practical Learning.</h2>
+              <p className="vcep-worklab-subline">
+                24 guided sessions. Four career tracks. Real workplace skills.
+              </p>
             </div>
-            <h4>135-Minute Structured WorkLabs</h4>
-            <p>Each session follows a calibrated pedagogical rhythm: concept exploration, case analysis, hands-on simulation, and executive reflection.</p>
-            <span className="vcep-standard-meta">24 Synchronized Sessions</span>
-          </div>
 
-          <div className="vcep-standard-card">
-            <div className="vcep-standard-card-head">
-              <div className="vcep-standard-icon-wrap">
-                <BookOpen size={18} color="#0f766e" />
-              </div>
-              <span className="vcep-standard-status">Verified Curriculum</span>
-            </div>
-            <h4>Drive Edition 3.0 Curriculum</h4>
-            <p>Source-verified corporate case studies across Indian enterprise operations, BFSI reconciliation, working capital, and applied AI governance.</p>
-            <span className="vcep-standard-meta">Zero Synthetic Fluff</span>
-          </div>
-
-          <div className="vcep-standard-card">
-            <div className="vcep-standard-card-head">
-              <div className="vcep-standard-icon-wrap">
-                <ShieldCheck size={18} color="#0f766e" />
-              </div>
-              <span className="vcep-standard-status">Trainer Controlled</span>
-            </div>
-            <h4>Controlled Invigilation Shields</h4>
-            <p>Baseline assessments and high-stakes milestones are safeguarded with strict invigilation timers and academic honesty acknowledgements.</p>
-            <span className="vcep-standard-meta">Baseline Diagnostic A & B</span>
-          </div>
-
-          <div className="vcep-standard-card">
-            <div className="vcep-standard-card-head">
-              <div className="vcep-standard-icon-wrap">
-                <Users size={18} color="#0f766e" />
-              </div>
-              <span className="vcep-standard-status">Multi-Eye Review</span>
-            </div>
-            <h4>Faculty Review Workflow</h4>
-            <p>Granular 10-point evaluation rubrics, revision return workflows, and student competency tracking directly accessible to faculty.</p>
-            <span className="vcep-standard-meta">Evidence-Based Grading</span>
-          </div>
-        </div>
-
-        {/* Quick Action Navigation Bar */}
-        <div className="vcep-standards-actions-bar">
-          <div className="vcep-standards-actions-text">
-            <strong>Explore the curriculum or manage cohorts:</strong>
-            <span>Preview guided lessons or launch administrative workflows.</span>
-          </div>
-          <div className="vcep-standards-actions-btns">
-            <a href="/guided-learning?session=1" className="vcep-btn-outline">
-              Preview Session 01 Guided Experience →
-            </a>
-            {staff && onOpenManagement ? (
-              <button type="button" className="vcep-btn-teal" onClick={onOpenManagement}>
-                Open Management Workspace →
-              </button>
-            ) : (
-              <a href="/programme" className="vcep-btn-teal">
-                Programme Vision & Delivery →
+            <div className="vcep-worklab-actions">
+              <a href="/guided-learning" className="vcep-worklab-btn-primary">
+                <span>Explore Sessions</span>
+                <ArrowRight size={14} aria-hidden="true" />
               </a>
-            )}
+              {staff && (
+                onOpenManagement ? (
+                  <button
+                    type="button"
+                    className="vcep-worklab-btn-secondary"
+                    onClick={onOpenManagement}
+                  >
+                    <span>Management</span>
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </button>
+                ) : (
+                  <a href="/staff" className="vcep-worklab-btn-secondary">
+                    <span>Management</span>
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </a>
+                )
+              )}
+            </div>
+          </div>
+
+          <div className="vcep-worklab-divider" role="separator" aria-hidden="true" />
+
+          <div className="vcep-worklab-highlights" role="list">
+            <div className="vcep-worklab-highlight" role="listitem">
+              <span className="vcep-worklab-highlight-value">{verifiedSessionsCount}</span>
+              <span className="vcep-worklab-highlight-label">Guided Sessions</span>
+            </div>
+
+            <div className="vcep-worklab-highlight" role="listitem">
+              <span className="vcep-worklab-highlight-value">{verifiedTracksCount}</span>
+              <span className="vcep-worklab-highlight-label">Career Tracks</span>
+            </div>
+
+            <div className="vcep-worklab-highlight" role="listitem">
+              <span className="vcep-worklab-highlight-value vcep-worklab-highlight-icon">
+                <GraduationCap size={24} color="#0f766e" aria-hidden="true" />
+              </span>
+              <span className="vcep-worklab-highlight-label">Faculty Review</span>
+            </div>
           </div>
         </div>
       </section>

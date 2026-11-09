@@ -1,4 +1,4 @@
-import { ReviewCheckItem, SessionReviewReport, StageReviewResult, ReviewContext, StageStatus } from '../types';
+import type { ReviewCheckItem, SessionReviewReport, StageReviewResult, ReviewContext, StageStatus } from '../types.ts';
 
 export function evaluateGenericSession(ctx: ReviewContext): SessionReviewReport {
   const { sessionId, lesson, draft } = ctx;

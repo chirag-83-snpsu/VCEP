@@ -1616,168 +1616,174 @@
 }
 
 /* =========================================================
-   3.5 Institutional Governance & Academic Rigour Standards
+   3.5 VCEP Commerce WorkLab — Minimal Premium Section
    ========================================================= */
-.vcep-standards-section {
-  margin-top: 48px;
-  padding-top: 8px;
+.vcep-worklab-section {
+  margin-top: 40px;
+  margin-bottom: 8px;
 }
 
-.vcep-standards-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.vcep-standards-header h2 {
-  font-size: clamp(20px, 2.2vw, 26px);
-  line-height: 1.2;
-  letter-spacing: -0.03em;
-  font-weight: 800;
-  color: #17245c;
-  margin: 4px 0 2px;
-}
-
-.vcep-standards-header p {
-  font-size: 13.5px;
-  color: #64748b;
-  margin: 0;
-}
-
-.vcep-standards-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #f0fdfa;
-  border: 1px solid #99f6e4;
-  border-radius: 99px;
-  padding: 5px 12px;
-  font-size: 11.5px;
-  font-weight: 750;
-  color: #0f766e;
-  white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(15, 118, 110, 0.06);
-}
-
-.vcep-standards-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.vcep-standard-card {
-  background: rgba(255, 255, 255, 0.76) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+.vcep-worklab-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 16px !important;
-  padding: 22px !important;
-  box-shadow: 0 4px 16px rgba(23, 36, 92, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  padding: 30px 36px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 16px -2px rgba(23, 36, 92, 0.04) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-.vcep-standard-card:hover {
-  transform: translateY(-2px) !important;
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(15, 118, 110, 0.35) !important;
-  box-shadow: 0 10px 26px rgba(23, 36, 92, 0.07), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+.vcep-worklab-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04), 0 8px 24px -2px rgba(23, 36, 92, 0.06) !important;
 }
 
-.vcep-standard-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.vcep-standard-icon-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 9px;
-  background: #f0fdfa;
-  border: 1px solid #ccfbf1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.vcep-standard-status {
-  font-size: 10px;
-  font-weight: 800;
-  color: #0f766e;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  background: #e6f6f3;
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-
-.vcep-standard-card h4 {
-  font-size: 15px;
-  font-weight: 800;
-  color: #17245c;
-  line-height: 1.3;
-  margin: 0 0 8px;
-}
-
-.vcep-standard-card p {
-  font-size: 12.5px;
-  color: #64748b;
-  line-height: 1.55;
-  margin: 0 0 14px;
-  flex: 1;
-}
-
-.vcep-standard-meta {
-  font-size: 11px;
-  font-weight: 750;
-  color: #0f766e;
-  border-top: 1px dashed #f1f5f9;
-  padding-top: 10px;
-  display: block;
-}
-
-.vcep-standards-actions-bar {
-  margin-top: 16px !important;
-  background: rgba(255, 255, 255, 0.78) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.85) !important;
-  border-radius: 16px !important;
-  padding: 18px 24px !important;
+.vcep-worklab-header {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
+  gap: 24px !important;
+}
+
+.vcep-worklab-copy {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.vcep-worklab-eyebrow {
+  display: inline-block !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #0f766e !important;
+  margin-bottom: 6px !important;
+}
+
+.vcep-worklab-header h2 {
+  font-size: clamp(20px, 2.2vw, 26px) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.025em !important;
+  font-weight: 800 !important;
+  color: #17245c !important;
+  margin: 0 0 4px 0 !important;
+}
+
+.vcep-worklab-subline {
+  font-size: 13.5px !important;
+  color: #64748b !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
+}
+
+.vcep-worklab-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.vcep-worklab-btn-primary {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 20px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  background: #0f766e !important;
+  border: 1.5px solid #0f766e !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 3px rgba(15, 118, 110, 0.2) !important;
+  white-space: nowrap !important;
+}
+
+.vcep-worklab-btn-primary:hover {
+  background: #0d635c !important;
+  border-color: #0d635c !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.28) !important;
+}
+
+.vcep-worklab-btn-secondary {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 18px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #17245c !important;
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  white-space: nowrap !important;
+}
+
+.vcep-worklab-btn-secondary:hover {
+  border-color: #0f766e !important;
+  color: #0f766e !important;
+  background: #f0fdfa !important;
+  transform: translateY(-1px) !important;
+}
+
+.vcep-worklab-divider {
+  height: 1px !important;
+  background: #f1f5f9 !important;
+  border: none !important;
+  margin: 24px 0 20px 0 !important;
+}
+
+.vcep-worklab-highlights {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 16px !important;
-  flex-wrap: wrap !important;
-  box-shadow: 0 4px 16px rgba(23, 36, 92, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
 }
 
-.vcep-standards-actions-text strong {
-  display: block;
-  font-size: 13px;
-  color: #17245c;
-  font-weight: 750;
+.vcep-worklab-highlight {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 4px !important;
+  padding: 2px 12px !important;
 }
 
-.vcep-standards-actions-text span {
-  display: block;
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 2px;
+.vcep-worklab-highlight:not(:first-child) {
+  border-left: 1px solid #f1f5f9 !important;
+  padding-left: 28px !important;
 }
 
-.vcep-standards-actions-btns {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+.vcep-worklab-highlight-value {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  color: #17245c !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.025em !important;
+  font-variant-numeric: tabular-nums !important;
+  display: flex !important;
+  align-items: center !important;
+  height: 32px !important;
 }
 
+.vcep-worklab-highlight-icon {
+  color: #0f766e !important;
+}
+
+.vcep-worklab-highlight-label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #64748b !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+/* Legacy alias fallbacks */
 .vcep-btn-outline {
   display: inline-flex;
   align-items: center;
@@ -1949,6 +1955,21 @@
   .vcep-module {
     padding: 10px 6px;
   }
+  .vcep-worklab-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+  .vcep-worklab-actions {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+  .vcep-worklab-card {
+    padding: 24px 20px !important;
+  }
+  .vcep-worklab-highlight:not(:first-child) {
+    padding-left: 16px !important;
+  }
   .vcep-standards-header {
     flex-direction: column;
     align-items: flex-start;
@@ -2031,6 +2052,37 @@
   .vcep-summary-stat:last-child {
     border-bottom: none;
   }
+  .vcep-worklab-card {
+    padding: 20px 16px !important;
+  }
+  .vcep-worklab-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .vcep-worklab-btn-primary,
+  .vcep-worklab-btn-secondary {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  .vcep-worklab-highlights {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+  .vcep-worklab-highlight {
+    padding: 0 4px !important;
+  }
+  .vcep-worklab-highlight:not(:first-child) {
+    padding-left: 8px !important;
+  }
+  .vcep-worklab-highlight-value {
+    font-size: 22px !important;
+    height: 26px !important;
+  }
+  .vcep-worklab-highlight-label {
+    font-size: 10px !important;
+  }
   .vcep-standards-grid {
     grid-template-columns: 1fr;
   }
@@ -2105,6 +2157,9 @@
     background: #ffffff !important;
   }
   .vcep-track-slider-viewport {
+    background: #ffffff !important;
+  }
+  .vcep-worklab-card {
     background: #ffffff !important;
   }
   .vcep-standard-card {

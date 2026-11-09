@@ -1,4 +1,4 @@
-import { ReviewCheckItem, SessionReviewReport, StageReviewResult, ReviewContext, StageStatus } from '../types';
+import type { ReviewCheckItem, SessionReviewReport, StageReviewResult, ReviewContext, StageStatus } from '../types.ts';
 
 export function evaluateSession02(ctx: ReviewContext): SessionReviewReport {
   const { draft, workstationData } = ctx;

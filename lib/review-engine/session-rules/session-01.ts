@@ -1,4 +1,4 @@
-import { ReviewCheckItem, SessionReviewReport, StageReviewResult, ReviewContext, StageStatus } from '../types';
+import type { ReviewCheckItem, SessionReviewReport, StageReviewResult, ReviewContext, StageStatus } from '../types.ts';
 
 export function evaluateSession01(ctx: ReviewContext): SessionReviewReport {
   const { draft, practiceLabData, workstationData, startupLabData } = ctx;
@@ -240,45 +240,47 @@ function evaluateStartupEdition31(ctx: ReviewContext, startupData: any): Session
   });
 
   // ----------------------------------------------------
-  // STAGE 05: TEAM (STARTUP BOARDROOM)
+  // STAGE 05: TEAM (STARTUP BOARDROOM & FINANCIAL SIMULATION)
   // ----------------------------------------------------
   const teamChecks: ReviewCheckItem[] = [];
 
-  // T1: Executive Boardroom Role
-  const hasRole = Boolean(boardroom.roleId);
+  // T1: Executive Boardroom Role OR Financial Case Calculation
+  const vlab = s.vlab || {};
+  const hasVlabCalcs = Boolean(vlab.calcProfit || draft['work:1:0:0:2'] || vlab.calcAttempted);
+  const hasRole = Boolean(boardroom.roleId || hasVlabCalcs);
   teamChecks.push({
     id: 's01-t1-role',
-    title: 'Executive Boardroom Position',
-    description: 'Select your leadership mandate (Strategy, Marketing, Operations, Finance, or Risk).',
+    title: 'Executive Role & Vayentra Labs Financial Analysis',
+    description: 'Assume executive accountability and verify September profit (₹25,000), net cash movement (−₹10,000), and reserve buffer.',
     passed: hasRole,
     status: hasRole ? 'passed' : 'pending',
-    studentValue: hasRole ? boardroom.roleId : 'No role selected',
-    expectedRequirement: 'Assume one of five defined executive positions with specific operational accountability.',
-    whyIncorrect: 'Boardroom members must have designated responsibilities before tackling crisis setbacks.',
-    conceptToRevisit: 'Stage 05 Team · Executive Roles',
+    studentValue: hasVlabCalcs ? `Financial Simulation Completed (Profit: ₹${vlab.calcProfit || draft['work:1:0:0:2'] || '25000'})` : hasRole ? boardroom.roleId : 'No role or calculation recorded',
+    expectedRequirement: 'Calculate the 5 financial metrics for Vayentra Labs or assume an executive boardroom mandate.',
+    whyIncorrect: 'Boardroom members must understand profit vs cash liquidity before approving vendor payments.',
+    conceptToRevisit: 'Stage 05 Run the Business · Vayentra Labs Financial Challenge',
     actionTab: 'Team',
-    actionLabel: 'Select Boardroom Role',
+    actionLabel: 'Complete Financial Analysis',
   });
 
-  // T2: Operational Crisis Remediation
-  const hasCrisisChoice = Boolean(boardroom.crisisChoice);
+  // T2: Operational Crisis Remediation OR Order-to-Cash Process Handoffs
+  const hasCrisisChoice = Boolean(boardroom.crisisChoice || vlab.paymentRecommendation || vlab.processOrder);
   const isSilentDelay = boardroom.crisisChoice === 'strat-c';
-  const hasRationale = wordCount(crisisRationale) >= 15;
+  const hasRationale = wordCount(crisisRationale) >= 10 || wordCount(vlab.paymentRationale || draft['team:judgement'] || '') >= 5;
   teamChecks.push({
     id: 's01-t2-crisis',
-    title: 'Crisis Remediation Strategy & Justification',
-    description: 'Navigate the delivery fleet failure at 8:00 PM and record a strategic justification of at least 15 words.',
+    title: 'Crisis Remediation Strategy & Cash Management Advice',
+    description: 'Navigate operational handoffs and provide a defensible management recommendation on the ₹15,000 equipment payment.',
     passed: hasCrisisChoice && !isSilentDelay && hasRationale,
     status: (hasCrisisChoice && !isSilentDelay && hasRationale) ? 'passed' :
       isSilentDelay ? 'failed' : (hasCrisisChoice || hasRationale) ? 'warning' : 'pending',
-    studentValue: hasRationale ? `${crisisRationale.slice(0, 70)}…` : 'Incomplete',
-    expectedRequirement: 'Choose proactive transparency (Strategy A) or emergency courier (Strategy B) with at least 15 words of justification.',
+    studentValue: hasRationale ? `${(crisisRationale || vlab.paymentRationale || draft['team:judgement'] || '').slice(0, 70)}…` : 'Incomplete',
+    expectedRequirement: 'Provide a defensible recommendation on the ₹15,000 payment that protects the ₹5,000 safety reserve buffer.',
     whyIncorrect: isSilentDelay
       ? 'Fatal trust breach! Silent delay guarantees furious customers, cancelled bookings, and hostile campus reviews.'
-      : 'Provide a substantive justification (at least 15 words) explaining your boardroom strategy.',
-    conceptToRevisit: 'Stage 05 Team · Crisis Simulation',
+      : 'Provide a substantive justification explaining your cash-protective recommendation.',
+    conceptToRevisit: 'Stage 05 Run the Business · Process Handoffs & Management Decision',
     actionTab: 'Team',
-    actionLabel: 'Resolve Boardroom Crisis',
+    actionLabel: 'Resolve Cash Dilemma',
   });
 
   // T3: 60-Second Venture Pitch Outline & Investor Pitch Deck
