@@ -77,7 +77,22 @@ export function evaluateSession07(ctx: ReviewContext): SessionReviewReport {
   // 1. Clean approved rows total
   const approvedCount = cleanRows.length;
   const approvedTotal = cleanRows.reduce((sum: number, r: any) => sum + (Number(r.amount) || 0), 0);
-  const isApprovedCorrect = approvedCount === 3 && approvedTotal === 25000;
+  // Case B requires the correct SOURCE records, not just any three values summing to ₹25,000.
+  const expectedCleanById: Record<string, { amount: number; customer: string; date: string }> = {
+    R01: { amount: 12000, customer: 'asha', date: '2026-10-01' },
+    R02: { amount: 8000, customer: 'beacon', date: '2026-10-02' },
+    R03: { amount: 5000, customer: 'asha', date: '2026-10-03' },
+  };
+  const cleanSourceIds = cleanRows.map((r: any) => String(r.sourceId || ''));
+  const correctCleanSources = cleanSourceIds.length === 3
+    && new Set(cleanSourceIds).size === 3
+    && cleanRows.every((r: any) => {
+      const expected = expectedCleanById[String(r.sourceId || '')];
+      return !!expected && Number(r.amount) === expected.amount
+        && String(r.customerStandard || '').trim().toLowerCase() === expected.customer
+        && String(r.isoDate || '') === expected.date;
+    });
+  const isApprovedCorrect = approvedCount === 3 && approvedTotal === 25000 && correctCleanSources;
 
   workChecks.push({
     id: 's07-w1-approved-clean',
@@ -101,19 +116,39 @@ export function evaluateSession07(ctx: ReviewContext): SessionReviewReport {
     const v = Number(e.rawAmount);
     return isNaN(v) ? sum : sum + v;
   }, 0);
-  const isQuarantineCorrect = quarantineCount === 4 && quarantineTotal === 19000;
+  // ₹19,000 is the sum of THREE KNOWN exception amounts, not a value for all four rows.
+  // R05 has no amount in the source workbook: it must remain explicitly unknown.
+  const expectedExceptions: Record<string, number | 'blank'> = {
+    'R02 (Row 3)': 8000,
+    R04: 7000,
+    R05: 'blank',
+    R06: 4000,
+  };
+  const exceptionIds = exceptions.map((e: any) => String(e.sourceId || ''));
+  const correctExceptionSources = exceptionIds.length === 4
+    && new Set(exceptionIds).size === 4
+    && exceptions.every((e: any) => {
+      const source = String(e.sourceId || '');
+      if (!Object.prototype.hasOwnProperty.call(expectedExceptions, source)) return false;
+      const expected = expectedExceptions[source];
+      return expected === 'blank'
+        ? e.rawAmount === 'blank'
+        : typeof e.rawAmount === 'number' && e.rawAmount === expected;
+    });
+  const isQuarantineCorrect = quarantineCount === 4
+    && quarantineTotal === 19000 && correctExceptionSources;
 
   workChecks.push({
     id: 's07-w2-quarantine-register',
     title: 'Quarantine Exception Register (4 Items / INR 19,000)',
-    description: 'Segregate all 4 problematic records: Duplicate R02 (₹8k), Invalid Date R04 (₹7k), Blank Amount R05 (₹0), Ambiguous Date R06 (₹4k).',
+    description: 'Record all 4 exceptions: duplicate R02 (₹8k), invalid-date R04 (₹7k), missing-amount R05 (unknown, NOT ₹0), and ambiguous-date R06 (₹4k).',
     passed: isQuarantineCorrect,
     status: isQuarantineCorrect ? 'passed' : quarantineCount > 0 ? 'failed' : 'pending',
     studentValue: quarantineCount > 0 ? `${quarantineCount} exceptions (₹${quarantineTotal.toLocaleString('en-IN')})` : 'Unanswered',
-    expectedRequirement: 'Exactly 4 quarantined rows totaling INR 19,000: Duplicate R02, Invalid Date R04 (Oct 32), Missing Value R05, Ambiguous Date R06 (10/11/26).',
+    expectedRequirement: 'Exactly 4 exception records: R02 duplicate, R04 ₹7k invalid date, R05 amount unknown, R06 ₹4k ambiguous date. Only the 3 known exception amounts total ₹19,000.',
     whyIncorrect: quarantineCount < 4
       ? `Only ${quarantineCount} of 4 exceptions identified. Did you catch both date errors (invalid day 32 and format 10/11/26)?`
-      : 'Verify quarantined values: Suspect amounts total INR 19,000 (INR 8,000 + INR 7,000 + INR 0 + INR 4,000).',
+      : 'Verify source IDs and exception amounts: ₹8,000 + ₹7,000 + ₹4,000 = ₹19,000 in known-value exceptions. R05 remains unknown; do not replace it with ₹0.',
     conceptToRevisit: 'Stage 04 Work · Exception Register',
     actionTab: 'Work',
     actionLabel: 'Review Exceptions',
@@ -121,7 +156,8 @@ export function evaluateSession07(ctx: ReviewContext): SessionReviewReport {
 
   // 3. Mathematical Reconciliation Equation
   const rawTotal = 44000;
-  const isBalanced = approvedTotal + quarantineTotal === rawTotal;
+  const isBalanced = approvedTotal + quarantineTotal === rawTotal
+    && isApprovedCorrect && isQuarantineCorrect;
   workChecks.push({
     id: 's07-w3-reconciliation-proof',
     title: 'Mathematical Reconciliation Proof',
@@ -131,7 +167,7 @@ export function evaluateSession07(ctx: ReviewContext): SessionReviewReport {
     studentValue: (approvedCount > 0 || quarantineCount > 0)
       ? `₹${approvedTotal.toLocaleString('en-IN')} + ₹${quarantineTotal.toLocaleString('en-IN')} = ₹${(approvedTotal + quarantineTotal).toLocaleString('en-IN')}`
       : 'Pending reconciliation',
-    expectedRequirement: 'INR 44,000 = INR 25,000 (Clean) + INR 19,000 (Quarantined). Variance must equal exactly INR 0.',
+    expectedRequirement: 'Known numeric amounts: ₹44,000 raw = ₹25,000 approved + ₹19,000 excluded/held. R05 is an additional unresolved blank, not ₹0. Confirm record identities as well as totals.',
     whyIncorrect: `Reconciliation variance of ₹${Math.abs(rawTotal - (approvedTotal + quarantineTotal)).toLocaleString('en-IN')} detected. In corporate audit, unexplained variance indicates lost or double-counted cash.`,
     conceptToRevisit: 'Stage 04 Work · Reconciliation Card',
     actionTab: 'Work',
@@ -251,7 +287,13 @@ export function evaluateSession07(ctx: ReviewContext): SessionReviewReport {
 
   const recommendations: string[] = [];
   if (!isBalanced && (approvedCount > 0 || quarantineCount > 0)) {
-    recommendations.push('Reconcile total volume: Raw (INR 44,000) must equal Clean (INR 25,000) + Quarantined (INR 19,000) with exactly 0 variance.');
+    recommendations.push('Reconcile known-value records: ₹44,000 raw = ₹25,000 clean + ₹19,000 excluded/held. Verify row IDs and keep R05 unknown, not zero.');
+  }
+  if (!isQuarantineCorrect && quarantineCount > 0) {
+    recommendations.push('Check each exception source ID and amount. R05 is blank/unknown and must never be entered as zero.');
+  }
+  if (!isApprovedCorrect && approvedCount > 0) {
+    recommendations.push('Verify that approved rows are exactly R01, the first R02, and R03, with the original dates and approved customer names.');
   }
   if (!isSumifsCorrect && approvedCount > 0) {
     recommendations.push('Verify customer SUMIFS totals: Asha must equal INR 17,000 and Beacon must equal INR 8,000.');
