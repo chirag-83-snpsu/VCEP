@@ -138,9 +138,9 @@ The following isolated accounts are pre-seeded in the local SQLite database for 
 
 | Role | Email | Password | Scope & Permissions |
 |---|---|---|---|
-| **Demo Student** | `demo-student@vayentra.edu` | `DemoStudent@VCEP2026!` | Enrolled in `cohort_alpha`. Sessions 1–24 unlocked. Can work on task cards, save drafts, and submit official attempts. |
-| **Demo Faculty** | `demo-faculty@vayentra.edu` | `DemoFaculty@VCEP2026!` | Assigned to `cohort_alpha`. Can access Review Queue, inspect student evidence, grade with 10-pt rubric, or return for revision. |
-| **Demo Admin** | `demo-admin@vayentra.edu` | `DemoAdmin@VCEP2026!` | Institutional Administrator. Can view cohort analytics, manage timetable release dates, and monitor pilot rollout. |
+| **Demo Student** | `demo-student@vayentra.edu` | `[Rotated: see .env.demo]` | Enrolled in `cohort_alpha`. Sessions 1–24 unlocked. Can work on task cards, save drafts, and submit official attempts. |
+| **Demo Faculty** | `demo-faculty@vayentra.edu` | `[Rotated: see .env.demo]` | Assigned to `cohort_alpha`. Can access Review Queue, inspect student evidence, grade with 10-pt rubric, or return for revision. |
+| **Demo Admin** | `demo-admin@vayentra.edu` | `[Rotated: see .env.demo]` | Institutional Administrator. Can view cohort analytics, manage timetable release dates, and monitor pilot rollout. |
 
 > [!NOTE]
 > All passwords use PBKDF2-HMAC-SHA256 with unique 16-byte cryptographic salts. Credentials are saved locally in `.env.demo` and are not committed to git.
