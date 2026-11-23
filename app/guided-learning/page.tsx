@@ -1681,7 +1681,7 @@ export default function GuidedLearningPage(){
              Return to Session Lab <IconArrow />
            </a>
          ) : (
-           <a className="v3-primary" href={`/?signin=1`}>
+           <a className="v3-primary" href={`/signin?return_to=${encodeURIComponent(`/guided-learning?session=${selected}`)}`}>
              Sign In to Submit for Faculty Review <IconArrow />
            </a>
          )}
