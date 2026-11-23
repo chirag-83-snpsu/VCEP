@@ -225,141 +225,45 @@ export function OfficialSubmissionStation({
     onUpdateDraftAnswer(key, value);
   };
 
-  // Sync answers from completed tasks helper
+  // Copy only an actual student-written response where its curriculum field mapping
+  // is reviewed and explicit. Never insert worked examples, answers, or governance
+  // declarations to satisfy official assessment requirements.
   const handleSyncFromTaskCards = () => {
-    const newAnswers: Record<string, string> = {};
-    const updateIfEmpty = (key: string, val: string) => {
-      if (!combinedAnswers[key] && val) {
-        newAnswers[key] = val;
-      }
+    if (session === 1 || session === 22) {
+      setErrorMsg('Controlled assessment answers must be completed independently under faculty instructions. No automatic answer transfer is available.');
+      return;
+    }
+
+    // Session 03 has a verified one-to-one match with its approved workbook:
+    // clarification email, 40-word progress update, 70-word escalation message.
+    // Other sessions must be mapped individually against source workbooks before
+    // automatic transfer is enabled. Students can always submit manually.
+    const fieldMappings: Record<number, Record<string, string>> = {
+      3: {
+        b0r0c1: 'work-prompt:0',
+        b0r1c1: 'work-prompt:1',
+        b0r2c1: 'work-prompt:2',
+      },
     };
-
-    if (session === 1) {
-      // Session 01: Start a Business. Think Like a Founder. (Baseline A Diagnostic)
-      updateIfEmpty('b0r0c1', 'INR 1,30,000 (Revenue INR 6,00,000 less recognised expenses INR 4,70,000)');
-      updateIfEmpty('b0r1c1', 'INR 35,000 (Collections INR 4,80,000 less payments INR 4,45,000)');
-      updateIfEmpty('b0r2c1', 'INR -15,000 (Closing bank INR 35,000 vs required reserve INR 50,000; deficit of INR 15,000)');
-      updateIfEmpty(
-        'b1',
-        combinedAnswers['team:judgement'] ||
-          'Defer the INR 80,000 delivery-van deposit. Liquid closing bank is INR 35,000, which leaves a deficit of INR 15,000 against the mandatory INR 50,000 cash reserve despite paper profit of INR 1,30,000.'
-      );
-    } else if (session === 3) {
-      // Session 03: Workplace Communication
-      updateIfEmpty('b0r0c1', 'Gross receipts collected of INR 3,42,000 through 14:00 (verified by bank statement)');
-      updateIfEmpty('b0r1c1', 'Warehouse gate dispatch register signed by Warehouse Lead (Priya M)');
-      updateIfEmpty('b0r2c1', '17:00 IST after secondary logistics reconciliation');
-      updateIfEmpty(
-        'b1',
-        combinedAnswers['work-prompt:0'] ||
-          combinedAnswers['concept:explain'] ||
-          'Hi Team, regarding today\'s dispatch numbers: Verified gross receipts are INR 3,42,000. Outstanding customer settlements remain pending secondary dispatch verification from Priya M (Warehouse Lead). We cannot confirm final delivery figures until the gate log is cross-checked. Next consolidated status update will follow by 17:00 IST. Regards, Operations Finance.'
-      );
-    } else if (session === 5) {
-      // Session 05: Accounting Transactions
-      updateIfEmpty('b0r0c1', 'P-101: Debit Inventory INR 65,000; Credit Accounts Payable INR 65,000');
-      updateIfEmpty('b0r1c1', 'R-204: Debit Bank INR 40,000; Credit Customer Advance (Liability) INR 40,000');
-      updateIfEmpty('b0r2c1', 'A-017: Debit Office Rent Expense INR 25,000; Credit Outstanding Rent Payable INR 25,000');
-      updateIfEmpty(
-        'b1',
-        combinedAnswers['concept:explain'] ||
-          'Customer advances represent unearned revenue and must be credited to unearned liability until goods or services are delivered, adhering strictly to accrual principles.'
-      );
-    } else if (session === 7) {
-      // Session 07: Excel and Data Cleaning (Drive Edition 3.0 Case B: Raw INR 44,000, Clean INR 25,000, Exceptions INR 19,000)
-      updateIfEmpty('b0r0c1', 'R02 (Retain row 2 Asha Traders INR 8,000; remove duplicate row 3)');
-      updateIfEmpty('b0r1c1', '6 unique verified receipts (R01 through R06)');
-      updateIfEmpty('b0r2c1', 'Clean sales INR 25,000; Exceptions INR 19,000; Total raw volume INR 44,000');
-      updateIfEmpty(
-        'b1',
-        combinedAnswers['team:judgement'] ||
-          combinedAnswers['concept:explain'] ||
-          'Match records across multiple composite keys: Invoice ID, Timestamp, Customer ID, and Item SKU rather than Customer Name and Amount alone before deduplicating.'
-      );
-    } else if (session === 10) {
-      // Session 10: MIS Dashboard Development
-      updateIfEmpty('b0r0c1', 'North: 91.2% (1,450 delivered / 1,590 dispatched)');
-      updateIfEmpty('b0r1c1', 'South: 78.4% (980 delivered / 1,250 dispatched)');
-      updateIfEmpty('b0r2c1', 'West: 85.0% (1,190 delivered / 1,400 dispatched)');
-      updateIfEmpty(
-        'b1',
-        combinedAnswers['concept:explain'] ||
-          'Priority branch is South (78.4%). Propose First-Attempt Delivery Rate (Successful deliveries / Total dispatch attempts) and SLA Breach Rate (Breached dispatches / Total dispatches).'
-      );
-    } else if (session === 16) {
-      // Session 16: Commercial Decision Making
-      updateIfEmpty('b0r0c1', 'INR 45 per unit (Selling price INR 120 - Variable cost INR 75)');
-      updateIfEmpty('b0r1c1', 'INR 27 per unit (Discounted price INR 102 - Variable cost INR 75)');
-      updateIfEmpty('b0r2c1', '6,667 units to cover fixed overheads of INR 1,80,000');
-      updateIfEmpty(
-        'b1',
-        combinedAnswers['work-prompt:1'] ||
-          'Reject 15% discount unless volume expands by at least 66.7% from 4,000 to 6,667 units. Demand elasticity must exceed -4.4 to maintain current total contribution of INR 1,80,000.'
-      );
-    } else if (session === 21) {
-      // Session 21: Resume and Portfolio Development
-      updateIfEmpty('b0r0c1', 'Reconciled INR 44,000 raw transaction data, isolating INR 19,000 in date and blank exceptions with zero reconciliation variance.');
-      updateIfEmpty('b0r1c1', 'Designed 3-branch logistics conversion MIS dashboard tracking 4,240 dispatches with root-cause SLA drill-down.');
-      updateIfEmpty('b0r2c1', 'Removed unsubstantiated claim "Managed enterprise treasury for Unilever FMCG distributor".');
-      updateIfEmpty(
-        'b1',
-        'In a simulated corporate finance practicum, audited INR 44,000 retail transactions, identified INR 19,000 exception log, and structured executive cash flow control reducing settlement variance to zero.'
-      );
-    } else if (session === 22) {
-      // Session 22: Hiring Simulation and Exit Assessment
-      updateIfEmpty('b0r0c1', 'INR 48,000 net operating profit (Revenue INR 2,40,000 - Operating costs INR 1,92,000)');
-      updateIfEmpty('b0r1c1', 'INR 22,000 closing liquid balance after vendor disbursements');
-      updateIfEmpty('b0r2c1', 'INR 28,000 deficit against mandatory INR 50,000 supplier tranche');
-      updateIfEmpty(
-        'b1',
-        'The INR 50,000 payment cannot be made from stated cash. Liquid closing bank is only INR 22,000, creating an immediate INR 28,000 shortfall despite paper profit of INR 48,000.'
-      );
-    } else if (session === 24) {
-      // Session 24: Corporate Demo Day and Industry Passport
-      updateIfEmpty('b0r0c1', 'INR 42,500 net recurring monthly benefit after system maintenance');
-      updateIfEmpty('b0r1c1', '4.2 months on initial implementation capital of INR 1,80,000');
-      updateIfEmpty('b0r2c1', 'Stop rule: Terminate vendor contract if conversion failure exceeds 5% during first 30 days.');
-      updateIfEmpty(
-        'b1',
-        combinedAnswers['reviewerCorrection'] ||
-          'Approve automation project contingent on vendor milestone SLA. Verified cash savings total INR 28,000/month from courier penalties; remaining INR 14,500 reflects internal staff time reallocation which does not immediately reduce payroll cash outlays.'
-      );
-    } else {
-      // General sessions fallback mapping
-      if (!combinedAnswers['b1']) {
-        if (combinedAnswers['concept:explain']) updateIfEmpty('b1', combinedAnswers['concept:explain']);
-        else if (combinedAnswers['work-prompt:1']) updateIfEmpty('b1', combinedAnswers['work-prompt:1']);
-        else if (combinedAnswers['team:judgement']) updateIfEmpty('b1', combinedAnswers['team:judgement']);
+    const mapping = fieldMappings[session] || {};
+    const newAnswers: Record<string, string> = {};
+    for (const [officialKey, workKey] of Object.entries(mapping)) {
+      const authored = draftAnswers[workKey];
+      if (!combinedAnswers[officialKey]?.trim() && typeof authored === 'string' && authored.trim()) {
+        newAnswers[officialKey] = authored;
       }
     }
 
-    if (!combinedAnswers['contribution']) {
-      if (combinedAnswers['team:contribution']) updateIfEmpty('contribution', combinedAnswers['team:contribution']);
-      else updateIfEmpty('contribution', 'Analyzed the case dataset independently and verified all transaction calculations.');
+    const count = Object.keys(newAnswers).length;
+    if (count === 0) {
+      setSuccessMsg('No eligible student-written task responses found. Please enter your own required answers and evidence in the official fields below.');
+      return;
     }
-
-    if (!combinedAnswers['aiUse']) {
-      updateIfEmpty('aiUse', 'Verified calculations manually against case source records without external automated shortcuts.');
-    }
-
-    if (!combinedAnswers['reflection']) {
-      updateIfEmpty('reflection', 'Cross-checked row boundaries and reconciled values against the master records.');
-    }
-
-    const syncedCount = Object.keys(newAnswers).length;
-    if (syncedCount > 0) {
-      setLocalSyncAnswers((prev) => ({ ...prev, ...newAnswers }));
-      if (onUpdateBatch) {
-        onUpdateBatch(newAnswers);
-      } else {
-        for (const [k, v] of Object.entries(newAnswers)) {
-          onUpdateDraftAnswer(k, v);
-        }
-      }
-    }
-
-    setSuccessMsg(`Synced ${syncedCount} answer field(s) from your active work.`);
-    setTimeout(() => setSuccessMsg(null), 4000);
+    setLocalSyncAnswers((prev) => ({ ...prev, ...newAnswers }));
+    if (onUpdateBatch) onUpdateBatch(newAnswers);
+    else for (const [key, value] of Object.entries(newAnswers)) onUpdateDraftAnswer(key, value);
+    setErrorMsg(null);
+    setSuccessMsg(`Copied ${count} student-written field(s). Check them before saving or submitting.`);
   };
 
   // Save Cloud Draft
@@ -935,10 +839,10 @@ export function OfficialSubmissionStation({
                 Completed the task cards above?
               </div>
               <div style={{ fontSize: '12px', color: '#64748B' }}>
-                Automatically populate the official submission fields below from your task cards.
+                Only your own completed responses may be transferred. Review every official answer and attach required evidence. No model answers or declarations are auto-filled.
               </div>
             </div>
-            <button
+            {session === 3 && <button
               type="button"
               onClick={handleSyncFromTaskCards}
               style={{
@@ -956,17 +860,17 @@ export function OfficialSubmissionStation({
               }}
             >
               <Sparkles size={14} />
-              Sync Answers from Completed Tasks
-            </button>
+              Copy My Written Messages
+            </button>}
           </div>
 
           {/* Section: The 3 Calculation / Decision Verification Answers */}
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-              1. Case Calculations & Findings (Block 0 · 3 Questions)
+              1. Required Work & Evidence (Block 0)
             </h3>
             <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '14px' }}>
-              Provide verified quantitative answers and short workings for each required check.
+              Enter your original work for each required item. Include calculations, written responses, and source references as appropriate to this session.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -1027,7 +931,7 @@ export function OfficialSubmissionStation({
           {/* Section: Synthesis Decision */}
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-              2. Management Synthesis & Rule Decision (Block 1)
+              2. Professional Summary & Judgement (Block 1)
             </h3>
             <div
               style={{
@@ -1050,7 +954,7 @@ export function OfficialSubmissionStation({
               <textarea
                 id="submission-b1"
                 rows={3}
-                placeholder="State your concise professional rule, recommendation, or decision citing specific case numbers..."
+                placeholder="Summarize your own conclusion or recommendation, using the evidence relevant to this session..."
                 value={combinedAnswers['b1'] || ''}
                 onChange={(e) => handleAnswerChange('b1', e.target.value)}
                 style={{
