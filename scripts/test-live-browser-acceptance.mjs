@@ -54,17 +54,14 @@ async function runBrowserAcceptance() {
   console.log(' Testing Live Headless Chrome Browser CDP & End-to-End Workflow');
   console.log('======================================================================\n');
 
-  // Reset fresh test student state so end-to-end loop runs clean
-  const d1Dir = path.resolve('.wrangler/state/v3/d1/miniflare-D1DatabaseObject');
-  if (fs.existsSync(d1Dir)) {
-    const sqliteFiles = fs.readdirSync(d1Dir).filter((f) => f.endsWith('.sqlite') && !f.startsWith('metadata'));
-    if (sqliteFiles.length > 0) {
-      const dbPath = path.join(d1Dir, sqliteFiles[0]);
-      const { execSync } = await import('node:child_process');
-      execSync(
-        `sqlite3 "${dbPath}" "DELETE FROM submissions WHERE owner='user_fresh_student'; DELETE FROM drafts WHERE owner='user_fresh_student'; DELETE FROM uploads WHERE owner='user_fresh_student';"`
-      );
-    }
+  // This suite creates official student submissions and faculty grades. It must
+  // never delete previous test attempts or overwrite the working database.
+  // Use a disposable local D1 database plus a fresh test student for each run.
+  if (process.env.VCEP_ALLOW_E2E_WRITES !== '1') {
+    throw new Error('Browser E2E writes permanent records. Use an isolated local D1 database and set VCEP_ALLOW_E2E_WRITES=1.');
+  }
+  if (!freshStudentEmail || !freshStudentPassword) {
+    throw new Error('Create an isolated fresh student in .env.demo; do not use the standard demo student for a destructive test.');
   }
 
   // Spawn headless Google Chrome
