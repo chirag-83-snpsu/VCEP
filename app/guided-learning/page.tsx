@@ -58,6 +58,7 @@ import { Session21PortfolioJourney } from './components/session-21-portfolio-jou
 import { Session22HiringJourney } from './components/session-22-hiring-journey';
 import { Session23PresentationJourney } from './components/session-23-presentation-journey';
 import { Session24PassportJourney } from './components/session-24-passport-journey';
+import { OfficialSubmissionStation } from './components/official-submission-station';
 import { useAutomaticReview } from '@/lib/review-engine/engine';
 import { StageStatus, StageName, ReviewCheckItem } from '@/lib/review-engine/types';
 import { CheckCircle2, AlertCircle, Clock, ShieldCheck, ArrowRight } from 'lucide-react';
@@ -248,12 +249,16 @@ export default function GuidedLearningPage(){
    window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);
  },[choose]);
 
- useEffect(()=>{
+ const refreshBoot = useCallback(() => {
    fetch('/api/boot')
      .then(r => r.json())
      .then((d: any) => { if (d && !d.error) setBoot(d); })
      .catch(() => {});
  }, []);
+
+ useEffect(()=>{
+   refreshBoot();
+ }, [refreshBoot]);
 
  useEffect(()=>{
    let active=true;
@@ -265,9 +270,14 @@ export default function GuidedLearningPage(){
        const data=(await res.json().catch(()=>({}))) as any;
        if(!active)return;
        if(!res.ok){
+         if (res.status === 401 && typeof window !== 'undefined') {
+           const currentPath = window.location.pathname + window.location.search;
+           window.location.replace(`/signin?return_to=${encodeURIComponent(currentPath)}`);
+           return;
+         }
          setAuthError({
            status:res.status,
-           message:data.error||(res.status===401?'Sign in with an enrolled account to view this guided lesson.':'Access restricted.')
+           message:data.error||'Access restricted.'
          });
          setLesson(null);
        }else{
@@ -300,9 +310,19 @@ export default function GuidedLearningPage(){
  };
 
  function update(key:string,value:string){
-   const next={...draft,[key]:value};
-   setDraft(next);
-   persistDraft(next);
+   setDraft((prev) => {
+     const next = { ...prev, [key]: value };
+     persistDraft(next);
+     return next;
+   });
+ }
+
+ function updateBatch(updates: Record<string, string>) {
+   setDraft((prev) => {
+     const next = { ...prev, ...updates };
+     persistDraft(next);
+     return next;
+   });
  }
 
  function handleRetrySave() {
@@ -1053,23 +1073,27 @@ export default function GuidedLearningPage(){
           </>
         ) : (
           <>
-            {selected <= 21 && (
-              <button
-                type="button"
-                className="vcep-btn-primary"
-                onClick={()=>setSection('Work')}
-                style={{padding:'8px 14px',fontSize:'12px'}}
-              >
-                <span>Launch Interactive Workstation →</span>
-              </button>
-            )}
+            <button
+              type="button"
+              className="vcep-btn-primary"
+              onClick={() => {
+                const el = document.getElementById('vcep-official-submission-station');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
+            >
+              <span>Official Submission & Grade Review ↓</span>
+            </button>
             <button
               className="v3-outline"
               type="button"
-              onClick={()=>setSection('Review')}
-              style={{padding:'8px 14px',fontSize:'12px'}}
+              onClick={() => {
+                const el = document.getElementById('vcep-official-submission-station');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ padding: '8px 14px', fontSize: '12px' }}
             >
-              <span>My Work & Review →</span>
+              <span>My Assessment Status</span>
             </button>
           </>
         )}
@@ -1122,7 +1146,18 @@ export default function GuidedLearningPage(){
            {authError.message}
          </p>
          <div className="v3-action-bar">
-           <a className="v3-primary" href={authError.status===401?'/?signin=1':'/'}>
+           <a
+            className="v3-primary"
+            href={
+              authError.status === 401
+                ? `/signin?return_to=${encodeURIComponent(
+                    typeof window !== 'undefined'
+                      ? window.location.pathname + window.location.search
+                      : `/guided-learning?session=${selected}`
+                  )}`
+                : '/'
+            }
+          >
              {authError.status===401?'Sign In with College Account →':'Return to Course Catalogue →'}
            </a>
            <a className="v3-outline" href="/">Return to VCEP Home</a>
@@ -1132,148 +1167,41 @@ export default function GuidedLearningPage(){
    )}
 
    {!loading && !authError && lesson && (
-     selected === 1 ? (
-       <div className="v3-content" key="session-1-journey">
-         <Session01StartupJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 2 ? (
-       <div className="v3-content" key="session-2-journey">
-         <Session02TeamworkJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 3 ? (
-       <div className="v3-content" key="session-3-journey">
-         <Session03CommunicationJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 4 ? (
-       <div className="v3-content" key="session-4-journey">
-         <Session04MeetingJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 5 ? (
-       <div className="v3-content" key="session-5-journey">
-         <Session05AccountingJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 6 ? (
-       <div className="v3-content" key="session-6-journey">
-         <Session06LedgerJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 7 ? (
-       <div className="v3-content" key="session-7-journey">
-         <Session07CleaningJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 8 ? (
-       <div className="v3-content" key="session-8-journey">
-         <Session08ReconciliationJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 9 ? (
-       <div className="v3-content" key="session-9-journey">
-         <Session09PerformanceJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 10 ? (
-       <div className="v3-content" key="session-10-journey">
-         <Session10DashboardJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 11 ? (
-       <div className="v3-content" key="session-11-journey">
-         <Session11GSTJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 12 ? (
-       <div className="v3-content" key="session-12-journey">
-         <Session12ReceivablesJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 13 ? (
-       <div className="v3-content" key="session-13-journey">
-         <Session13AIJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 14 ? (
-       <div className="v3-content" key="session-14-journey">
-         <Session14AIJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 15 ? (
-       <div className="v3-content" key="session-15-journey">
-         <Session15SalesJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 16 ? (
-       <div className="v3-content" key="session-16-journey">
-         <Session16DecisionJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 17 ? (
-       <div className="v3-content" key="session-17-journey">
-         <Session17DiscoveryJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 18 ? (
-       <div className="v3-content" key="session-18-journey">
-         <Session18PlanningJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 19 ? (
-       <div className="v3-content" key="session-19-journey">
-         <Session19ExecutionJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 20 ? (
-       <div className="v3-content" key="session-20-journey">
-         <Session20ChangeJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 21 ? (
-       <div className="v3-content" key="session-21-journey">
-         <Session21PortfolioJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 22 ? (
-       <div className="v3-content" key="session-22-journey">
-         <Session22HiringJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 23 ? (
-       <div className="v3-content" key="session-23-journey">
-         <Session23PresentationJourney
-           onUpdateDraft={update}
-         />
-       </div>
-     ) : selected === 24 ? (
-       <div className="v3-content" key="session-24-journey">
-         <Session24PassportJourney
-           onUpdateDraft={update}
+     selected >= 1 && selected <= 24 ? (
+       <div className="v3-content" key={'session-' + selected + '-journey'}>
+         {selected === 1 && <Session01StartupJourney onUpdateDraft={update} />}
+         {selected === 2 && <Session02TeamworkJourney onUpdateDraft={update} />}
+         {selected === 3 && <Session03CommunicationJourney onUpdateDraft={update} />}
+         {selected === 4 && <Session04MeetingJourney onUpdateDraft={update} />}
+         {selected === 5 && <Session05AccountingJourney onUpdateDraft={update} />}
+         {selected === 6 && <Session06LedgerJourney onUpdateDraft={update} />}
+         {selected === 7 && <Session07CleaningJourney onUpdateDraft={update} />}
+         {selected === 8 && <Session08ReconciliationJourney onUpdateDraft={update} />}
+         {selected === 9 && <Session09PerformanceJourney onUpdateDraft={update} />}
+         {selected === 10 && <Session10DashboardJourney onUpdateDraft={update} />}
+         {selected === 11 && <Session11GSTJourney onUpdateDraft={update} />}
+         {selected === 12 && <Session12ReceivablesJourney onUpdateDraft={update} />}
+         {selected === 13 && <Session13AIJourney onUpdateDraft={update} />}
+         {selected === 14 && <Session14AIJourney onUpdateDraft={update} />}
+         {selected === 15 && <Session15SalesJourney onUpdateDraft={update} />}
+         {selected === 16 && <Session16DecisionJourney onUpdateDraft={update} />}
+         {selected === 17 && <Session17DiscoveryJourney onUpdateDraft={update} />}
+         {selected === 18 && <Session18PlanningJourney onUpdateDraft={update} />}
+         {selected === 19 && <Session19ExecutionJourney onUpdateDraft={update} />}
+         {selected === 20 && <Session20ChangeJourney onUpdateDraft={update} />}
+         {selected === 21 && <Session21PortfolioJourney onUpdateDraft={update} />}
+         {selected === 22 && <Session22HiringJourney onUpdateDraft={update} />}
+         {selected === 23 && <Session23PresentationJourney onUpdateDraft={update} />}
+         {selected === 24 && <Session24PassportJourney onUpdateDraft={update} />}
+
+         <OfficialSubmissionStation
+           session={selected}
+           user={user}
+           draftAnswers={draft}
+           onUpdateDraftAnswer={update}
+           onUpdateBatch={updateBatch}
+           bootSubmissions={boot?.submissions}
+           onSubmissionSuccess={refreshBoot}
          />
        </div>
      ) : (

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { VayentraEmblem } from '@/components/brand-logo';
+import { safeRelativeReturnPath } from '@/lib/url-safety';
 import {
   BriefcaseBusiness,
   ShieldCheck,
@@ -24,10 +25,11 @@ export default function SignInPage() {
   const [needsActivation, setNeedsActivation] = useState(false);
 
   // Read return_to safely from window.location if present
-  const returnTo =
+  const rawReturnTo =
     typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search).get('return_to') || '/'
-      : '/';
+      ? new URLSearchParams(window.location.search).get('return_to')
+      : null;
+  const safeReturn = safeRelativeReturnPath(rawReturnTo);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,10 +58,10 @@ export default function SignInPage() {
         throw new Error(data.error || 'Invalid email or password.');
       }
 
-      // Successful authentication -> navigate to designated role workspace
+      // Successful authentication -> navigate to designated role workspace or safe return destination
       const target =
-        returnTo && returnTo !== '/' && returnTo !== '/signin'
-          ? returnTo
+        safeReturn && safeReturn !== '/'
+          ? safeReturn
           : data.redirectUrl || '/';
       window.location.href = target;
     } catch (err: any) {
