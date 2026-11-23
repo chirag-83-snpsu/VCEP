@@ -46,7 +46,8 @@ if (fs.existsSync(envPath)) {
 if (process.env.VCEP_ALLOW_E2E_WRITES !== '1') {
   throw new Error('E2E test writes official submissions. Use a disposable local D1 database and set VCEP_ALLOW_E2E_WRITES=1 explicitly.');
 }
-if (!/^http:\/\/(?:127\\.0\\.0\\.1|localhost):\\d+$/.test(BASE_URL)) {
+const testOrigin = new URL(BASE_URL);
+if (testOrigin.protocol !== 'http:' || !['localhost', '127.0.0.1'].includes(testOrigin.hostname)) {
   throw new Error('Refusing to run write-enabled E2E against a non-local host.');
 }
 if (!studentEmail.startsWith('fresh-student@') || !studentPassword || !facultyPassword) {
