@@ -113,10 +113,10 @@ export const INITIAL_EXCEPTIONS: ExceptionItem[] = [
     rawAmount: 'blank',
     rawDate: '2026-10-05',
     category: 'Missing Value',
-    riskDescription: 'Replacing blank with ₹0 creates false certainty and conceals an unpaid invoice amount.',
+    riskDescription: 'Replacing a missing receipt amount with ₹0 creates false certainty; the amount cannot be confirmed without source evidence.',
     auditAction: 'Held in Quarantine. Zeroing strictly prohibited.',
     status: 'Quarantined (Suspense)',
-    officerNotes: 'Pending bank statement confirmation of deposited amount.',
+    officerNotes: 'Pending collection officer or bank source confirmation of the unknown amount.',
   },
   {
     id: 'e4',
@@ -136,7 +136,7 @@ export const INITIAL_S07_STATE: Session07WorkstationState = {
   rawReceipts: CASE_B_RAW_RECEIPTS,
   cleanRows: INITIAL_CLEAN_ROWS,
   exceptions: INITIAL_EXCEPTIONS,
-  formulaNotes: '=SUMIFS(Clean[Amount], Clean[Customer], "Asha") = ₹17,000\n=SUMIFS(Clean[Amount], Clean[Customer], "Beacon") = ₹8,000\n=COUNTIF(Raw[ID], [@ID]) flags duplicate keys.\nPreserved Raw (₹44,000) = Clean (₹25,000) + Quarantined (₹19,000) with zero variance.',
+  formulaNotes: '=SUMIFS(Clean[Amount], Clean[Customer], "Asha") = ₹17,000\n=SUMIFS(Clean[Amount], Clean[Customer], "Beacon") = ₹8,000\n=COUNTIF(Raw[ID], [@ID]) flags duplicate keys.\nKnown numeric Raw (₹44,000) = Approved (₹25,000) + Known-value exceptions (₹19,000). R05 remains unknown; it is NOT ₹0.',
   governance: {
     studentId: 'STU-2026-DAT',
     fileVersion: 'StudentID_S07_v01',
@@ -150,7 +150,7 @@ export const S07_RUBRIC = [
   {
     name: 'Execution',
     points: 4,
-    evidence: 'Accurate Clean table (3 records / ₹25,000), Quarantined exceptions (4 records / ₹19,000), and zero-variance reconciliation proof ($44k = $25k + $19k).',
+    evidence: 'Accurate Clean table (R01, R02, R03: ₹25,000); 4 tracked exceptions (3 known amounts totaling ₹19,000 plus R05 unknown); and known-value bridge ₹44,000 = ₹25,000 + ₹19,000.',
   },
   {
     name: 'Reasoning',
