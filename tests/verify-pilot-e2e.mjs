@@ -20,9 +20,9 @@ const BASE_URL = process.env.VCEP_TEST_URL || 'http://127.0.0.1:5173';
 
 // Load rotated credentials from .env.demo if present
 let studentEmail = process.env.DEMO_STUDENT_EMAIL || 'demo-student@vayentra.edu';
-let studentPassword = process.env.DEMO_STUDENT_PASSWORD || 'DemoStudent@VCEP2026!';
+let studentPassword = process.env.DEMO_STUDENT_PASSWORD || '';
 let facultyEmail = process.env.DEMO_FACULTY_EMAIL || 'demo-faculty@vayentra.edu';
-let facultyPassword = process.env.DEMO_FACULTY_PASSWORD || 'DemoFaculty@VCEP2026!';
+let facultyPassword = process.env.DEMO_FACULTY_PASSWORD || '';
 
 const envPath = path.resolve('.env.demo');
 if (fs.existsSync(envPath)) {
@@ -39,20 +39,18 @@ if (fs.existsSync(envPath)) {
   facultyEmail = envContent.match(/DEMO_FACULTY_EMAIL=(.+)/)?.[1]?.trim() || facultyEmail;
   facultyPassword = envContent.match(/DEMO_FACULTY_PASSWORD=(.+)/)?.[1]?.trim() || facultyPassword;
 
-  // Reset fresh student test records so verification runs cleanly without corrupting demo data
-  const d1Dir = path.resolve('.wrangler/state/v3/d1/miniflare-D1DatabaseObject');
-  if (fs.existsSync(d1Dir)) {
-    const sqliteFiles = fs.readdirSync(d1Dir).filter((f) => f.endsWith('.sqlite') && !f.startsWith('metadata'));
-    if (sqliteFiles.length > 0) {
-      const dbPath = path.join(d1Dir, sqliteFiles[0]);
-      try {
-        const { execSync } = await import('node:child_process');
-        execSync(
-          `sqlite3 "${dbPath}" "DELETE FROM submissions WHERE owner='user_fresh_student'; DELETE FROM drafts WHERE owner='user_fresh_student'; DELETE FROM uploads WHERE owner='user_fresh_student';"`
-        );
-      } catch {}
-    }
-  }
+
+}
+
+// This suite submits and grades records. It must never silently erase prior work.
+if (process.env.VCEP_ALLOW_E2E_WRITES !== '1') {
+  throw new Error('E2E test writes official submissions. Use a disposable local D1 database and set VCEP_ALLOW_E2E_WRITES=1 explicitly.');
+}
+if (!/^http:\/\/(?:127\\.0\\.0\\.1|localhost):\\d+$/.test(BASE_URL)) {
+  throw new Error('Refusing to run write-enabled E2E against a non-local host.');
+}
+if (!studentEmail.startsWith('fresh-student@') || !studentPassword || !facultyPassword) {
+  throw new Error('Configure an isolated fresh-student account and unique passwords in .env.demo before running E2E tests.');
 }
 
 console.log('🧪 Starting VCEP End-to-End Pilot Workflow Verification Suite...');
