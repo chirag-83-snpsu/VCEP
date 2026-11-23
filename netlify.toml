@@ -1,0 +1,51 @@
+# Netlify Configuration for VCEP (Option B: Hybrid Architecture)
+# Frontend hosted on Netlify CDN; Backend & Storage proxied to Cloudflare Edge.
+
+[build]
+  command = "corepack pnpm build"
+  publish = "dist/client"
+
+[build.environment]
+  NODE_VERSION = "24.22.1"
+  PNPM_VERSION = "11.25.0"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+# Transparent API Proxy to Cloudflare Managed Edge Backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://vcep-staging-worklab.vayentragurukula.workers.dev/api/:splat"
+  status = 200
+  force = true
+  headers = { X-Forwarded-Host = ":host" }
+
+# Dynamic Page SSR Proxy to Cloudflare Managed Edge Backend
+# force = false ensures Netlify serves static assets from dist/client first,
+# and proxies SSR page requests (/, /guided-learning, /signin) to the Cloudflare Worker.
+[[redirects]]
+  from = "/*"
+  to = "https://vcep-staging-worklab.vayentragurukula.workers.dev/:splat"
+  status = 200
+  force = false
+  headers = { X-Forwarded-Host = ":host" }
+
+# Global Security Response Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(self), geolocation=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# Cache Policy for Hashed Static Assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Curriculum Data Protection Gate
+[[headers]]
+  for = "*.json"
+  [headers.values]
+    Cache-Control = "no-store, private"

@@ -47,3 +47,9 @@ next-env.d.ts
 /.kilo/
 
 *.tsbuildinfo
+
+# Proprietary curriculum & archived student download packs
+app/guided-learning/drive-edition-3*.json
+curriculum/archive/
+public/downloads/
+wrangler.staging.json

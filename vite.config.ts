@@ -1,5 +1,5 @@
 import vinext from "vinext";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { sites } from "./build/sites-vite-plugin";
@@ -36,7 +36,15 @@ const localBindingConfig = {
     : [],
 };
 
-export default defineConfig(async ({ command }) => {
+export default defineConfig(async ({ command, mode }) => {
+  // Load local environment files into process.env if present
+  const loadedEnv = loadEnv(mode || "development", process.cwd(), "");
+  for (const [k, v] of Object.entries(loadedEnv)) {
+    if (process.env[k] === undefined) {
+      process.env[k] = v;
+    }
+  }
+
   // Use Miniflare's local Request.cf placeholder unless fetching is requested.
   process.env.CLOUDFLARE_CF_FETCH_ENABLED ??= "false";
   process.env.WRANGLER_SEND_METRICS ??= "false";
@@ -69,6 +77,14 @@ export default defineConfig(async ({ command }) => {
         inspectorPort: false,
         config: {
           ...localBindingConfig,
+          vars: {
+            VIVI_API_KEY: process.env.VIVI_API_KEY || loadedEnv.VIVI_API_KEY || "",
+            OPENAI_API_KEY: process.env.OPENAI_API_KEY || loadedEnv.OPENAI_API_KEY || "",
+            VIVI_AI_GATEWAY_URL: process.env.VIVI_AI_GATEWAY_URL || loadedEnv.VIVI_AI_GATEWAY_URL || "",
+            VIVI_AI_GATEWAY_TOKEN: process.env.VIVI_AI_GATEWAY_TOKEN || loadedEnv.VIVI_AI_GATEWAY_TOKEN || "",
+            VIVI_MODEL_NAME: process.env.VIVI_MODEL_NAME || loadedEnv.VIVI_MODEL_NAME || "",
+            VIVI_LOCAL_DEV: "true",
+          },
           ...(command === "serve"
             ? {
                 services: [

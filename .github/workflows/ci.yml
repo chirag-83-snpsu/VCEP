@@ -1,0 +1,46 @@
+name: VCEP Enterprise CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+
+jobs:
+  quality-gates:
+    name: Type-Check, Lint & Automated Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm Package Manager
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+
+      - name: Setup Node.js Runtime (v22.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript Type Check
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: ESLint Code Quality Gate
+        run: pnpm run lint
+
+      - name: Automated Unit & Regression Tests
+        run: pnpm test
+
+      - name: Production Bundle Build
+        run: pnpm run build
+
