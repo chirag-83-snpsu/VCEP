@@ -149,7 +149,7 @@ export const INITIAL_LAPTOP_SLOTS: LaptopSlot[] = [
 export const S02_DECISION_OPTIONS: DecisionOption[] = [
   {
     id: 'opt-backup',
-    title: 'Option A: Engage Designated Backup at 16:30 per Charter Clause 4 (Recommended)',
+    title: 'Option A: Engage Designated Backup at 16:30 per Charter Clause 4',
     actionSummary: 'Formally activate Student 3 (Designated Backup) to acting reviewer at 16:30. Notify trainer/manager via email immediately, conduct audit from 16:45 to 17:30, and deliver on time by 18:00.',
     governanceVerdict: 'Recommended',
     governanceAnalysis: 'Demonstrates robust professional governance. Activating the prepared backup ensures full independent verification before the 18:00 cutoff without missing deadlines.',

@@ -541,7 +541,16 @@ export default function GuidedLearningPage(){
      selected >= 1 && selected <= 24 ? (
        <div className="v3-content" key={'session-' + selected + '-journey'}>
          {selected === 1 && <Session01StartupJourney onUpdateDraft={update} />}
-         {selected === 2 && <Session02TeamworkJourney onUpdateDraft={update} />}
+         {selected === 2 && (
+           <Session02TeamworkJourney
+             onUpdateDraft={update}
+             onUpdateBatch={updateBatch}
+             user={user}
+             draftAnswers={draft}
+             bootSubmissions={boot?.submissions}
+             onSubmissionSuccess={refreshBoot}
+           />
+         )}
          {selected === 3 && <Session03CommunicationJourney onUpdateDraft={update} />}
          {selected === 4 && <Session04MeetingJourney onUpdateDraft={update} />}
          {selected === 5 && <Session05AccountingJourney onUpdateDraft={update} />}
@@ -565,15 +574,17 @@ export default function GuidedLearningPage(){
          {selected === 23 && <Session23PresentationJourney onUpdateDraft={update} />}
          {selected === 24 && <Session24PassportJourney onUpdateDraft={update} />}
 
-         <OfficialSubmissionStation
-           session={selected}
-           user={user}
-           draftAnswers={draft}
-           onUpdateDraftAnswer={update}
-           onUpdateBatch={updateBatch}
-           bootSubmissions={boot?.submissions}
-           onSubmissionSuccess={refreshBoot}
-         />
+         {selected !== 2 && (
+           <OfficialSubmissionStation
+             session={selected}
+             user={user}
+             draftAnswers={draft}
+             onUpdateDraftAnswer={update}
+             onUpdateBatch={updateBatch}
+             bootSubmissions={boot?.submissions}
+             onSubmissionSuccess={refreshBoot}
+           />
+         )}
        </div>
      ) : (
       <div className="v3-content" key={`${selected}-${section}`}>

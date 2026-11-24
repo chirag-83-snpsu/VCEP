@@ -40,31 +40,36 @@ async function runStaticVerification() {
   // 4. Verify 4-Session Rotations
   assert.ok(s02Data.includes('INITIAL_ROTATIONS'), 'Must define INITIAL_ROTATIONS');
 
-  // 5. Verify 2 Headings in Component
-  assert.ok(s02Comp.includes('id="vcep-area-join"'), 'Must have Heading 1: Join Your Team');
-  assert.ok(s02Comp.includes('id="vcep-area-charter"'), 'Must have Heading 2: Build Your Professional Profile & Charter');
-
-  // 6. Verify 4 Unified Premium Bordered Task Cards & IDs
+  // 5. Verify 5 Wizard Steps & Stepper Stepper
+  assert.ok(s02Comp.includes('WIZARD_STEPS'), 'Must define WIZARD_STEPS');
   assert.ok(s02Comp.includes('taskId="S02-T01"'), 'Must define S02-T01');
-  assert.ok(s02Comp.includes('TASK 01') && s02Comp.includes('Introduce Yourself'), 'Must have Task 01 Introduce Yourself');
-
   assert.ok(s02Comp.includes('taskId="S02-T02"'), 'Must define S02-T02');
-  assert.ok(s02Comp.includes('TASK 02') && s02Comp.includes('Assign Team Roles'), 'Must have Task 02 Assign Team Roles');
-
   assert.ok(s02Comp.includes('taskId="S02-T03"'), 'Must define S02-T03');
-  assert.ok(s02Comp.includes('TASK 03') && s02Comp.includes('Agree on Team Rules'), 'Must have Task 03 Agree on Team Rules');
-
   assert.ok(s02Comp.includes('taskId="S02-T04"'), 'Must define S02-T04');
-  assert.ok(s02Comp.includes('TASK 04') && s02Comp.includes('Plan for Setbacks'), 'Must have Task 04 Plan for Setbacks');
+  assert.ok(s02Comp.includes('taskId="S02-T05"'), 'Must define S02-T05');
 
-  // 7. Verify TaskCard Design Specs: 1px border, 16px radius, 3px teal accent, why-matters disclosure
+  // 6. Verify Sub-Tabs & Anti-Spoiler
+  assert.ok(s02Comp.includes('Squad Roles') && s02Comp.includes('Rotation Plan'), 'Must have Step 2 sub-tabs');
+  assert.ok(s02Comp.includes('Laptop Slots') && s02Comp.includes('Team Charter'), 'Must have Step 3 sub-tabs');
+  assert.ok(s02Comp.includes('Lock Decision') || s02Comp.includes('decisionLocked'), 'Must have Step 4 anti-spoiler gate');
+  assert.ok(!s02Data.includes('(Recommended)'), 'Data must not spoil recommended option in title');
+
+  // 7. Verify Step 5 Auto-Sync & Submission Elements
+  assert.ok(s02Comp.includes('b0r0c1'), 'Must auto-populate b0r0c1');
+  assert.ok(s02Comp.includes('b0r1c1'), 'Must auto-populate b0r1c1');
+  assert.ok(s02Comp.includes('b0r2c1'), 'Must auto-populate b0r2c1');
+  assert.ok(s02Comp.includes('b1'), 'Must auto-populate b1');
+  assert.ok(s02Comp.includes('submission-integrity-checkbox'), 'Must have integrity checkbox');
+  assert.ok(s02Comp.includes('submit-official-attempt-btn') || s02Comp.includes('Submit Official Attempt'), 'Must have submit button');
+  assert.ok(s02Comp.includes('vcep-official-submission-station'), 'Must have submission station ID');
+
+  // 8. Verify TaskCard Design Specs
   assert.ok(s02Comp.includes('function TaskCard'), 'Must define reusable TaskCard component');
   assert.ok(s02Comp.includes('#DCE5E9'), 'Must use neutral 1px #DCE5E9 border');
   assert.ok(s02Comp.includes('#0F766E'), 'Must use brand teal #0F766E');
   assert.ok(s02Comp.includes('#17245C'), 'Must use navy #17245C');
-  assert.ok(s02Comp.includes('Why this matters') || s02Comp.includes('whyMatters'), 'Must provide collapsible theory disclosure');
 
-  // 8. Verify Session 01 and other sessions are intact
+  // 9. Verify Session 01 and 02 are preserved in driveJson
   assert.equal(driveJson[0].id, 1, 'Session 01 must be preserved');
   assert.equal(driveJson[1].id, 2, 'Session 02 must be preserved');
   assert.equal(driveJson.length, 24, 'All 24 sessions must be preserved');
@@ -139,7 +144,7 @@ async function runBrowserVerification() {
       console.log(`📸 Saved screenshot: ${filename} (${width}x${height})`);
     }
 
-    // Set authenticated session cookie to view Guided Learning
+    // Set authenticated session cookie
     await send('Network.enable');
     await send('Network.setCookie', {
       name: '__vcep_session',
@@ -176,74 +181,98 @@ async function runBrowserVerification() {
       `,
     });
 
-    // 1. TEST 01 & Desktop 1440px Capture: Navigate to /guided-learning?session=2
+    // 1. Navigate to /guided-learning?session=2
     console.log('Navigating to /guided-learning?session=2...');
     await send('Page.navigate', { url: 'http://127.0.0.1:5173/guided-learning?session=2' });
     await new Promise((r) => setTimeout(r, 3000));
 
-    // Capture Desktop Heading 1 (Join Your Team & Tasks 01-02)
-    console.log('Capturing Desktop Heading 1...');
+    // Capture Desktop Step 1
+    console.log('Capturing Desktop Step 1 (Introduce Yourself)...');
     await capture('s02-heading-01-join-team-desktop-1440.png', 1440, 900);
 
-    // 2. TEST 02: Scroll to Heading 2 (Build Your Professional Profile & Charter & Tasks 03-04)
-    console.log('Navigating to Heading 2 (Build Your Professional Profile & Charter)...');
+    // 2. Click Step 4 in Wizard Stepper (Plan for Setbacks)
+    console.log('Navigating to Step 4 (Crisis Plan & Anti-Spoiler)...');
     await send('Runtime.evaluate', {
       expression: `
-        const areaCharter = document.getElementById('vcep-area-charter');
-        if (areaCharter) areaCharter.scrollIntoView({ behavior: 'instant', block: 'start' });
-      `,
-    });
-    await new Promise((r) => setTimeout(r, 1000));
-    await capture('s02-heading-02-charter-desktop-1440.png', 1440, 900);
-
-    // 3. Tablet 768px View of Heading 1
-    console.log('Capturing Tablet (768px)...');
-    await send('Runtime.evaluate', {
-      expression: `
-        const areaJoin = document.getElementById('vcep-area-join');
-        if (areaJoin) areaJoin.scrollIntoView({ behavior: 'instant', block: 'start' });
+        (() => {
+          const btns = Array.from(document.querySelectorAll('nav button'));
+          const step4Btn = btns.find(b => b.textContent && b.textContent.includes('Crisis Plan'));
+          if (step4Btn) step4Btn.click();
+        })()
       `,
     });
     await new Promise((r) => setTimeout(r, 800));
+
+    // Click Option A and lock decision
+    await send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const opts = Array.from(document.querySelectorAll('[data-task-id="S02-T04"] div'));
+          const optA = opts.find(d => d.textContent && d.textContent.includes('Option A'));
+          if (optA) optA.click();
+        })()
+      `,
+    });
+    await new Promise((r) => setTimeout(r, 400));
+    await capture('s02-heading-02-charter-desktop-1440.png', 1440, 900);
+
+    // 3. Click Step 5 in Wizard Stepper (Review & Submit)
+    console.log('Navigating to Step 5 (Review & Submit)...');
+    await send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const btns = Array.from(document.querySelectorAll('nav button'));
+          const step5Btn = btns.find(b => b.textContent && b.textContent.includes('Review & Submit'));
+          if (step5Btn) step5Btn.click();
+        })()
+      `,
+    });
+    await new Promise((r) => setTimeout(r, 800));
+
+    // Capture Tablet 768px View
+    console.log('Capturing Tablet (768px)...');
     await capture('s02-teamwork-tablet-768.png', 768, 1024);
 
-    // 4. Mobile 390px View of Heading 1
+    // Capture Mobile 390px View
     console.log('Capturing Mobile (390px)...');
     await capture('s02-teamwork-mobile-390.png', 390, 844);
 
-    // 5. DOM Verification of 4 TaskCards, Simplification & Zero Stages
+    // 5. DOM Verification of 5 TaskCards, Stepper, Single Active View
     console.log('Evaluating live DOM elements in browser...');
     const evalResult = await send('Runtime.evaluate', {
       expression: `
         (() => {
           const title = document.querySelector('h1')?.textContent;
-          const stageButtons = document.querySelectorAll('.vcep-journey-step-btn').length;
-          const v3Tabs = document.querySelectorAll('.v3-tabs').length;
-          const areaJoin = Boolean(document.getElementById('vcep-area-join'));
-          const areaCharter = Boolean(document.getElementById('vcep-area-charter'));
-          const memberRows = document.querySelectorAll('#vcep-area-join tbody tr').length;
-          const slotRows = document.querySelectorAll('#vcep-area-charter tbody tr').length;
-          const decisionOptions = document.querySelectorAll('#vcep-area-charter [style*="cursor: pointer"]').length;
+          const stepperButtons = document.querySelectorAll('nav button').length;
           const task01 = Boolean(document.querySelector('[data-task-id="S02-T01"]'));
           const task02 = Boolean(document.querySelector('[data-task-id="S02-T02"]'));
           const task03 = Boolean(document.querySelector('[data-task-id="S02-T03"]'));
           const task04 = Boolean(document.querySelector('[data-task-id="S02-T04"]'));
+          const task05 = Boolean(document.querySelector('[data-task-id="S02-T05"]'));
           const taskCardsCount = document.querySelectorAll('[data-task-id]').length;
+          const integrityCheckbox = Boolean(document.getElementById('submission-integrity-checkbox'));
+          const b0r0Val = document.getElementById('b0r0c1')?.value;
+          const b0r1Val = document.getElementById('b0r1c1')?.value;
+          const officialStation = Boolean(document.getElementById('vcep-official-submission-station'));
+
+          // Check single visible task card
+          const visibleCards = Array.from(document.querySelectorAll('[data-task-id]'))
+            .filter(el => window.getComputedStyle(el).display !== 'none').length;
 
           return {
             title,
-            stageButtons,
-            v3Tabs,
-            areaJoin,
-            areaCharter,
-            memberRows,
-            slotRows,
-            decisionOptions,
+            stepperButtons,
             task01,
             task02,
             task03,
             task04,
+            task05,
             taskCardsCount,
+            visibleCards,
+            integrityCheckbox,
+            b0r0Val,
+            b0r1Val,
+            officialStation,
           };
         })()
       `,
@@ -253,15 +282,18 @@ async function runBrowserVerification() {
     const dom = evalResult.result.value;
     console.log('DOM Evaluation:', dom);
     assert.ok(dom.title.includes('Professional Identity'), 'Page Title must be "Professional Identity and Teamwork"');
-    assert.equal(dom.stageButtons, 0, 'Must have ZERO visible stage buttons/stepper');
-    assert.equal(dom.v3Tabs, 0, 'Must have ZERO legacy v3 tabs');
-    assert.ok(dom.areaJoin, 'Heading 1: Join Your Team must exist');
-    assert.ok(dom.areaCharter, 'Heading 2: Build Your Profile & Charter must exist');
+    assert.equal(dom.stepperButtons, 5, 'Must have exactly 5 stepper buttons');
     assert.equal(dom.task01, true, 'Task 01 (S02-T01) must exist');
     assert.equal(dom.task02, true, 'Task 02 (S02-T02) must exist');
     assert.equal(dom.task03, true, 'Task 03 (S02-T03) must exist');
     assert.equal(dom.task04, true, 'Task 04 (S02-T04) must exist');
-    assert.equal(dom.taskCardsCount, 4, 'Exactly 4 bordered task cards must exist');
+    assert.equal(dom.task05, true, 'Task 05 (S02-T05) must exist');
+    assert.equal(dom.taskCardsCount, 5, 'Exactly 5 bordered task cards must exist in DOM');
+    assert.equal(dom.visibleCards, 1, 'Exactly 1 task card must be visible at a time (Wizard pattern)');
+    assert.equal(dom.integrityCheckbox, true, 'Integrity checkbox must exist');
+    assert.ok(dom.b0r0Val && dom.b0r0Val.includes('verified team members'), 'b0r0c1 must auto-sync authentic roster data');
+    assert.ok(dom.b0r1Val && dom.b0r1Val.includes('Option A'), 'b0r1c1 must auto-sync Option A decision');
+    assert.equal(dom.officialStation, true, 'Submission station container must exist');
 
     console.log('✅ Live Browser CDP Verification & Screenshots Passed 100%!\n');
 

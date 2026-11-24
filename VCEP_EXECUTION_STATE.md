@@ -3,8 +3,8 @@
 **Project:** VCEP — Vayentra Corporate Experience Program  
 **Repository:** `https://github.com/vayentragurukula-ctrl/VCEP`  
 **Current Branch:** `release/netlify-production-launch` (Synchronized at commit `45a8e77`)  
-**State Updated:** 2026-11-24 10:30 IST (05:00 UTC)  
-**Execution Phase:** Phase 0, Phase 1, Phase 2 Complete; Guided Learning UI/UX Simplification (Session 01 5-Step Wizard) Complete
+**State Updated:** 2026-11-24 11:30 IST (06:00 UTC)  
+**Execution Phase:** Phase 0, Phase 1, Phase 2 Complete; Guided Learning UI/UX Simplification (Sessions 01 & 02 5-Step Wizards) Complete
 
 ---
 
@@ -32,7 +32,7 @@ All core quality gates, headless browser CDP acceptance suites, and regression s
 | Session # | Title & Core Focus | Architecture & Workstation Pattern | Interactive Task Type | Official Sync & Persistence | Browser QA Viewport | Status |
 | :---: | :--- | :--- | :--- | :--- | :--- | :---: |
 | **01** | Start a Business. Think Like a Founder. | 5 Bordered Task Cards (`S01-T01` to `T05`) | Opportunity, Feasibility, O2C Map, Pitch Deck | `b0r0c1`–`b0r2c1`, `b1`, `aiUse` | `1440x900`, `768px`, `390px` | **PASS** |
-| **02** | Professional Identity and Teamwork | 4 Bordered Task Cards (`S02-T01` to `T04`) | Roster Profile, Team Charter, Escalation Rule | `b0r0c1`–`b0r2c1`, `b1`, `aiUse` | `1440x900`, `768px`, `390px` | **PASS** |
+| **02** | Professional Identity and Teamwork | 5 Bordered Task Cards (`S02-T01` to `T05`) | Self-Intro, Squad Roles, Laptop Rota & Charter, Crisis Plan, Review & Submit | `b0r0c1`–`b0r2c1`, `b1`, `aiUse`, `reflection` | `1440x900`, `768px`, `390px` | **PASS** |
 | **03** | Professional Workplace Communication | 4 Bordered Task Cards (`S03-T01` to `T04`) | Clarification Request, Mid-day Update, Risk Alert | `b0r0c1`–`b0r2c1`, `b1`, `aiUse` | `1440x900`, `768px`, `390px` | **PASS** |
 | **04** | Meetings and Reporting Governance | 4 Bordered Task Cards (`S04-T01` to `T04`) | Crisis Response, Authority Limits, RACI Action Log | `b0r0c1`–`b0r2c1`, `b1`, `aiUse` | `1440x900`, `768px`, `390px` | **PASS** |
 | **05** | Accounting Transactions (Case A) | 4 Bordered Task Cards (`S05-T01` to `T04`) | Source Records, Transaction Class, Journal Vouchers | `b0r0c1`–`b0r2c1`, `b1`, `aiUse` | `1440x900`, `768px`, `390px` | **PASS** |
@@ -92,6 +92,14 @@ All core quality gates, headless browser CDP acceptance suites, and regression s
      - Task 4: Removed institutional boundary notice; 4-metric mini-card (Revenue, Expenses, Cash In, Opening Bank); answer gate hiding audit lesson and payment deferral recommendation until student prediction is committed; interactive 6-row Order-to-Cash table.
      - Task 5: 8-slide fixed tabs (`1. Startup` to `8. Ask`) with clean slide editor and slide reflection textarea.
    - **Full Viewport Verification:** Verified with headless Chrome CDP across Desktop (`1440x900`), Tablet (`768x1024`), and Mobile (`390x844`) with zero horizontal overflow.
+6. **Session 02 UI/UX Simplification & 5-Step Wizard (`app/guided-learning/components/session-02-teamwork-journey.tsx`):**
+   - **5-Step Wizard Stepper:** Sticky horizontal stepper (`1. Introduce Yourself` → `2. Assign Roles` → `3. Team Rules` → `4. Crisis Plan` → `5. Review & Submit`) with single-task visibility (`display: activeTaskId === taskId ? 'block' : 'none'`).
+   - **Expandable Operations Brief:** Replaced endless text with a sleek, expandable top bar (`Team Brief · Deadline 18:00 Sharp · 3 Operating Constraints`).
+   - **Step 2 Sub-Tabs (`Squad Roles` | `Rotation Plan`):** Segregated the 5-member squad matrix and the 4-session rotation schedule into clean sub-tabs.
+   - **Step 3 Sub-Tabs (`Laptop Slots` | `Team Charter`):** Live green time badges (`All 5 Members Meet ≥ 20 Mins Keyboard Time ✓`) over 8-slot table; scannable 5-clause charter list.
+   - **Step 4 Anti-Spoiler Gate:** Neutral option cards without spoiler badges (`Recommended` / `High Risk` / `Unacceptable`); audit consequence hidden until student clicks `Lock Decision & Reveal Audit Consequence`; removed duplicate contribution block.
+   - **Step 5 Integrated Review & Submission:** Real-time auto-synchronization of official worksheet fields (`b0r0c1`, `b0r1c1`, `b0r2c1`, `b1`), readiness summary checklist, single-entry attributable contribution & quality boundary, file attachment dropzone, integrity checkbox, and one-click submission.
+   - **100% Verification:** Verified with headless Chrome CDP across Desktop (`1440x900`), Tablet (`768x1024`), and Mobile (`390x844`) with zero console errors.
 
 ---
 
