@@ -346,10 +346,8 @@ export function Session02TeamworkJourney({
       'Professional teamwork requires adhering to agreed escalation authority limits. Skipping peer review creates unacceptable defect risks; activating a cross-trained backup preserves delivery milestones without compromising quality.';
 
     // Reflection & AI usage defaults
-    if (!draftAnswers['aiUse']) updates['aiUse'] = 'None';
-    if (!draftAnswers['reflection']) {
-      updates['reflection'] = 'Learned how single-point accountability and pre-agreed escalation protocols protect team deadlines without sacrificing quality.';
-    }
+    updates['aiUse'] = 'None';
+    updates['reflection'] = 'Learned how single-point accountability and pre-agreed escalation protocols protect team deadlines without sacrificing quality.';
 
     // Sync via batch if provided, otherwise individual callbacks
     if (onUpdateBatch) {
@@ -366,7 +364,7 @@ export function Session02TeamworkJourney({
         sessionStorage.setItem('vcep-drive-edition3:session:2:preview', JSON.stringify(draft));
       }
     } catch {}
-  }, [onUpdateBatch, onUpdateDraft, draftAnswers]);
+  }, [onUpdateBatch, onUpdateDraft]);
 
   // Save state to localStorage and sync in real time
   const saveState = (next: Session02WorkstationState) => {
@@ -386,11 +384,16 @@ export function Session02TeamworkJourney({
     }, 250);
   };
 
-  // Initial mount sync
+  const hasInitialSynced = useRef(false);
+
+  // Initial mount sync (single execution)
   useEffect(() => {
-    const loaded = loadSession02State();
-    setState(loaded);
-    syncDraftAndOfficial(loaded);
+    if (!hasInitialSynced.current) {
+      hasInitialSynced.current = true;
+      const loaded = loadSession02State();
+      setState(loaded);
+      syncDraftAndOfficial(loaded);
+    }
   }, [syncDraftAndOfficial]);
 
   // Speech practice timer
