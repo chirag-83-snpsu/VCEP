@@ -2,9 +2,9 @@
 
 **Project:** VCEP — Vayentra Corporate Experience Program  
 **Repository:** `https://github.com/vayentragurukula-ctrl/VCEP`  
-**Current Branch:** `release/netlify-production-launch` (Synchronized at commit `04a729a`)  
-**State Updated:** 2026-11-24 09:40 UTC (Local: 2026-11-24 15:10 IST)  
-**Execution Phase:** Phase 0, Phase 1 & Phase 2 Complete; Fully Verified Pilot-Ready State
+**Current Branch:** `release/netlify-production-launch` (Synchronized at commit `45a8e77`)  
+**State Updated:** 2026-11-24 10:30 IST (05:00 UTC)  
+**Execution Phase:** Phase 0, Phase 1, Phase 2 Complete; Guided Learning UI/UX Simplification (Session 01 5-Step Wizard) Complete
 
 ---
 
@@ -78,6 +78,20 @@ All core quality gates, headless browser CDP acceptance suites, and regression s
    - 300 catalog suggestions across all 24 sessions in English and Kannada.
    - Dual-pane learning workspace with compact floating launcher and expanded 4-mode environment.
    - Strict assessment lockouts for Baseline A (Session 01) and Exit B (Session 22).
+5. **Guided Learning Workstation UI/UX Simplification (`/guided-learning`):**
+   - **Header Decluttering:** Removed over 620 lines (23,800+ chars) of duplicate per-session action buttons in `app/guided-learning/page.tsx`. Relocated subtle `v3-save-badge` directly into `<div className="v3-topline">`.
+   - **5-Step Wizard Workflow (`app/guided-learning/components/session-01-startup-journey.tsx`):**
+     - Sticky horizontal stepper: `1. Pick Idea` → `2. Test Idea` → `3. Shape Model` → `4. Cash Check` → `5. Pitch Deck`.
+     - Active task rendered with `display: activeTaskId === taskId ? 'block' : 'none'`, maintaining DOM presence for single-page persistence and automated test stability without vertical endless scroll.
+     - Sticky footer navigation bar with `← Previous`, `Step {N} of 5 · {Title}`, and `Save & Continue →` / `Review & Submit Session ↓`.
+   - **Sleek Collapsible Baseline Diagnostic A Banner:** Replaced wall of exam rules with 44px collapsible alert banner with `View Rules` toggle and `Confirm & Begin` action.
+   - **Task-Level Simplifications:**
+     - Task 1: Compact 3-column idea cards with category pill and hidden hint until selected.
+     - Task 2: 2x2 desktop grid / 1-column mobile layout, concise labels, and max 3 quick-insert chips.
+     - Task 3: Interactive tabs for Indian startup cases (Zerodha, Nykaa, Meesho) showing 1 case at a time with 2 punchy bullets + decision question; interactive Unit Economics calculator with live auto-calculated contribution margin (`₹35 / unit (+38.9%)`).
+     - Task 4: Removed institutional boundary notice; 4-metric mini-card (Revenue, Expenses, Cash In, Opening Bank); answer gate hiding audit lesson and payment deferral recommendation until student prediction is committed; interactive 6-row Order-to-Cash table.
+     - Task 5: 8-slide fixed tabs (`1. Startup` to `8. Ask`) with clean slide editor and slide reflection textarea.
+   - **Full Viewport Verification:** Verified with headless Chrome CDP across Desktop (`1440x900`), Tablet (`768x1024`), and Mobile (`390x844`) with zero horizontal overflow.
 
 ---
 

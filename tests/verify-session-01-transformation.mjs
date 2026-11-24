@@ -189,10 +189,12 @@ async function runBrowserVerification() {
     console.log('Capturing Desktop Area A...');
     await capture('s01-stage-01-desktop-1440.png', 1440, 900);
 
-    // 2. TEST 02: Scroll to Task 04 (Check Business Reality)
+    // 2. TEST 02: Switch to Task 04 (Check Business Reality)
     console.log('Navigating to Task 04: Check Business Reality...');
     await send('Runtime.evaluate', {
       expression: `
+        const step4Btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Cash Check'));
+        if (step4Btn) step4Btn.click();
         const task04 = document.querySelector('[data-task-id="S01-T04"]') || document.querySelector('input[placeholder="₹25,000"]')?.closest('div');
         if (task04) task04.scrollIntoView({ behavior: 'instant', block: 'center' });
       `,
@@ -200,10 +202,12 @@ async function runBrowserVerification() {
     await new Promise((r) => setTimeout(r, 800));
     await capture('s01-stage-05-financial-sim-desktop.png', 1440, 900);
 
-    // 3. TEST 03: Scroll to Area B & Task 05 (Build the Pitch Deck)
+    // 3. TEST 03: Switch to Task 05 (Build the Pitch Deck)
     console.log('Navigating to Area B & Task 05: Build the Pitch Deck...');
     await send('Runtime.evaluate', {
       expression: `
+        const step5Btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Pitch Deck'));
+        if (step5Btn) step5Btn.click();
         const areaB = document.getElementById('vcep-area-pitch-deck');
         if (areaB) areaB.scrollIntoView({ behavior: 'instant', block: 'start' });
       `,
