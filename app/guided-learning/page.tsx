@@ -258,7 +258,7 @@ export default function GuidedLearningPage(){
 
  useEffect(()=>{
    refreshBoot();
- }, [refreshBoot]);
+ }, [refreshBoot, selected]);
 
  useEffect(()=>{
    let active=true;

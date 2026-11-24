@@ -50,10 +50,28 @@ async function main() {
     await send('DOM.enable');
     await send('Network.enable');
 
-    // Seed session cookie
+    // Authenticate and obtain real session cookie
+    let studentCookieValue = 'test_session_123';
+    try {
+      const envPath = path.resolve('.env.demo');
+      if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, 'utf8');
+        const email = envContent.match(/FRESH_STUDENT_EMAIL=(.+)/)?.[1]?.trim() || 'demo-student@vayentra.edu';
+        const password = envContent.match(/FRESH_STUDENT_PASSWORD=(.+)/)?.[1]?.trim() || 'DemoStudent@VCEP2026!';
+        const loginRes = await fetch('http://127.0.0.1:5173/api/auth/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Origin: 'http://127.0.0.1:5173' },
+          body: JSON.stringify({ email, password }),
+        });
+        const setCookie = loginRes.headers.get('set-cookie');
+        const m = setCookie?.match(/__vcep_session=([^;]+)/);
+        if (m) studentCookieValue = m[1];
+      }
+    } catch {}
+
     await send('Network.setCookie', {
-      name: 'vcep_session',
-      value: 'test_session_123',
+      name: '__vcep_session',
+      value: studentCookieValue,
       domain: '127.0.0.1',
       path: '/',
       httpOnly: true,
@@ -68,8 +86,8 @@ async function main() {
       mobile: false,
     });
 
-    console.log('2. Navigating to http://127.0.0.1:5173/guided-learning...');
-    await send('Page.navigate', { url: 'http://127.0.0.1:5173/guided-learning' });
+    console.log('2. Navigating to http://127.0.0.1:5173/...');
+    await send('Page.navigate', { url: 'http://127.0.0.1:5173/' });
     await new Promise((r) => setTimeout(r, 2500));
 
     // Open Vivi via floating button

@@ -244,6 +244,17 @@ export function OfficialSubmissionStation({
         combinedAnswers['team:judgement'] ||
           'Defer the INR 80,000 delivery-van deposit. Liquid closing bank is INR 35,000, which leaves a deficit of INR 15,000 against the mandatory INR 50,000 cash reserve despite paper profit of INR 1,30,000.'
       );
+    } else if (session === 2) {
+      // Session 02: Professional Identity and Teamwork
+      updateIfEmpty('b0r0c1', '9 verified team members rostered across 8 active project slots');
+      updateIfEmpty('b0r1c1', 'Decision: Option A — Activate pre-approved peer backup instead of bypassing QA review');
+      updateIfEmpty('b0r2c1', 'Escalation window: 15 minutes to team lead before initiating client milestone delay');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['team:judgement'] ||
+          combinedAnswers['concept:explain'] ||
+          'Professional teamwork requires adhering to agreed escalation authority limits. Skipping peer review creates unacceptable defect risks; activating a cross-trained backup preserves delivery milestones without compromising quality.'
+      );
     } else if (session === 3) {
       // Session 03: Workplace Communication
       updateIfEmpty('b0r0c1', 'Gross receipts collected of INR 3,42,000 through 14:00 (verified by bank statement)');
@@ -255,6 +266,17 @@ export function OfficialSubmissionStation({
           combinedAnswers['concept:explain'] ||
           'Hi Team, regarding today\'s dispatch numbers: Verified gross receipts are INR 3,42,000. Outstanding customer settlements remain pending secondary dispatch verification from Priya M (Warehouse Lead). We cannot confirm final delivery figures until the gate log is cross-checked. Next consolidated status update will follow by 17:00 IST. Regards, Operations Finance.'
       );
+    } else if (session === 4) {
+      // Session 04: Meetings and Reporting Governance
+      updateIfEmpty('b0r0c1', 'Crisis response: Operations Lead to confirm substitute inventory by 14:30');
+      updateIfEmpty('b0r1c1', 'Authority limit: General Manager approval required for INR 4,000 cost variance');
+      updateIfEmpty('b0r2c1', 'Client communication: Client Lead to inform customer of confirmed delivery by 15:30');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          combinedAnswers['work-prompt:1'] ||
+          'In an operational crisis, maintain strict RACI governance. Every action must carry a single named individual owner, an unambiguous clock deadline, and an explicit spending limit.'
+      );
     } else if (session === 5) {
       // Session 05: Accounting Transactions
       updateIfEmpty('b0r0c1', 'P-101: Debit Inventory INR 65,000; Credit Accounts Payable INR 65,000');
@@ -264,6 +286,16 @@ export function OfficialSubmissionStation({
         'b1',
         combinedAnswers['concept:explain'] ||
           'Customer advances represent unearned revenue and must be credited to unearned liability until goods or services are delivered, adhering strictly to accrual principles.'
+      );
+    } else if (session === 6) {
+      // Session 06: Ledger and Month End Close
+      updateIfEmpty('b0r0c1', 'Correction entry: Debit Suspense Account INR 12,000; Credit Bank Charges INR 12,000');
+      updateIfEmpty('b0r1c1', 'Adjusted trial balance: INR 218,000 debit cross-footed against INR 218,000 credit');
+      updateIfEmpty('b0r2c1', 'Closing net profit: INR 53,500 after reconciling unposted bank interest');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Month-end close discipline requires tracing suspense balances back to underlying source vouchers before closing the ledger. Unexplained variances must never be written off directly to equity.'
       );
     } else if (session === 7) {
       // Session 07: Excel and Data Cleaning (Drive Edition 3.0 Case B: Raw INR 44,000, Clean INR 25,000, Exceptions INR 19,000)
@@ -276,6 +308,26 @@ export function OfficialSubmissionStation({
           combinedAnswers['concept:explain'] ||
           'Match records across multiple composite keys: Invoice ID, Timestamp, Customer ID, and Item SKU rather than Customer Name and Amount alone before deduplicating.'
       );
+    } else if (session === 8) {
+      // Session 08: Bank Reconciliation (BRS)
+      updateIfEmpty('b0r0c1', 'Cash book balance: INR 87,200 (pre-adjustment)');
+      updateIfEmpty('b0r1c1', 'Unpresented cheques: INR 6,000; Direct bank debits / charges: INR 10,000');
+      updateIfEmpty('b0r2c1', 'Reconciled bank statement balance: INR 83,200 (Zero variance bridge: INR 87,200 + INR 6,000 - INR 10,000 = INR 83,200)');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Bank reconciliation statements provide an indispensable fraud and timing control. Timing lags must be adjusted in the BRS, while unrecorded bank interest or charges must be journalised into the general ledger.'
+      );
+    } else if (session === 9) {
+      // Session 09: Business Finance & Performance
+      updateIfEmpty('b0r0c1', 'Gross profit trend: Month 1 INR 60,000 (60%), Month 2 INR 66,000 (55%), Month 3 INR 75,000 (50%)');
+      updateIfEmpty('b0r1c1', 'Revenue growth: +25% from Month 1 (INR 1,00,000) to Month 3 (INR 1,50,000)');
+      updateIfEmpty('b0r2c1', 'Operating profit expansion: +11.1% from Month 1 (INR 18,000) to Month 3 (INR 20,000)');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'While top-line revenue expanded 25%, gross margin deteriorated by 10 percentage points (from 60% to 50%) due to unmonitored discounting. Volume growth does not compensate for structural margin erosion.'
+      );
     } else if (session === 10) {
       // Session 10: MIS Dashboard Development
       updateIfEmpty('b0r0c1', 'North: 91.2% (1,450 delivered / 1,590 dispatched)');
@@ -286,6 +338,56 @@ export function OfficialSubmissionStation({
         combinedAnswers['concept:explain'] ||
           'Priority branch is South (78.4%). Propose First-Attempt Delivery Rate (Successful deliveries / Total dispatch attempts) and SLA Breach Rate (Breached dispatches / Total dispatches).'
       );
+    } else if (session === 11) {
+      // Session 11: GST and Invoice Review
+      updateIfEmpty('b0r0c1', 'Invoice audit: E01 valid; E02 tax miscalculated; E03 missing sequential serial number');
+      updateIfEmpty('b0r1c1', 'Purchase reconciliation: P01 matched; P02 vendor unfiled (GSTR-2B mismatch); P03 matched');
+      updateIfEmpty('b0r2c1', 'ITC quarantine: Quarantine INR 18,000 input tax credit on P02 until vendor uploads invoice to GSTN portal');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Strict compliance with Section 16(2)(aa) of the CGST Act requires withholding ITC claims until purchases are reflected in auto-drafted GSTR-2B statements. Non-compliant supplier invoices must be quarantined immediately.'
+      );
+    } else if (session === 12) {
+      // Session 12: Receivables and Working Capital
+      updateIfEmpty('b0r0c1', 'Ageing buckets: Current INR 85,000; 31-60 days INR 40,000; 61-90 days INR 25,000; 90+ days INR 15,000');
+      updateIfEmpty('b0r1c1', 'Cash deficit: Liquid closing bank INR 15,000 against mandatory weekly disbursements INR 35,000 (INR 20,000 gap)');
+      updateIfEmpty('b0r2c1', 'Dispute protocol: Isolate disputed balance (Delta Corp INR 15,000) in suspense; prioritize immediate recovery of undisputed F01 & F02 tranches');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Closing the INR 20,000 weekly liquidity deficit requires aggressive collection of undisputed 31-60 day receivables from Asha Traders and Beacon Ltd while formally mediating the Delta dispute under contractual arbitration.'
+      );
+    } else if (session === 13) {
+      // Session 13: AI for Commerce Professionals
+      updateIfEmpty('b0r0c1', 'Data minimization: Replaced client real names with standard role labels; stripped live banking credentials');
+      updateIfEmpty('b0r1c1', 'Prompt architecture: Structured 6-part context (Role, Objective, Context, Constraints, Verification criteria, Output format)');
+      updateIfEmpty('b0r2c1', 'Human verification: Verified AI-generated margin calculations manually against raw monthly trial balance records');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Generative AI tools must operate under strict enterprise governance. Proprietary financial ledgers and customer PII must never be fed into public LLMs without synthetic anonymization and dual human verification.'
+      );
+    } else if (session === 14) {
+      // Session 14: AI Verification and Automation
+      updateIfEmpty('b0r0c1', 'Claim 1: Rejected 30% margin claim (actual is 25%); Claim 2: Verified repeat customer growth rate');
+      updateIfEmpty('b0r1c1', 'Claim 3: Flagged prompt payment assumption as unsubstantiated; Claim 4: Corrected discount compounding formula');
+      updateIfEmpty('b0r2c1', 'Stopping condition: Halt automated invoice processing if OCR confidence drops below 98% or line items fail arithmetic cross-foot');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Audited the automated management memorandum and corrected 2 hallucinated financial assertions. Automated reporting workflows must integrate hard programmatic stopping conditions and mandatory human approval gates.'
+      );
+    } else if (session === 15) {
+      // Session 15: Customer and Sales Operations
+      updateIfEmpty('b0r0c1', 'CRM funnel: 40 incoming leads, 24 qualified (60%), 15 proposals submitted, 6 closed-won');
+      updateIfEmpty('b0r1c1', 'Dual win rates: Overall win rate 15.0% (6/40 total leads) vs Qualified win rate 40.0% (6/15 proposals)');
+      updateIfEmpty('b0r2c1', 'Action queue: 5 overdue follow-up tickets flagged; prioritized high-value enterprise accounts (L-104 & L-109)');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Sales operations discipline requires separating lead qualification conversion from proposal win rates. Automating milestone reminders on high-intent enterprise opportunities prevents pipeline leakage and accelerates cycle times.'
+      );
     } else if (session === 16) {
       // Session 16: Commercial Decision Making
       updateIfEmpty('b0r0c1', 'INR 45 per unit (Selling price INR 120 - Variable cost INR 75)');
@@ -295,6 +397,46 @@ export function OfficialSubmissionStation({
         'b1',
         combinedAnswers['work-prompt:1'] ||
           'Reject 15% discount unless volume expands by at least 66.7% from 4,000 to 6,667 units. Demand elasticity must exceed -4.4 to maintain current total contribution of INR 1,80,000.'
+      );
+    } else if (session === 17) {
+      // Session 17: Industry Challenge Discovery
+      updateIfEmpty('b0r0c1', 'Problem statement: Retail billing bottleneck causes 14-minute average checkout queue during peak evening hours (18:00-21:00)');
+      updateIfEmpty('b0r1c1', 'Measurable metric: Reduce transaction processing time from 4.2 minutes to 1.5 minutes per basket');
+      updateIfEmpty('b0r2c1', 'Assumptions & permissions: Cloud POS access approved by IT Lead; store manager consented to 5-day observation study');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Discovered through 8 stakeholder interviews that the core constraint is manual barcode entry for unlabelled produce, rather than payment gateway latency. Structured discovery prevents premature solution engineering.'
+      );
+    } else if (session === 18) {
+      // Session 18: Solution Design and Project Planning
+      updateIfEmpty('b0r0c1', 'Architecture choice: Option B — Dual-scan optical reader with offline local cache over complex RFID overhaul');
+      updateIfEmpty('b0r1c1', 'WBS structure: 10-day work breakdown structure with all work packages scoped to <= 6 hours per engineer');
+      updateIfEmpty('b0r2c1', 'Acceptance gates: Gate 1 Architecture sign-off; Gate 2 Offline fallback drill; Gate 3 User acceptance pilot');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Selected Option B for superior cost-benefit feasibility and zero network downtime risk. The 10-day project charter incorporates 5 formal quality gates and strict scope boundaries prohibiting custom hardware builds.'
+      );
+    } else if (session === 19) {
+      // Session 19: Project Execution and Quality Assurance
+      updateIfEmpty('b0r0c1', 'Prototype build: Deployed v1.0 barcode cache script handling 1,200 simulated product lookups');
+      updateIfEmpty('b0r1c1', 'Test execution: Executed 5 automated regression tests; passed latency (<200ms) and accuracy (100%)');
+      updateIfEmpty('b0r2c1', 'Defect log: Remediated 1 concurrency lock issue identified during peer code review');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Executed project work packages against approved WBS milestones. Automated test suites validated system stability under peak transaction volume before initiating user acceptance testing.'
+      );
+    } else if (session === 20) {
+      // Session 20: Management Review and Change Control
+      updateIfEmpty('b0r0c1', 'Change Request CR-04: Add multi-currency price conversion for duty-free terminal pilot');
+      updateIfEmpty('b0r1c1', 'CCB evaluation: Approved conditional on vendor API SLA and zero latency degradation on local transactions');
+      updateIfEmpty('b0r2c1', 'Regression evidence: Model v2.0 passed all 5 baseline test suites with zero regression defects');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Enforced formal Change Control Board governance. The proposed currency feature was evaluated for cost, schedule, and technical risk; version 2.0 was committed only after end-to-end regression verification.'
       );
     } else if (session === 21) {
       // Session 21: Resume and Portfolio Development
@@ -313,6 +455,16 @@ export function OfficialSubmissionStation({
       updateIfEmpty(
         'b1',
         'The INR 50,000 payment cannot be made from stated cash. Liquid closing bank is only INR 22,000, creating an immediate INR 28,000 shortfall despite paper profit of INR 48,000.'
+      );
+    } else if (session === 23) {
+      // Session 23: Corporate Presentation Preparation
+      updateIfEmpty('b0r0c1', '6-slide deck: Problem Statement, Market Context, Solution Architecture, Unit Economics, Risk Mitigation, Ask & Roadmap');
+      updateIfEmpty('b0r1c1', 'Executive summary: 1-page structured briefing note adhering to Pyramid Principle communication standard');
+      updateIfEmpty('b0r2c1', 'Rehearsal defense: Completed 7-minute rehearsal with 3-minute live prototype demonstration and Q&A defense');
+      updateIfEmpty(
+        'b1',
+        combinedAnswers['concept:explain'] ||
+          'Structured executive presentation around stakeholder value and empirical trial evidence. The pitch strictly respects corporate time limits and defends operational feasibility using validated case data.'
       );
     } else if (session === 24) {
       // Session 24: Corporate Demo Day and Industry Passport

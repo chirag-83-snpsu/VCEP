@@ -454,23 +454,55 @@ async function runBrowserAcceptance() {
     console.log('✓ PASS: Student station reflects 10/10 rubric score, written feedback, and attached evidence.\n');
 
     // -------------------------------------------------------------------------
-    // STEP 9: Multi-Session Task Mapping Verification (Priority 1)
+    // STEP 9: Complete 24-Session Task Mapping Verification (Priority 1 & 8)
     // -------------------------------------------------------------------------
-    console.log('[Step 9] Verifying distinct domain-specific task mapping for Sessions 01, 03, 05, 10, 16, 21, 22, 24...');
+    console.log('[Step 9] Verifying distinct domain-specific task mapping for ALL 24 SESSIONS...');
     const sessionChecks = [
       { id: 1, expectedCheck: 'INR 1,30,000', label: 'Founder Business Idea & Profit vs Cash' },
+      { id: 2, expectedCheck: '9 verified team members', label: 'Professional Identity & Teamwork' },
       { id: 3, expectedCheck: 'Gross receipts collected', label: 'Professional Communication & Email' },
+      { id: 4, expectedCheck: 'Crisis response', label: 'Meetings & Reporting Governance' },
       { id: 5, expectedCheck: 'P-101: Debit Inventory', label: 'Accounting Transactions & Journal Entries' },
+      { id: 6, expectedCheck: 'Debit Suspense Account', label: 'Ledger & Month End Close' },
+      { id: 7, expectedCheck: 'Retain row 2 Asha Traders', label: 'Excel Data Cleaning & Reconciliation' },
+      { id: 8, expectedCheck: 'Cash book balance', label: 'Bank Reconciliation (BRS)' },
+      { id: 9, expectedCheck: 'Gross profit trend', label: 'Business Finance & Performance' },
       { id: 10, expectedCheck: 'North: 91.2%', label: 'MIS Dashboard & Branch Conversion KPIs' },
+      { id: 11, expectedCheck: 'Invoice audit', label: 'GST & Invoice Review' },
+      { id: 12, expectedCheck: 'Ageing buckets', label: 'Receivables & Working Capital' },
+      { id: 13, expectedCheck: 'Data minimization', label: 'AI for Commerce Professionals' },
+      { id: 14, expectedCheck: 'Claim 1', label: 'AI Verification & Automation' },
+      { id: 15, expectedCheck: 'CRM funnel', label: 'Customer & Sales Operations' },
       { id: 16, expectedCheck: 'INR 45 per unit', label: 'Commercial Pricing & Breakeven Analysis' },
+      { id: 17, expectedCheck: 'Problem statement', label: 'Industry Challenge Discovery' },
+      { id: 18, expectedCheck: 'Option B', label: 'Solution Design & Project Planning' },
+      { id: 19, expectedCheck: 'Prototype build', label: 'Project Execution & QA' },
+      { id: 20, expectedCheck: 'Change Request CR-04', label: 'Management Review & Change Control' },
       { id: 21, expectedCheck: 'Reconciled INR 44,000', label: 'Resume & Evidence Portfolio' },
       { id: 22, expectedCheck: 'INR 48,000', label: 'Exit B Controlled Assessment & Cash Feasibility' },
+      { id: 23, expectedCheck: '6-slide deck', label: 'Corporate Presentation Preparation' },
       { id: 24, expectedCheck: 'INR 42,500', label: 'Corporate Demo Day & Industry Passport' },
     ];
 
     for (const sc of sessionChecks) {
+      if (sc.id === 7) {
+        // Reset session 7 submission and draft so editable sync can be re-tested in step 9
+        const d1Dir = path.resolve('.wrangler/state/v3/d1/miniflare-D1DatabaseObject');
+        const sqliteFiles = fs.readdirSync(d1Dir).filter((f) => f.endsWith('.sqlite') && !f.startsWith('metadata'));
+        if (sqliteFiles.length > 0) {
+          const { execSync } = await import('node:child_process');
+          execSync(
+            `sqlite3 "${path.join(d1Dir, sqliteFiles[0])}" "DELETE FROM submissions WHERE session=7; DELETE FROM drafts WHERE session=7;"`
+          );
+        }
+      }
+
       await send('Page.navigate', { url: `${BASE_URL}/guided-learning?session=${sc.id}` });
       await sleep(2500);
+      if (sc.id === 7) {
+        await send('Page.reload');
+        await sleep(2000);
+      }
 
       await evaluate(`
         const el = document.getElementById("vcep-official-submission-station");
@@ -479,10 +511,19 @@ async function runBrowserAcceptance() {
       await sleep(500);
 
       await evaluate(`
-        const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Sync Answers from Completed Tasks'));
-        if (btn) btn.click();
+        (async () => {
+          for (let i = 0; i < 20; i++) {
+            const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Sync Answers from Completed Tasks'));
+            if (btn) {
+              btn.click();
+              return true;
+            }
+            await new Promise(r => setTimeout(r, 200));
+          }
+          return false;
+        })()
       `);
-      await sleep(800);
+      await sleep(1000);
 
       const checkVal = await evaluate('document.getElementById("b0r0c1")?.value');
       console.log(`Session ${String(sc.id).padStart(2, '0')} [${sc.label}]: Sync output -> "${checkVal?.slice(0, 50)}..."`);
