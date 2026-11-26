@@ -53,6 +53,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -70,6 +71,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -86,17 +88,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -225,6 +250,17 @@ export function Session10DashboardJourney({
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S10-T01');
 
+  const WIZARD_STEPS = [
+    { id: 'S10-T01' as const, num: 1, label: 'TASK 01: Select Decision KPIs', short: '1. Select KPIs' },
+    { id: 'S10-T02' as const, num: 2, label: 'TASK 02: Build the Dashboard', short: '2. Build Dashboard' },
+    { id: 'S10-T03' as const, num: 3, label: 'TASK 03: Test the Refresh', short: '3. Stress Test' },
+    { id: 'S10-T04' as const, num: 4, label: 'TASK 04: Present the Insight', short: '4. Executive Memo' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
+
   // Hydrate on mount
   useEffect(() => {
     const loaded = loadSession10State();
@@ -313,6 +349,70 @@ export function Session10DashboardJourney({
 
   return (
     <div className="vcep-session-clean-journey">
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
       {/* =========================================================================
           HEADING 1: CHOOSE THE MANAGEMENT QUESTION (#vcep-area-question)
          ========================================================================= */}
@@ -334,7 +434,8 @@ export function Session10DashboardJourney({
           taskId="S10-T01"
           taskNumber="TASK 01"
           title="Select Decision KPIs"
-          instruction="Define the core executive management question, inspect verified Case D source cells (CaseD!B2:D5), and select the four key performance indicators that support the Managing Director's five-minute briefing."
+          instruction="Define the core executive management question and select four vital KPIs supporting executive decisions."
+          learningTakeaway="Every dashboard must answer one clear management question with decision-driving metrics."
           whyMatters="A professional MIS dashboard begins with the business decision leadership must make, not decorative charts. Mapping explicit source cells and accountability owners ensures that every metric drives operational action."
           statusText={`${state.selectedKpiIds.length} of 4 KPIs Selected`}
           isActive={activeTaskId === 'S10-T01'}
@@ -501,7 +602,8 @@ export function Session10DashboardJourney({
           taskId="S10-T02"
           taskNumber="TASK 02"
           title="Build the Dashboard"
-          instruction="Review the live executive KPI summary cards and the three-month multi-metric trajectory visualizer displaying Revenue, Direct Delivery Costs, and Trade Receivables across July, August, and September."
+          instruction="Review the live KPI cards and three-month multi-metric trajectory charts across Q3."
+          learningTakeaway="Trace live dashboard cards to underlying ledger data to confirm data consistency."
           whyMatters="Executive dashboards must reveal trends and structural shifts at a glance. Comparing revenue growth against cost growth and receivables accumulation immediately signals margin compression and working capital risk."
           statusText="Executive Strip Active"
           isActive={activeTaskId === 'S10-T02'}
@@ -718,7 +820,8 @@ export function Session10DashboardJourney({
           taskId="S10-T03"
           taskNumber="TASK 03"
           title="Test the Refresh"
-          instruction="Conduct an executive sensitivity stress test by simulating a direct cost increase from ₹75,000 to ₹78,000 to verify that all margins, profits, and visual variance indicators recalculate dynamically without broken formulas."
+          instruction="Simulate direct cost increase from ₹75,000 to ₹78,000 to test dynamic dashboard recalculations."
+          learningTakeaway="Stress-test formulas to ensure all margins and visual warnings update dynamically."
           whyMatters="A trustworthy MIS model must respond dynamically to parameter updates. Stress-testing direct delivery costs reveals how vulnerable operating profit is to cost slippage and validates the model's structural formula integrity."
           statusText={state.directCostInput === 78000 ? 'Stress Test Active (+₹3k Surge)' : 'Baseline Direct Cost (₹75k)'}
           isActive={activeTaskId === 'S10-T03'}
@@ -862,7 +965,8 @@ export function Session10DashboardJourney({
           taskId="S10-T04"
           taskNumber="TASK 04"
           title="Present the Insight"
-          instruction="Draft a concise executive management memo of no more than 150 words outlining the diagnosis, evidence, two owned actions with deadlines, and one data limitation, then verify your submission against the rubric."
+          instruction="Draft a 150-word executive memo with clear diagnosis, 2 action owners, and data limitations."
+          learningTakeaway="Summarize dashboard insights concisely with numerical evidence and designated action owners."
           whyMatters="Dashboards alone do not generate business outcomes; clear executive communication does. Concise memos with specific role owners, explicit deadlines, and honest data caveats enable leadership to execute swift corrective action."
           statusText={`${memoWordCount} / 150 words · ${isMemoValidLength ? 'Compliant' : 'Non-compliant'}`}
           isActive={activeTaskId === 'S10-T04'}
@@ -1092,6 +1196,68 @@ export function Session10DashboardJourney({
           )}
         </TaskCard>
       </div>
+
+      {/* Sticky Footer Navigation Bar */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Dashboard Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

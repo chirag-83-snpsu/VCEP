@@ -68,8 +68,8 @@ async function runStaticVerification() {
 
   // 5. Verify page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24'), 'Tabs must be suppressed for selected <= 24');
-  assert.ok(page.includes('vcep-area-dashboard'), 'Page must wire Build MIS Dashboard button');
-  assert.ok(page.includes('vcep-area-question'), 'Page must wire Choose Management Question button');
+  assert.ok(journey.includes('vcep-area-dashboard'), 'Journey must wire Build MIS Dashboard button');
+  assert.ok(journey.includes('vcep-area-question'), 'Journey must wire Choose Management Question button');
   assert.ok(page.includes('Build a dashboard that supports decisions.'), 'Page must display Session 10 subline');
 
   // 6. Verify Evaluator Rules in lib
@@ -215,7 +215,7 @@ async function runBrowserVerification() {
           const areaQuestion = document.getElementById('vcep-area-question');
           const areaDashboard = document.getElementById('vcep-area-dashboard');
           const tabs = document.querySelector('.v3-tabs');
-          const bodyText = document.body.innerText;
+          const bodyText = document.body.textContent || '';
 
           const card1 = document.querySelector('[data-task-id="S10-T01"]');
           const card2 = document.querySelector('[data-task-id="S10-T02"]');
@@ -230,10 +230,10 @@ async function runBrowserVerification() {
             hasCard2: !!card2,
             hasCard3: !!card3,
             hasCard4: !!card4,
-            t1Title: card1?.querySelector('h3')?.innerText.trim(),
-            t2Title: card2?.querySelector('h3')?.innerText.trim(),
-            t3Title: card3?.querySelector('h3')?.innerText.trim(),
-            t4Title: card4?.querySelector('h3')?.innerText.trim(),
+            t1Title: card1?.querySelector('h3')?.textContent?.trim(),
+            t2Title: card2?.querySelector('h3')?.textContent?.trim(),
+            t3Title: card3?.querySelector('h3')?.textContent?.trim(),
+            t4Title: card4?.querySelector('h3')?.textContent?.trim(),
             containsRevenue: bodyText.includes('1,50,000') || bodyText.includes('150000'),
             containsGrossMargin: bodyText.includes('50.0%'),
             containsOperatingMargin: bodyText.includes('20.0%'),

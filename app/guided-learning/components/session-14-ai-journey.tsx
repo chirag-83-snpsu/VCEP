@@ -58,6 +58,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -75,6 +76,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -91,17 +93,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -236,6 +261,17 @@ export function Session14AIJourney({ onUpdateDraft }: Session14AIJourneyProps) {
   const [state, setState] = useState<Session14State>(() => loadSession14State());
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S14-T01');
+
+  const WIZARD_STEPS = [
+    { id: 'S14-T01' as const, num: 1, label: 'Task 01: Audit Four AI Claims', short: '1. Audit Claims' },
+    { id: 'S14-T02' as const, num: 2, label: 'Task 02: Correct the Management Memo', short: '2. Correct Memo' },
+    { id: 'S14-T03' as const, num: 3, label: 'Task 03: Build Validation Checks', short: '3. Validation Gates' },
+    { id: 'S14-T04' as const, num: 4, label: 'Task 04: Test the Approval Flow', short: '4. Approval Flow' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // Initial mount sync
   useEffect(() => {
@@ -414,6 +450,70 @@ export function Session14AIJourney({ onUpdateDraft }: Session14AIJourneyProps) {
 
   return (
     <div className="vcep-session-clean-journey w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
       {/* ==================================================== */}
       {/* EXECUTIVE MISSION BANNER */}
       {/* ==================================================== */}
@@ -476,7 +576,8 @@ export function Session14AIJourney({ onUpdateDraft }: Session14AIJourneyProps) {
           taskId="S14-T01"
           taskNumber="Task 01"
           title="Audit Four AI Claims"
-          instruction="Inspect verified Case D monthly records, audit all four ungrounded AI claims individually, calculate exact percentages, and log factual corrections."
+          instruction="Audit four AI claims against verified Case D records, calculate correct percentages, and log errors."
+          learningTakeaway="Verify every computational claim in AI outputs using primary ledger data."
           whyMatters="AI models frequently generate plausible-sounding false metrics (e.g. 30% growth vs. 25.0% true growth) and dangerous commercial advice. Human accountants must verify every percentage and assertion against primary accounts."
           statusText={`${auditedCount} / 4 Claims Audited`}
           isActive={activeTaskId === 'S14-T01'}
@@ -653,7 +754,8 @@ export function Session14AIJourney({ onUpdateDraft }: Session14AIJourneyProps) {
           taskId="S14-T02"
           taskNumber="Task 02"
           title="Correct the Management Memo"
-          instruction="Draft a disciplined executive brief of at most 120 words incorporating verified metrics, acknowledging source uncertainties, and rejecting unprofitable discounts."
+          instruction="Draft a 120-word executive brief with verified metrics, uncertainty disclosures, and cost controls."
+          learningTakeaway="Management briefs must communicate verified numbers and reject loss-making commercial proposals."
           whyMatters="Executive decision-makers rely on concise, factual commentary. A professional memo must highlight true margin movement (-2.5 pp to 20.0%), disclose data limitations (absence of payment logs), and explicitly reject harmful commercial recommendations."
           statusText={`${memoWordCount} / ${MAX_MEMO_WORD_COUNT} Words`}
           isActive={activeTaskId === 'S14-T02'}
@@ -740,7 +842,8 @@ export function Session14AIJourney({ onUpdateDraft }: Session14AIJourneyProps) {
           taskId="S14-T03"
           taskNumber="Task 03"
           title="Build Validation Checks"
-          instruction="Establish automated data validation gates and configure a visible stopping condition formula to halt the pipeline when monthly revenue is blank, missing, or non-numeric."
+          instruction="Configure automated validation gates and stopping rules to halt workflows when revenue is missing."
+          learningTakeaway="Automated pipelines must halt immediately when required financial inputs are missing or invalid."
           whyMatters="Uncontrolled automation feeds corrupted or missing inputs directly into generative models, producing confidently hallucinated summaries. Stopping rules ensure bad data is quarantined before narrative generation."
           statusText="Validation Gate Active"
           isActive={activeTaskId === 'S14-T03'}
@@ -823,7 +926,8 @@ export function Session14AIJourney({ onUpdateDraft }: Session14AIJourneyProps) {
           taskId="S14-T04"
           taskNumber="Task 04"
           title="Test the Approval Flow"
-          instruction="Simulate five workflow scenarios (normal, blank revenue fault-injection, restore, rejection, and approval), record named human sign-off, and run formative review."
+          instruction="Test five workflow scenarios, log human sign-off, and complete formative governance review."
+          learningTakeaway="Enterprise automation requires human review gates and fail-safe fault injection testing."
           whyMatters="Commercial liability demands that automated AI pipelines never release output externally without explicit, attributed human authorization. Rejection paths and fault-injection drills verify system resilience."
           statusText={state.governance.approvalStatus}
           isActive={activeTaskId === 'S14-T04'}
@@ -1123,6 +1227,68 @@ export function Session14AIJourney({ onUpdateDraft }: Session14AIJourneyProps) {
           </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Footer Navigation Bar */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'AI Automation Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

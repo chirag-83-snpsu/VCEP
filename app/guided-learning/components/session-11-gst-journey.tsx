@@ -52,6 +52,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -69,6 +70,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -85,17 +87,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -221,6 +246,17 @@ export function Session11GSTJourney({ onUpdateDraft }: Session11GSTJourneyProps)
   const [state, setState] = useState<Session11WorkstationState>(INITIAL_S11_STATE);
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S11-T01');
+
+  const WIZARD_STEPS = [
+    { id: 'S11-T01' as const, num: 1, label: 'TASK 01: Inspect the Invoices', short: '1. Invoices' },
+    { id: 'S11-T02' as const, num: 2, label: 'TASK 02: Verify Tax Calculations', short: '2. Tax' },
+    { id: 'S11-T03' as const, num: 3, label: 'TASK 03: Match Purchase Records', short: '3. Purchases' },
+    { id: 'S11-T04' as const, num: 4, label: 'TASK 04: Report Exceptions', short: '4. Exceptions' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // Hydrate on mount
   useEffect(() => {
@@ -410,6 +446,70 @@ export function Session11GSTJourney({ onUpdateDraft }: Session11GSTJourneyProps)
 
   return (
     <div className="vcep-session-clean-journey">
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
       {/* =========================================================================
           HEADING 1: INSPECT THE INVOICE EVIDENCE (#vcep-area-invoices)
          ========================================================================= */}
@@ -431,7 +531,8 @@ export function Session11GSTJourney({ onUpdateDraft }: Session11GSTJourneyProps)
           taskId="S11-T01"
           taskNumber="TASK 01"
           title="Inspect the Invoices"
-          instruction="Review the three original Case E sales invoices (E01, E02, E03) to verify sequential serial numbering, supplier location, place of supply, and draft tax allocations."
+          instruction="Review three sales invoices to check sequential numbering, supplier locations, and place of supply."
+          learningTakeaway="Valid GST invoices require uninterrupted serial numbers, correct place of supply, and proper GSTINs."
           whyMatters="Under Section 31 and Rule 46 of the CGST Rules, an invoice is a legally binding tax document. Approving invoices with missing serial numbers or incorrect place-of-supply classifications creates statutory liabilities and blocks client input credit."
           statusText={`${activeInvoice.id} Audited (${activeAudit.studentStatus})`}
           isActive={activeTaskId === 'S11-T01'}
@@ -785,7 +886,8 @@ export function Session11GSTJourney({ onUpdateDraft }: Session11GSTJourneyProps)
           taskId="S11-T02"
           taskNumber="TASK 02"
           title="Verify Tax Calculations"
-          instruction="Verify the statutory sales tax computation schedule across intra-state (9% CGST + 9% SGST) and inter-state (18% IGST) supplies, confirming the correct gross invoiced amount and tax head distribution."
+          instruction="Verify tax schedules across intra-state (9% CGST + 9% SGST) and inter-state (18% IGST) supplies."
+          learningTakeaway="Intra-state sales split equally into CGST/SGST, while inter-state sales use IGST."
           whyMatters="Tax heads are legally non-interchangeable: CGST and SGST cannot offset IGST errors on outward billing. Ensuring correct 9%+9% intra-state vs 18% inter-state allocation protects the enterprise from tax re-assessment."
           statusText="Output Tax: ₹6,300 · Gross: ₹41,300"
           isActive={activeTaskId === 'S11-T02'}
@@ -888,7 +990,8 @@ export function Session11GSTJourney({ onUpdateDraft }: Session11GSTJourneyProps)
           taskId="S11-T03"
           taskNumber="TASK 03"
           title="Match Purchase Records"
-          instruction="Reconcile purchase register records P01–P03 against the auto-drafted GSTR-2B inward statement by purchase ID, verifying matched claims and quarantining missing credits."
+          instruction="Reconcile purchase register records against auto-drafted GSTR-2B and isolate missing input tax credits."
+          learningTakeaway="Only claim input tax credit (ITC) when vendor invoices appear in your official GSTR-2B."
           whyMatters="Under Section 16(2)(aa) of the CGST Act, possessing a paper tax invoice does not permit claiming Input Tax Credit unless the supplier has uploaded the invoice to the government portal. Quarantining unmatched items prevents interest and penalty exposure."
           statusText={`Matched: ₹${verifiedMatchedTax} · Quarantined: ₹${quarantinedTax}`}
           isActive={activeTaskId === 'S11-T03'}
@@ -1016,7 +1119,8 @@ export function Session11GSTJourney({ onUpdateDraft }: Session11GSTJourneyProps)
           taskId="S11-T04"
           taskNumber="TASK 04"
           title="Report Exceptions"
-          instruction="Document invoice defects and purchase exceptions, draft a formal vendor inquiry requesting GSTR-1 ARN proof, route the mentor escalation briefing, and verify your submission against the 10-point rubric."
+          instruction="Document invoice defects, draft vendor inquiry for GSTR-1 proof, and submit mentor briefing."
+          learningTakeaway="Isolate non-compliant tax items quickly and request vendor ARN proof before filing returns."
           whyMatters="Unresolved reconciliation gaps must be formally escalated with traceable invoice IDs and deadlines. Professional governance requires segregating unverified tax credits and obtaining senior mentor sign-off before period close."
           statusText={`Vendor Inquiry (${memoWordCount} words) · ${state.governance.fileVersion}`}
           isActive={activeTaskId === 'S11-T04'}
@@ -1375,6 +1479,68 @@ export function Session11GSTJourney({ onUpdateDraft }: Session11GSTJourneyProps)
           </div>
         </div>
       )}
+
+      {/* Sticky Footer Navigation Bar */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Tax Verification Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

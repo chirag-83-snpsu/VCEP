@@ -72,8 +72,8 @@ async function runStaticVerification() {
 
   // 6. Verify page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24'), 'Tabs must be suppressed for selected <= 24');
-  assert.ok(page.includes('vcep-area-findings'), 'Page must wire Write Management Findings button');
-  assert.ok(page.includes('vcep-area-performance'), 'Page must wire Review Business Performance button');
+  assert.ok(journey.includes('vcep-area-findings'), 'Journey must wire Write Management Findings button');
+  assert.ok(journey.includes('vcep-area-performance'), 'Journey must wire Review Business Performance button');
   assert.ok(page.includes('Read the numbers. Challenge the story.'), 'Page must display Session 09 subline');
 
   // 7. Verify Evaluator Rules in lib

@@ -74,8 +74,8 @@ async function runStaticVerification() {
 
   // 9. Check page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24 && ('), 'Tabs must be suppressed for selected <= 24');
-  assert.ok(page.includes('vcep-area-verify'), 'Page must wire Create & Verify Output button');
-  assert.ok(page.includes('vcep-area-task'), 'Page must wire Choose Safe AI Task button');
+  assert.ok(journey.includes('vcep-area-verify'), 'Journey must wire Create & Verify Output button');
+  assert.ok(journey.includes('vcep-area-task'), 'Journey must wire Choose Safe AI Task button');
   assert.ok(page.includes('Use AI responsibly. Verify the work.'), 'Page must display Session 13 subline');
 
   // 10. Check Review Engine Rules in lib
@@ -239,7 +239,7 @@ async function runBrowserVerification() {
           const card3 = document.querySelector('[data-task-id="S13-T03"]');
           const card4 = document.querySelector('[data-task-id="S13-T04"]');
           const tabs = document.querySelector('.v3-tabs');
-          const bodyText = document.body.innerText;
+          const bodyText = document.body.textContent || '';
 
           return {
             hasTaskArea: !!areaTask,
@@ -249,10 +249,10 @@ async function runBrowserVerification() {
             hasTask03: !!card3,
             hasTask04: !!card4,
             tabsHidden: !tabs,
-            t1Title: card1?.querySelector('h3')?.innerText || '',
-            t2Title: card2?.querySelector('h3')?.innerText || '',
-            t3Title: card3?.querySelector('h3')?.innerText || '',
-            t4Title: card4?.querySelector('h3')?.innerText || '',
+            t1Title: card1?.querySelector('h3')?.textContent || '',
+            t2Title: card2?.querySelector('h3')?.textContent || '',
+            t3Title: card3?.querySelector('h3')?.textContent || '',
+            t4Title: card4?.querySelector('h3')?.textContent || '',
             containsCaseDRevenue: bodyText.includes('150,000') && bodyText.includes('120,000') && bodyText.includes('100,000'),
             containsCaseDReceivables: bodyText.includes('70,000'),
             containsClassificationItems: bodyText.includes('Monthly Gross Revenue Totals') && bodyText.includes('Bank Account Numbers & IFSC Codes'),

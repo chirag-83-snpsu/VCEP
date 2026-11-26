@@ -61,6 +61,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -78,6 +79,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -94,17 +96,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -241,6 +266,17 @@ export function Session13AIJourney({ onUpdateDraft }: Session13AIJourneyProps) {
   const [copiedNotification, setCopiedNotification] = useState(false);
   const [activeTabPrompt, setActiveTabPrompt] = useState<'preview' | 'edit'>('preview');
   const [activeTaskId, setActiveTaskId] = useState<string>('S13-T01');
+
+  const WIZARD_STEPS = [
+    { id: 'S13-T01' as const, num: 1, label: 'Task 01: Prepare Safe Inputs', short: '1. Boundaries' },
+    { id: 'S13-T02' as const, num: 2, label: 'Task 02: Write a Professional Prompt', short: '2. Prompt' },
+    { id: 'S13-T03' as const, num: 3, label: 'Task 03: Review the AI Draft', short: '3. Audit Draft' },
+    { id: 'S13-T04' as const, num: 4, label: 'Task 04: Document Human Verification', short: '4. Governance' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // Hydrate & initial sync
   useEffect(() => {
@@ -409,6 +445,70 @@ export function Session13AIJourney({ onUpdateDraft }: Session13AIJourneyProps) {
 
   return (
     <div className="vcep-session-clean-journey w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
       {/* ==================================================== */}
       {/* EXECUTIVE MISSION BANNER */}
       {/* ==================================================== */}
@@ -471,7 +571,8 @@ export function Session13AIJourney({ onUpdateDraft }: Session13AIJourneyProps) {
           taskId="S13-T01"
           taskNumber="Task 01"
           title="Prepare Safe Inputs"
-          instruction="Classify financial data items into Safe Approved Aggregates or Prohibited Private Identifiers to establish data minimization boundaries before interacting with any AI model."
+          instruction="Classify financial records into approved aggregates or private identifiers to establish data privacy boundaries."
+          learningTakeaway="Never input sensitive customer PII or proprietary banking identifiers into public AI models."
           whyMatters="Under enterprise compliance, GDPR, and Indian DPDP guidelines, customer identities, individual salaries, and banking credentials must never be inputted into third-party AI models. Only high-level anonymized aggregates are safe for business intelligence."
           statusText={`${classificationProgress.correct} / ${classificationProgress.total} Safe`}
           isActive={activeTaskId === 'S13-T01'}
@@ -631,7 +732,8 @@ export function Session13AIJourney({ onUpdateDraft }: Session13AIJourneyProps) {
           taskId="S13-T02"
           taskNumber="Task 02"
           title="Write a Professional Prompt"
-          instruction="Structure a 6-part enterprise prompt specifying Role, Task, Permitted Sources (strictly Case D tables), Output Structure, Uncertainty Handling, and Explicit Model Exclusions."
+          instruction="Structure a 6-part enterprise prompt with explicit roles, verified sources, and strict model exclusions."
+          learningTakeaway="Ground AI prompts in specific source documents and forbid speculative hallucinations."
           whyMatters="Unguided prompts induce conversational AI models to invent plausible-sounding numbers and offer unqualified business advice. Explicit bounding forces the model to cite verified data and admit data limitations."
           statusText="6/6 Elements Bounded"
           isActive={activeTaskId === 'S13-T02'}
@@ -807,7 +909,8 @@ export function Session13AIJourney({ onUpdateDraft }: Session13AIJourneyProps) {
           taskId="S13-T03"
           taskNumber="Task 03"
           title="Review the AI Draft"
-          instruction="Compare the offline flawed AI draft side-by-side with Case D financial ground truth. Detect false metrics, ungrounded payment claims, and dangerous commercial recommendations."
+          instruction="Compare flawed AI text side-by-side with Case D financial ground truth to catch hallucinations."
+          learningTakeaway="Always audit AI draft metrics against primary accounting records before accepting them."
           whyMatters="AI models generate syntactically convincing but factually incorrect assertions. An analyst must independently compute MoM growth (+25%), calculate true operating margin (20%), and reject hallucinated customer payment assumptions."
           statusText={`${verifiedCount} / 4 Claims Audited`}
           isActive={activeTaskId === 'S13-T03'}
@@ -1034,7 +1137,8 @@ export function Session13AIJourney({ onUpdateDraft }: Session13AIJourneyProps) {
           taskId="S13-T04"
           taskNumber="Task 04"
           title="Document Human Verification"
-          instruction="Draft the human-revised management memo citing true financial metrics, maintain the mandatory AI-use governance disclosure log, and run formative evaluation."
+          instruction="Draft human-verified management memo, maintain mandatory AI-use disclosure log, and submit governance review."
+          learningTakeaway="Humans hold final accountability for all financial analysis and commercial recommendations."
           whyMatters="Enterprise governance requires a permanent audit trail documenting tools used, prompts issued, fact-checking audits conducted, and autonomous human decisions made. Human accountants retain legal and ethical liability for commercial counsel."
           statusText="Governance Log Signed"
           isActive={activeTaskId === 'S13-T04'}
@@ -1327,6 +1431,68 @@ export function Session13AIJourney({ onUpdateDraft }: Session13AIJourneyProps) {
           </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Footer Navigation Bar */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'AI Workflow Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

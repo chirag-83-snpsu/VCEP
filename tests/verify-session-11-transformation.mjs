@@ -70,8 +70,8 @@ async function runStaticVerification() {
 
   // 5. Verify page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24'), 'Tabs must be suppressed for selected <= 24');
-  assert.ok(page.includes('vcep-area-tax'), 'Page must wire Verify Tax & Exceptions button');
-  assert.ok(page.includes('vcep-area-invoices'), 'Page must wire Inspect Invoice Evidence button');
+  assert.ok(journey.includes('vcep-area-tax'), 'Journey must wire Verify Tax & Exceptions button');
+  assert.ok(journey.includes('vcep-area-invoices'), 'Journey must wire Inspect Invoice Evidence button');
   assert.ok(page.includes('Review the invoice before you approve it.'), 'Page must display Session 11 subline');
 
   // 6. Verify Evaluator Rules in lib
@@ -226,7 +226,7 @@ async function runBrowserVerification() {
           const areaInvoices = document.getElementById('vcep-area-invoices');
           const areaTax = document.getElementById('vcep-area-tax');
           const tabs = document.querySelector('.v3-tabs');
-          const bodyText = document.body.innerText;
+          const bodyText = document.body.textContent || '';
 
           const card1 = document.querySelector('[data-task-id="S11-T01"]');
           const card2 = document.querySelector('[data-task-id="S11-T02"]');
@@ -241,10 +241,10 @@ async function runBrowserVerification() {
             hasCard2: !!card2,
             hasCard3: !!card3,
             hasCard4: !!card4,
-            t1Title: card1?.querySelector('h3')?.innerText.trim(),
-            t2Title: card2?.querySelector('h3')?.innerText.trim(),
-            t3Title: card3?.querySelector('h3')?.innerText.trim(),
-            t4Title: card4?.querySelector('h3')?.innerText.trim(),
+            t1Title: card1?.querySelector('h3')?.textContent?.trim(),
+            t2Title: card2?.querySelector('h3')?.textContent?.trim(),
+            t3Title: card3?.querySelector('h3')?.textContent?.trim(),
+            t4Title: card4?.querySelector('h3')?.textContent?.trim(),
             containsE01: bodyText.includes('E01') && bodyText.includes('VL001'),
             containsE02: bodyText.includes('E02') && bodyText.includes('Tamil Nadu'),
             containsE03MissingSerial: bodyText.includes('E03') && (bodyText.includes('Missing') || bodyText.includes('RULE 46')),

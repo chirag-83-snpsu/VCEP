@@ -70,8 +70,8 @@ async function runStaticVerification() {
 
   // 7. Verify page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24 && ('), 'Tabs must be suppressed for selected <= 24');
-  assert.ok(page.includes('vcep-area-plan'), 'Page must wire Build Collection & Cash Plan button');
-  assert.ok(page.includes('vcep-area-ageing'), 'Page must wire Understand Who Owes What button');
+  assert.ok(journey.includes('vcep-area-plan'), 'Journey must wire Build Collection & Cash Plan button');
+  assert.ok(journey.includes('vcep-area-ageing'), 'Journey must wire Understand Who Owes What button');
   assert.ok(page.includes('Turn overdue invoices into a cash plan.'), 'Page must display Session 12 subline');
 
   // 8. Verify Evaluator Rules in lib
@@ -233,7 +233,7 @@ async function runBrowserVerification() {
           const card3 = document.querySelector('[data-task-id="S12-T03"]');
           const card4 = document.querySelector('[data-task-id="S12-T04"]');
           const tabs = document.querySelector('.v3-tabs');
-          const bodyText = document.body.innerText;
+          const bodyText = document.body.textContent || '';
 
           return {
             hasAgeingArea: !!areaAgeing,

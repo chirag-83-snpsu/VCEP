@@ -78,8 +78,8 @@ async function runStaticVerification() {
 
   // 10. Check page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24 && ('), 'Tabs must be suppressed for selected <= 24');
-  assert.ok(page.includes('vcep-area-workflow'), 'Page must wire Build Verified Workflow button');
-  assert.ok(page.includes('vcep-area-audit'), 'Page must wire Challenge AI Report button');
+  assert.ok(journey.includes('vcep-area-workflow'), 'Journey must wire Build Verified Workflow button');
+  assert.ok(journey.includes('vcep-area-audit'), 'Journey must wire Challenge AI Report button');
   assert.ok(page.includes('Audit the AI. Control the workflow.'), 'Page must display Session 14 subline');
 
   // 11. Check Review Engine Rules in lib
@@ -243,7 +243,7 @@ async function runBrowserVerification() {
           const card3 = document.querySelector('[data-task-id="S14-T03"]');
           const card4 = document.querySelector('[data-task-id="S14-T04"]');
           const tabs = document.querySelector('.v3-tabs');
-          const bodyText = document.body.innerText;
+          const bodyText = document.body.textContent || '';
 
           return {
             hasAuditArea: !!areaAudit,
@@ -253,10 +253,10 @@ async function runBrowserVerification() {
             hasTask03: !!card3,
             hasTask04: !!card4,
             tabsHidden: !tabs,
-            t1Title: card1?.querySelector('h3')?.innerText || '',
-            t2Title: card2?.querySelector('h3')?.innerText || '',
-            t3Title: card3?.querySelector('h3')?.innerText || '',
-            t4Title: card4?.querySelector('h3')?.innerText || '',
+            t1Title: card1?.querySelector('h3')?.textContent || '',
+            t2Title: card2?.querySelector('h3')?.textContent || '',
+            t3Title: card3?.querySelector('h3')?.textContent || '',
+            t4Title: card4?.querySelector('h3')?.textContent || '',
             containsCaseDRevenue: (bodyText.includes('1,50,000') || bodyText.includes('150,000')) && (bodyText.includes('1,20,000') || bodyText.includes('120,000')),
             containsCaseDReceivables: bodyText.includes('70,000'),
             containsClaimsRegister: bodyText.includes('Four-Claim Audit Register') || bodyText.includes('Claim 01'),

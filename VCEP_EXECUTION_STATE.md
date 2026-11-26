@@ -119,6 +119,23 @@ All core quality gates, headless browser CDP acceptance suites, and regression s
      - `pnpm exec tsc --noEmit` passed with 0 errors.
      - `pnpm test` (all auth and Vivi suggestions) passed 100%.
      - `pnpm build` passed completely with production bundles generated.
+7. **Batch 3 (Sessions 09–14) Simplicity Wizard Standard Rollout:**
+   - **Full Batch 3 Redesign:** Sessions 09, 10, 11, 12, 13, 14 upgraded to the 1-Line Teaching Takeaway Simplicity Wizard standard.
+   - **Sticky Horizontal Stepper & Footer:** Each workstation equips a sticky horizontal stepper (`Step 1` → `Step 2` → `...` → `Review & Submit`) and a sticky footer bar (`← Previous` | `Step N of Total · {Title}` | `Save & Continue →`).
+   - **Single-Task Visibility (`display: isActive ? 'block' : 'none'`):** Eliminated vertical endless scroll across all Batch 3 components while keeping all components in the DOM for autosaving, draft updating, and automated tests.
+   - **Plain English & Zero Jargon (< 20 Words):** Rewrote every task instruction to plain English under 20 words, each equipped with a subtle `💡 What you'll learn:` takeaway banner for clear commerce learning outcomes.
+   - **Mathematical & Structural Realities Preserved:**
+     - Session 09 (Performance & Finance): Case D monthly inputs (July ₹100k, August ₹120k, September ₹150k), gross margin compression (60% -> 50%), profit decoupling, and trade receivables spike (₹70k).
+     - Session 10 (MIS Dashboard): Core decision question, 4 executive KPIs, dynamic sensitivity stress test (₹75k -> ₹78k cost surge), and 150-word structured memo.
+     - Session 11 (GST & Invoice Review): Rule 46 compliance, sequential serial numbering, intra-state (9%+9%) vs inter-state (18% IGST) allocation, and Section 16(2)(aa) GSTR-2B purchase reconciliation with quarantine.
+     - Session 12 (Receivables & Working Capital): Due-date ageing buckets (Current, 1–30d, 31–60d, 61+d), 7-day cash gap analytics (₹25k bank vs ₹45k payments = -₹20k deficit), dispute isolation (₹5k disputed vs ₹15k undisputed), and collection priority escalation.
+     - Session 13 (AI for Commerce): Data minimization boundaries (PII/IFSC prohibition), 6-part bounded enterprise prompt architecture, flawed AI draft audit against Case D ground truth, and human governance disclosure log.
+     - Session 14 (AI Verification & Automation): 4-claim audit register, corrected 120-word executive brief, automated validation stopping gates (`ISBLANK(Revenue)`), and 5-scenario workflow simulation drill with human approval sign-off.
+   - **100% Verification:**
+     - All 6 transformation test suites (`verify-session-09` through `verify-session-14`) passed 100% with live headless Chrome CDP screenshots across Desktop, Tablet, and Mobile.
+     - `pnpm exec tsc --noEmit` passed with 0 errors.
+     - `pnpm test` (all 12 auth tests + 300 Vivi suggestions) passed 100%.
+     - `pnpm build` passed completely with production bundles generated.
 
 ---
 

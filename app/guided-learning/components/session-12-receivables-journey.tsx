@@ -58,6 +58,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -75,6 +76,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -91,17 +93,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -228,6 +253,17 @@ export function Session12ReceivablesJourney({ onUpdateDraft }: Session12Receivab
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S12-T01');
 
+  const WIZARD_STEPS = [
+    { id: 'S12-T01' as const, num: 1, label: 'TASK 01: Prepare the Ageing', short: '1. Ageing' },
+    { id: 'S12-T02' as const, num: 2, label: 'TASK 02: Identify the Cash Gap', short: '2. Cash Gap' },
+    { id: 'S12-T03' as const, num: 3, label: 'TASK 03: Manage the Dispute', short: '3. Dispute' },
+    { id: 'S12-T04' as const, num: 4, label: 'TASK 04: Plan Collections', short: '4. Collections' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
+
   // Hydrate on mount
   useEffect(() => {
     const loaded = loadSession12State();
@@ -325,6 +361,70 @@ export function Session12ReceivablesJourney({ onUpdateDraft }: Session12Receivab
 
   return (
     <div className="vcep-session-clean-journey">
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
       {/* =========================================================================
           HEADING 1: UNDERSTAND WHO OWES WHAT (#vcep-area-ageing)
          ========================================================================= */}
@@ -346,7 +446,8 @@ export function Session12ReceivablesJourney({ onUpdateDraft }: Session12Receivab
           taskId="S12-T01"
           taskNumber="TASK 01"
           title="Prepare the Ageing"
-          instruction="Categorise all four Case F unpaid invoices as of 31 October 2026 into standard ageing buckets using due dates (not issue dates), verifying days overdue."
+          instruction="Categorise unpaid invoices into standard ageing buckets using due dates to measure overdue exposure."
+          learningTakeaway="Age unpaid customer invoices by due date to prioritize collections and identify bad debts."
           whyMatters="Days overdue must be calculated strictly from the payment due date: Days Overdue = Max(0, As-of Date - Due Date). Invoices due today are current, not overdue. Relying on invoice issue dates misstates portfolio liquidity risk."
           statusText="4 Invoices Aged · ₹1,00,000 Reconciled"
           isActive={activeTaskId === 'S12-T01'}
@@ -570,7 +671,8 @@ export function Session12ReceivablesJourney({ onUpdateDraft }: Session12Receivab
           taskId="S12-T02"
           taskNumber="TASK 02"
           title="Identify the Cash Gap"
-          instruction="Compare available bank balance with unavoidable seven-day payment obligations to determine the net cash gap, separating confirmed bank funds from projected receipts."
+          instruction="Compare bank cash with 7-day payment obligations to determine the true net cash shortfall."
+          learningTakeaway="Never count uncollected receivables as cash when planning unavoidable weekly payments."
           whyMatters="Revenue recorded in books does not pay vendor bills or employee salaries. A short-term cash forecast must separate cleared opening bank balances from pending collections to expose the true liquidity deficit."
           statusText={forecast.isDeficitClosed ? '✓ ₹20,000 Deficit Closed' : '⚠️ Deficit: -₹20,000'}
           isActive={activeTaskId === 'S12-T02'}
@@ -719,7 +821,8 @@ export function Session12ReceivablesJourney({ onUpdateDraft }: Session12Receivab
           taskId="S12-T03"
           taskNumber="TASK 03"
           title="Manage the Dispute"
-          instruction="Isolate Beacon Media's ₹5,000 billing query as a disputed subset without issuing a credit note, and draft a formal communication requesting immediate settlement of the undisputed ₹15,000 balance."
+          instruction="Isolate the ₹5,000 billing query without issuing credit notes and request undisputed settlement."
+          learningTakeaway="Separate disputed line items immediately while collecting undisputed invoice balances without delay."
           whyMatters="When a customer queries an invoice item, never hold up the entire invoice. Quarantining the disputed portion while demanding immediate payment of the undisputed balance preserves operating cash flow and establishes clear commercial evidence."
           statusText={`Dispute Isolated: ₹5,000 · Undisputed: ₹15,000 (${disputeWords} words)`}
           isActive={activeTaskId === 'S12-T03'}
@@ -763,7 +866,8 @@ export function Session12ReceivablesJourney({ onUpdateDraft }: Session12Receivab
           taskId="S12-T04"
           taskNumber="TASK 04"
           title="Plan Collections"
-          instruction="Prioritise collection actions across the debtor ledger, draft an urgent payment escalation reminder for overdue accounts, and verify your submission against the 10-point rubric."
+          instruction="Prioritise debtor collections, draft urgent payment escalation reminders, and complete portfolio review."
+          learningTakeaway="Systematic collection escalations protect operating cash flow and preserve commercial relationships."
           whyMatters="Older debts carry exponentially higher default risks. Emergency cash recovery must prioritize high-probability fresh accounts while formally escalating severely overdue balances before placing accounts on credit hold."
           statusText={`Overdue Notice (${reminderWords} words) · ${state.governance.fileVersion}`}
           isActive={activeTaskId === 'S12-T04'}
@@ -1133,6 +1237,68 @@ export function Session12ReceivablesJourney({ onUpdateDraft }: Session12Receivab
           </div>
         </div>
       )}
+
+      {/* Sticky Footer Navigation Bar */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Working Capital Plan Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }
