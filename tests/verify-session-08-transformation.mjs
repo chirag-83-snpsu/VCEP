@@ -72,8 +72,8 @@ async function runStaticVerification() {
 
   // 6. Verify page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24'), 'Tabs must be suppressed for selected <= 24');
-  assert.ok(page.includes('vcep-area-reconcile'), 'Page must wire Prepare Reconciliation button');
-  assert.ok(page.includes('vcep-area-compare'), 'Page must wire Compare Bank & Books button');
+  assert.ok(journey.includes('vcep-area-reconcile'), 'Component must wire Prepare Reconciliation button');
+  assert.ok(journey.includes('vcep-area-compare'), 'Component must wire Compare Bank & Books button');
   assert.ok(page.includes('Find the difference. Prove the balance.'), 'Page must display Session 08 subline');
 
   // 7. Verify Review Rules

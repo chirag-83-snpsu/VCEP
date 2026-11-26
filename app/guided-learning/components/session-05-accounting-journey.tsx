@@ -52,6 +52,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -69,6 +70,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -85,17 +87,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -224,6 +249,17 @@ export function Session05AccountingJourney({
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S05-T01');
+
+  const WIZARD_STEPS = [
+    { id: 'S05-T01' as const, num: 1, label: 'TASK 01: Review Source Records', short: '1. Source' },
+    { id: 'S05-T02' as const, num: 2, label: 'TASK 02: Classify Transactions', short: '2. Classify' },
+    { id: 'S05-T03' as const, num: 3, label: 'TASK 03: Record Journal Entries', short: '3. Journal' },
+    { id: 'S05-T04' as const, num: 4, label: 'TASK 04: Resolve Evidence Exceptions', short: '4. Exceptions' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // Hydrate from persistence on mount
   useEffect(() => {
@@ -455,6 +491,73 @@ export function Session05AccountingJourney({
             </a>
           </div>
         </div>
+
+        {/* Sticky Horizontal Stepper */}
+        <nav
+          aria-label="Session Tasks Stepper"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 25,
+            background: '#ffffff',
+            borderRadius: '12px',
+            padding: '8px 12px',
+            marginBottom: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflowX: 'auto',
+            gap: '6px',
+          }}
+        >
+          {WIZARD_STEPS.map((step) => {
+            const isActive = activeTaskId === step.id;
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => setActiveTaskId(step.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  border: isActive ? '1px solid #0f766e' : '1px solid transparent',
+                  background: isActive ? '#0f766e' : '#f8fafc',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 700 : 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                  flex: '1 1 auto',
+                  justifyContent: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    background: isActive ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                    color: isActive ? '#ffffff' : '#64748b',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10.5px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {step.num}
+                </span>
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </section>
 
       {/* Copy notification toast */}
@@ -491,7 +594,8 @@ export function Session05AccountingJourney({
             taskId="S05-T01"
             taskNumber="TASK 01"
             title="Review Source Records"
-            instruction="Inspect the approved Case A September commercial records (Vouchers A01 through A12) and note the opening bank deposit and starting equity."
+            instruction="Inspect Case A September vouchers (A01 to A12) to verify opening bank deposit and starting equity."
+            learningTakeaway="Every ledger entry begins with an authentic source record—invoice, voucher, or bank credit memo."
             whyMatters="Professional accountants never record transactions from verbal summaries or informal chats. Every ledger entry must be substantiated by an authentic source document (tax invoice, payment voucher, bank credit memo) establishing date, counterparty, and monetary consideration."
             statusText="12 Vouchers Verified"
             isActive={activeTaskId === 'S05-T01'}
@@ -634,7 +738,8 @@ export function Session05AccountingJourney({
             taskId="S05-T02"
             taskNumber="TASK 02"
             title="Classify Transactions"
-            instruction="Classify transactions using fundamental double-entry debit and credit rules, avoiding common accounting traps like double-counting revenue, premature recognition, and misclassifying capital assets."
+            instruction="Classify transactions using double-entry rules, avoiding common revenue and capital asset traps."
+            learningTakeaway="Correctly classify debits and credits while avoiding unearned revenue and asset capitalization traps."
             whyMatters="Misclassifying transactions distorts financial statements: treating customer deposits as revenue inflates income prematurely, while expensing productive equipment understates assets and misrepresents company valuation to investors and tax authorities."
             statusText="4 Traps Guarded"
             isActive={activeTaskId === 'S05-T02'}
@@ -784,7 +889,8 @@ export function Session05AccountingJourney({
             taskId="S05-T03"
             taskNumber="TASK 03"
             title="Record Journal Entries"
-            instruction="Enter all 12 approved September commercial transactions into the general journal, selecting proper debit and credit accounts while maintaining balanced cross-foot totals of ₹2,08,500."
+            instruction="Post 12 September transactions into the general journal, maintaining balanced cross-foot totals of ₹2,08,500."
+            learningTakeaway="Ensure total debits equal total credits for every journal entry, maintaining ₹2,08,500 balance."
             whyMatters="The general journal is the book of original entry. Double-entry equality ensures mathematical and conceptual integrity before posting to ledgers and trial balance."
             statusText={
               journalMetrics.isBalanced && journalMetrics.isTargetMatched
@@ -983,7 +1089,8 @@ export function Session05AccountingJourney({
             taskId="S05-T04"
             taskNumber="TASK 04"
             title="Resolve Evidence Exceptions"
-            instruction="Document the accounting rationale for accrual, advance liability, and capitalization exceptions, then complete individual contribution and autonomous boundary sign-off."
+            instruction="Document accounting rationale for accruals, advances, and capitalization, then complete individual sign-off."
+            learningTakeaway="Document non-routine accounting treatments (advances, capitalization) for statutory audit verification."
             whyMatters="Statutory auditors require explicit documentation for non-routine accounting treatments (such as deferring revenue on customer advances or capitalizing technology hardware) to verify compliance with revenue recognition standards (IFRS 15 / Ind AS 115)."
             statusText={countWords(state.exceptionsNotes) >= 20 ? 'Exceptions Documented' : 'Rationale Incomplete'}
             isActive={activeTaskId === 'S05-T04'}
@@ -1240,6 +1347,68 @@ export function Session05AccountingJourney({
             </div>
           </TaskCard>
         </section>
+
+        {/* Sticky Footer Navigation Bar */}
+        <footer
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 20,
+            background: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            padding: '12px 16px',
+            marginTop: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+            borderRadius: '0 0 16px 16px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              const prevIdx = Math.max(0, currentStepIdx - 1);
+              setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+            }}
+            disabled={currentStepIdx === 0}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+              color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            &larr; Previous
+          </button>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+            Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (currentStepIdx < WIZARD_STEPS.length - 1) {
+                setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+              }
+            }}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '8px',
+              border: 'none',
+              background: '#0f766e',
+              color: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Journal Complete ✓' : 'Save & Continue →'}
+          </button>
+        </footer>
       </div>
     </div>
   );

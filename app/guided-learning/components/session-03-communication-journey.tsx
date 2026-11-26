@@ -50,6 +50,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -67,6 +68,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -83,17 +85,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -224,6 +249,17 @@ export function Session03CommunicationJourney({
   const [state, setState] = useState<Session03WorkstationState>(loadSession03State);
   const [activeTaskId, setActiveTaskId] = useState<string>('S03-T01');
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
+
+  const WIZARD_STEPS = [
+    { id: 'S03-T01' as const, num: 1, label: 'TASK 01: Clarify the Request', short: '1. Clarify' },
+    { id: 'S03-T02' as const, num: 2, label: 'TASK 02: Report Your Progress', short: '2. Progress' },
+    { id: 'S03-T03' as const, num: 3, label: 'TASK 03: Escalate the Risk', short: '3. Escalate' },
+    { id: 'S03-T04' as const, num: 4, label: 'Portfolio Governance, Peer Review & Verification', short: '4. Governance' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // Hydrate on mount
   useEffect(() => {
@@ -755,6 +791,73 @@ export function Session03CommunicationJourney({
           </p>
         </div>
 
+        {/* Sticky Horizontal Stepper */}
+        <nav
+          aria-label="Session Tasks Stepper"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 25,
+            background: '#ffffff',
+            borderRadius: '12px',
+            padding: '8px 12px',
+            marginBottom: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflowX: 'auto',
+            gap: '6px',
+          }}
+        >
+          {WIZARD_STEPS.map((step) => {
+            const isActive = activeTaskId === step.id;
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => setActiveTaskId(step.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  border: isActive ? '1px solid #0f766e' : '1px solid transparent',
+                  background: isActive ? '#0f766e' : '#f8fafc',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 700 : 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                  flex: '1 1 auto',
+                  justifyContent: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    background: isActive ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                    color: isActive ? '#ffffff' : '#64748b',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10.5px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {step.num}
+                </span>
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
         {/* ------------------------------------------------------------------------- */}
         {/* TASK 01: CLARIFY THE REQUEST (S03-T01)                                    */}
         {/* ------------------------------------------------------------------------- */}
@@ -762,7 +865,8 @@ export function Session03CommunicationJourney({
           taskId="S03-T01"
           taskNumber="TASK 01"
           title="Clarify the Request"
-          instruction="Compose a professional clarification email to the Operations Manager establishing whether 'best' means sales volume or prompt collection speed, and requesting payment records before the 16:00 credit meeting (maximum 120 words)."
+          instruction="Draft an email to clarify whether 'best customers' means total sales or cash collected, requesting missing payment records."
+          learningTakeaway="Never act on ambiguous instructions—clarify whether 'best' means sales volume or cash collections before the 16:00 deadline."
           whyMatters="In corporate finance, acting on ambiguous instructions risks severe bad-debt exposure. Clarifying definitions and dependencies upfront protects credit decisions and sets professional boundaries."
           statusText={
             clarifyWords === 0
@@ -947,7 +1051,8 @@ export function Session03CommunicationJourney({
           taskId="S03-T02"
           taskNumber="TASK 02"
           title="Report Your Progress"
-          instruction="Send a concise 13:00 mid-day progress update reporting completed invoice sales rankings, stating the pending Accounts collection ledger dependency, and committing to the next checkpoint (maximum 40 words)."
+          instruction="Send a concise 13:00 progress update stating completed work, the pending collection ledger, and next checkpoint."
+          learningTakeaway="Proactive mid-day updates keep leaders informed on completed work and dependencies without speculative excuses."
           whyMatters="Executive stakeholders need proactive predictability. Concise progress updates confirm completed milestones and surface upstream bottlenecks before deadlines are compromised."
           statusText={
             progressWords === 0
@@ -1088,7 +1193,8 @@ export function Session03CommunicationJourney({
           taskId="S03-T03"
           taskNumber="TASK 03"
           title="Escalate the Risk"
-          instruction="When payment records remain unavailable at 14:00, compose an evidence-based formal escalation warning of credit default risk, proposing a constructive fallback ranking with an explicit risk caveat, and setting a final touchpoint before 16:00 (maximum 70 words)."
+          instruction="Alert management about the ₹1,45,000 credit limit risk using factual figures before the 16:00 credit meeting."
+          learningTakeaway="Escalate commercial credit risks with exact figures early to prevent bad debt exposure."
           whyMatters="Silence during a roadblock causes corporate surprises. Timely, constructive escalations state the objective business risk and offer an actionable workaround so executive decision-makers are never blindsided."
           statusText={
             escalateWords === 0
@@ -1261,6 +1367,7 @@ export function Session03CommunicationJourney({
         {/* ---------------------------------------------------- */}
         <div
           style={{
+            display: activeTaskId === 'S03-T04' ? 'block' : 'none',
             marginTop: '12px',
             padding: '20px',
             background: '#f8fafc',
@@ -1460,6 +1567,68 @@ export function Session03CommunicationJourney({
             </div>
           )}
         </div>
+
+        {/* Sticky Footer Navigation Bar */}
+        <footer
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 20,
+            background: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            padding: '12px 16px',
+            marginTop: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+            borderRadius: '0 0 16px 16px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              const prevIdx = Math.max(0, currentStepIdx - 1);
+              setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+            }}
+            disabled={currentStepIdx === 0}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+              color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            &larr; Previous
+          </button>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+            Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (currentStepIdx < WIZARD_STEPS.length - 1) {
+                setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+              }
+            }}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '8px',
+              border: 'none',
+              background: '#0f766e',
+              color: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Portfolio Complete ✓' : 'Save & Continue →'}
+          </button>
+        </footer>
       </section>
 
       {/* 10-Point Corporate Rubric Display */}

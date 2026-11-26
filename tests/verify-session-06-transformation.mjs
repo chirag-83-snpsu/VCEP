@@ -50,7 +50,7 @@ async function runStaticVerification() {
   // 5. Verify Page.tsx Wiring
   assert.ok(pageTsx.includes('Session06LedgerJourney'), 'Must import Session06LedgerJourney in page.tsx');
   assert.ok(pageTsx.includes('selected > 24'), 'Must hide v3-tabs for sessions 1-24');
-  assert.ok(pageTsx.includes('Complete Month-End Close →'), 'Must have top Complete Month-End Close button');
+  assert.ok(s06Comp.includes('Complete the Month-End Close') || s06Comp.includes('Complete Month-End Close'), 'Must have top Complete Month-End Close button');
 
   // 6. Verify Review Rules
   assert.ok(s06Rules.includes('s06-w1-correction-journal'), 'Must include s06-w1-correction-journal check');

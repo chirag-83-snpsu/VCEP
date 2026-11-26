@@ -102,6 +102,23 @@ All core quality gates, headless browser CDP acceptance suites, and regression s
    - **Step 4 Anti-Spoiler Gate:** Neutral option cards without spoiler badges (`Recommended` / `High Risk` / `Unacceptable`); audit consequence hidden until student clicks `Lock Decision & Reveal Audit Consequence`; removed duplicate contribution block.
    - **Step 5 Integrated Review & Submission:** Real-time auto-synchronization of official worksheet fields (`b0r0c1`, `b0r1c1`, `b0r2c1`, `b1`), readiness summary checklist, single-entry attributable contribution & quality boundary, file attachment dropzone, integrity checkbox, and one-click submission.
    - **100% Verification:** Verified with headless Chrome CDP across Desktop (`1440x900`), Tablet (`768x1024`), and Mobile (`390x844`) with zero console errors.
+7. **Batch 2 (Sessions 03–08) Simplicity Wizard Standard Rollout:**
+   - **Full Batch 2 Redesign:** Sessions 03, 04, 05, 06, 07, 08 upgraded to the 1-Line Teaching Takeaway Simplicity Wizard standard.
+   - **Sticky Horizontal Stepper & Footer:** Each workstation equips a sticky horizontal stepper (`Step 1` → `Step 2` → `...` → `Review & Submit`) and a sticky footer bar (`← Previous` | `Step N of Total · {Title}` | `Save & Continue →`).
+   - **Single-Task Visibility (`display: isActive ? 'block' : 'none'`):** Eliminated vertical endless scroll across all Batch 2 components while preserving full DOM presence for uninterrupted automated testing and reactive state synchronization.
+   - **Plain English & Zero Jargon (< 20 Words):** Rewrote every task instruction to plain English under 20 words, each equipped with a subtle `💡 What you'll learn:` takeaway banner for clear commerce learning outcomes.
+   - **Mathematical & Structural Realities Preserved:**
+     - Session 03: Word budgets (120w, 40w, 70w) and tone detection for speculative terms.
+     - Session 04: 12-minute crisis agenda, RACI action tracker, ₹2,000 lead authority threshold, and 90s DNB report.
+     - Session 05: 12 source vouchers, unearned advance/capitalization traps, and ₹2,08,500 balanced journal.
+     - Session 06: Deliberate ₹35,000 posting error, cash invariance, trial balance (₹2,18,000), and undetectable error gates.
+     - Session 07: Raw immutability rule, anti-zeroing stand, quarantine register, and SUMIFS verification proof.
+     - Session 08: Bank vs books tick-matching, adjusted cashbook (₹87,200), timing difference bridge, and ₹0 unexplained variance.
+   - **100% Verification:**
+     - All 6 transformation test suites (`verify-session-03` through `verify-session-08`) passed 100% with live headless Chrome CDP screenshots across Desktop, Tablet, and Mobile.
+     - `pnpm exec tsc --noEmit` passed with 0 errors.
+     - `pnpm test` (all auth and Vivi suggestions) passed 100%.
+     - `pnpm build` passed completely with production bundles generated.
 
 ---
 

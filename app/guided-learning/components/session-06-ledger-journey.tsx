@@ -63,6 +63,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -80,6 +81,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -96,17 +98,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -236,6 +261,17 @@ export function Session06LedgerJourney({
   const [activeLedgerTab, setActiveLedgerTab] = useState<string>('bank');
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S06-T01');
+
+  const WIZARD_STEPS = [
+    { id: 'S06-T01' as const, num: 1, label: 'TASK 01: Post to the Ledger', short: '1. Ledger' },
+    { id: 'S06-T02' as const, num: 2, label: 'TASK 02: Correct the Posting Error', short: '2. Correct' },
+    { id: 'S06-T03' as const, num: 3, label: 'TASK 03: Prepare Closing Statements', short: '3. Close' },
+    { id: 'S06-T04' as const, num: 4, label: 'TASK 04: Complete Close Review', short: '4. Review' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // Hydrate from persistence on mount
   useEffect(() => {
@@ -446,6 +482,73 @@ export function Session06LedgerJourney({
             </a>
           </div>
         </div>
+
+        {/* Sticky Horizontal Stepper */}
+        <nav
+          aria-label="Session Tasks Stepper"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 25,
+            background: '#ffffff',
+            borderRadius: '12px',
+            padding: '8px 12px',
+            marginBottom: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflowX: 'auto',
+            gap: '6px',
+          }}
+        >
+          {WIZARD_STEPS.map((step) => {
+            const isActive = activeTaskId === step.id;
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => setActiveTaskId(step.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  border: isActive ? '1px solid #0f766e' : '1px solid transparent',
+                  background: isActive ? '#0f766e' : '#f8fafc',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 700 : 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                  flex: '1 1 auto',
+                  justifyContent: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    background: isActive ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                    color: isActive ? '#ffffff' : '#64748b',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10.5px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {step.num}
+                </span>
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </section>
 
       {/* Toast Notification */}
@@ -482,7 +585,8 @@ export function Session06LedgerJourney({
             taskId="S06-T01"
             taskNumber="TASK 01"
             title="Post to the Ledger"
-            instruction="Audit the posted Case A general ledger accounts and inspect the individual debit and credit entries leading to unadjusted balances."
+            instruction="Audit Case A general ledger accounts and inspect debit and credit entries leading to unadjusted balances."
+            learningTakeaway="General ledgers organize chronological journal entries into distinct account balances for period-end closing."
             whyMatters="The general ledger classifies commercial transactions into individual account balances. Reviewing each T-account allows auditors to trace the origin of every balance back to authentic source vouchers before closing the period."
             statusText="8 Accounts Verified"
             isActive={activeTaskId === 'S06-T01'}
@@ -773,7 +877,8 @@ export function Session06LedgerJourney({
             taskId="S06-T02"
             taskNumber="TASK 02"
             title="Correct the Posting Error"
-            instruction="Repair the deliberate ₹35,000 error where customer collection against Doc A01 was misclassified as new revenue instead of reducing Accounts Receivable."
+            instruction="Repair the deliberate ₹35,000 posting error where customer collection was misclassified as revenue instead of receivables."
+            learningTakeaway="Correct posting errors by reversing excess revenue and relieving receivables—bank cash remains 100% unchanged."
             whyMatters="Posting a customer collection to revenue doubles reported income and leaves an artificial asset on the books. The correction journal must reverse the excess revenue and relieve receivables without touching bank cash, which was already posted correctly."
             statusText={state.correctionJournal.isApplied ? 'Correction Active (₹35k Reversal)' : 'Uncorrected Error Active'}
             isActive={activeTaskId === 'S06-T02'}
@@ -950,7 +1055,8 @@ export function Session06LedgerJourney({
             taskId="S06-T03"
             taskNumber="TASK 03"
             title="Prepare Closing Statements"
-            instruction="Generate the closing trial balance, compute September net profit, and verify the fundamental balance sheet equation identity."
+            instruction="Generate the closing trial balance (₹2,18,000), compute September net profit, and verify the balance sheet equation."
+            learningTakeaway="A balanced trial balance proves double-entry equality before computing net profit and the balance sheet."
             whyMatters="A reconciled trial balance proves mathematical equality across accounts. From here, financial statements are drafted to report accurate operational performance (net profit) and financial position (assets = liabilities + equity) to management and stakeholders."
             statusText={fin.isTargetBalance ? 'Balanced (₹2,18,000)' : 'Uncorrected (₹2,53,000)'}
             isActive={activeTaskId === 'S06-T03'}
@@ -1103,7 +1209,8 @@ export function Session06LedgerJourney({
             taskId="S06-T04"
             taskNumber="TASK 04"
             title="Complete Close Review"
-            instruction="Document classes of errors that evade trial balance detection, sign off the 4 month-end control gates, and execute portfolio governance."
+            instruction="Document undetectable error classes, complete the 4 month-end control gates, and execute portfolio sign-off."
+            learningTakeaway="Understand error types a trial balance cannot detect, sign off internal controls, and document governance."
             whyMatters="Statutory audits require documentation demonstrating that accountants understand trial balance limitations. Control gate sign-offs provide evidence of supervisory review across cash, receivables, accruals, and synthetic vouchers."
             statusText={`${state.checklist.filter((c) => c.verified).length}/4 Controls Signed`}
             isActive={activeTaskId === 'S06-T04'}
@@ -1400,6 +1507,68 @@ export function Session06LedgerJourney({
             </div>
           </TaskCard>
         </section>
+
+        {/* Sticky Footer Navigation Bar */}
+        <footer
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 20,
+            background: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            padding: '12px 16px',
+            marginTop: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+            borderRadius: '0 0 16px 16px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              const prevIdx = Math.max(0, currentStepIdx - 1);
+              setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+            }}
+            disabled={currentStepIdx === 0}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+              color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            &larr; Previous
+          </button>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+            Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (currentStepIdx < WIZARD_STEPS.length - 1) {
+                setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+              }
+            }}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '8px',
+              border: 'none',
+              background: '#0f766e',
+              color: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Close Review Complete ✓' : 'Save & Continue →'}
+          </button>
+        </footer>
       </div>
     </div>
   );

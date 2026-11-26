@@ -54,6 +54,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -71,6 +72,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -87,17 +89,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -228,6 +253,18 @@ export function Session04MeetingJourney({
   const [state, setState] = useState<Session04WorkstationState>(loadSession04State);
   const [activeTaskId, setActiveTaskId] = useState<string>('S04-T01');
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
+
+  const WIZARD_STEPS = [
+    { id: 'S04-T01' as const, num: 1, label: 'TASK 01: Prepare the Agenda', short: '1. Agenda' },
+    { id: 'S04-T02' as const, num: 2, label: 'TASK 02: Run the Meeting', short: '2. Meeting' },
+    { id: 'S04-T03' as const, num: 3, label: 'TASK 03: Record Decisions and Actions', short: '3. Actions' },
+    { id: 'S04-T04' as const, num: 4, label: 'TASK 04: Update the Manager', short: '4. Update' },
+    { id: 'S04-T05' as const, num: 5, label: 'Portfolio Governance, Peer Review & Verification', short: '5. Governance' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // 90-second rehearsal timer state
   const [timerSeconds, setTimerSeconds] = useState<number>(90);
@@ -469,6 +506,73 @@ export function Session04MeetingJourney({
         </div>
       </div>
 
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                borderRadius: '8px',
+                border: isActive ? '1px solid #0f766e' : '1px solid transparent',
+                background: isActive ? '#0f766e' : '#f8fafc',
+                color: isActive ? '#ffffff' : '#475569',
+                fontSize: '12px',
+                fontWeight: isActive ? 700 : 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+                flex: '1 1 auto',
+                justifyContent: 'center',
+              }}
+            >
+              <span
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#64748b',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '10.5px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ========================================================================= */}
       {/* HEADING 1: UNDERSTAND THE DELIVERY CRISIS                                 */}
       {/* ========================================================================= */}
@@ -654,7 +758,8 @@ export function Session04MeetingJourney({
           taskId="S04-T01"
           taskNumber="TASK 01"
           title="Prepare the Agenda"
-          instruction="Draft and configure a disciplined 12-minute, 4-item meeting agenda establishing context, option tradeoffs, authority escalation, and action allocation."
+          instruction="Configure a 12-minute, 4-item crisis meeting agenda covering context, options, escalation, and action allocation."
+          learningTakeaway="A timed agenda with clear outcomes keeps urgent crisis meetings focused and within schedule."
           whyMatters="Unstructured crisis meetings devolve into circular debate. A timeboxed agenda ensures every critical question—especially decision authority and action ownership—is addressed before irreversible deadlines pass."
           statusText="4 Items Structured (12 Min Timebox)"
           isActive={activeTaskId === 'S04-T01'}
@@ -747,7 +852,8 @@ export function Session04MeetingJourney({
           taskId="S04-T02"
           taskNumber="TASK 02"
           title="Run the Meeting"
-          instruction="Compare Option A (1-day supplier delay, ₹0 extra, SLA breach) versus Option B (emergency substitute vendor, +₹4,000 rush fee) and enforce commercial authority limits."
+          instruction="Compare Option A delay versus Option B rush fee, enforcing the ₹2,000 lead authority limit."
+          learningTakeaway="Distinguish preferences from expenditure authorization—never commit funds exceeding your approved limit."
           whyMatters="In enterprise operations, a team preference is never an expenditure authorization. Expenditures exceeding lead thresholds (₹2,000) must be held pending formal approval from the budget owner (General Manager at 15:00)."
           statusText={
             substituteOpt?.status === 'PENDING_APPROVAL'
@@ -881,7 +987,8 @@ export function Session04MeetingJourney({
           taskId="S04-T03"
           taskNumber="TASK 03"
           title="Record Decisions and Actions"
-          instruction="Record structured meeting minutes separating agreed decisions from unresolved risks, and populate a RACI action tracker with single individual owners and strict clock deadlines."
+          instruction="Log crisis decisions, assign single-point RACI owners, and set hard completion deadlines."
+          learningTakeaway="Every meeting action item needs a single accountable owner (RACI) and an explicit deadline."
           whyMatters="Minutes and action items create corporate accountability. Vague assignments without single owners or exact clock deadlines (e.g. 14:30, 15:00) lead to missed handoffs and contractual defaults."
           statusText={`${validActions.length} Owned Actions Tracked`}
           isActive={activeTaskId === 'S04-T03'}
@@ -1141,7 +1248,8 @@ export function Session04MeetingJourney({
           taskId="S04-T04"
           taskNumber="TASK 04"
           title="Update the Manager"
-          instruction="Deliver a crisp 90-second Done-Next-Blocker (DNB) executive flash report articulating what the squad completed, the next milestone, and the ₹4,000 manager approval blocker."
+          instruction="Deliver a crisp 90-second Done-Next-Blocker flash report on squad progress and the ₹4,000 approval blocker."
+          learningTakeaway="Escalate to senior leadership promptly with facts and options when operational costs exceed your authority."
           whyMatters="Senior leaders require rapid operational awareness without wading through minutes. A structured 90-second Done-Next-Blocker flash report surfaces critical decision gates before irreversible deadlines."
           statusText={`${dnbTotalWords} Words Across DNB · ${Math.floor(timerSeconds / 60)}:${String(timerSeconds % 60).padStart(2, '0')}`}
           isActive={activeTaskId === 'S04-T04'}
@@ -1347,6 +1455,7 @@ export function Session04MeetingJourney({
         {/* ---------------------------------------------------- */}
         <div
           style={{
+            display: activeTaskId === 'S04-T05' ? 'block' : 'none',
             marginTop: '12px',
             padding: '20px',
             background: '#f8fafc',
@@ -1546,6 +1655,68 @@ export function Session04MeetingJourney({
             </div>
           )}
         </div>
+
+        {/* Sticky Footer Navigation Bar */}
+        <footer
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 20,
+            background: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            padding: '12px 16px',
+            marginTop: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+            borderRadius: '0 0 16px 16px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              const prevIdx = Math.max(0, currentStepIdx - 1);
+              setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+            }}
+            disabled={currentStepIdx === 0}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+              color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            &larr; Previous
+          </button>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+            Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (currentStepIdx < WIZARD_STEPS.length - 1) {
+                setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+              }
+            }}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '8px',
+              border: 'none',
+              background: '#0f766e',
+              color: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Meeting Review Complete ✓' : 'Save & Continue →'}
+          </button>
+        </footer>
       </section>
 
       {/* 10-Point Corporate Rubric Display */}

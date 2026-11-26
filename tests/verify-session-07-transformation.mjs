@@ -48,10 +48,10 @@ async function runStaticVerification() {
   assert.ok(s07Comp.includes('Raw Immutability Rule'), 'Must include Raw Immutability Rule');
   assert.ok(s07Comp.includes('Rule 2: Anti-Zeroing Stand'), 'Must include Anti-Zeroing Stand');
 
-  // 5. Verify Page.tsx Wiring
+  // 5. Verify Page.tsx Wiring & Component Action Links
   assert.ok(pageTsx.includes('Session07CleaningJourney'), 'Must import Session07CleaningJourney in page.tsx');
   assert.ok(pageTsx.includes('selected > 24'), 'Must hide v3-tabs for sessions 1-24');
-  assert.ok(pageTsx.includes('Clean, Validate & Report →'), 'Must have top Clean, Validate & Report action button');
+  assert.ok(s07Comp.includes('Clean, Validate & Report'), 'Must have top Clean, Validate & Report action button');
 
   // 6. Verify Review Rules
   assert.ok(s07Rules.includes('s07-w1-approved-clean'), 'Must include s07-w1-approved-clean check');

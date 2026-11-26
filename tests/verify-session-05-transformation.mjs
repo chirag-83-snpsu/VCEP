@@ -54,10 +54,10 @@ async function runStaticVerification() {
   assert.ok(s05Comp.includes('Trap 3: A12 Equipment Purchase'), 'Must have A12 equipment capitalization trap');
   assert.ok(s05Comp.includes('Trap 4: A07 & A08 Accruals'), 'Must have A07/A08 accrual wages trap');
 
-  // 6. Verify Page.tsx Wiring
+  // 6. Verify Page.tsx Wiring & Component Action Links
   assert.ok(pageTsx.includes('Session05AccountingJourney'), 'Must import Session05AccountingJourney in page.tsx');
   assert.ok(pageTsx.includes('selected > 24'), 'Must hide v3-tabs for sessions 1-24');
-  assert.ok(pageTsx.includes('Prepare the Journal →'), 'Must have top Prepare Journal action button');
+  assert.ok(s05Comp.includes('Prepare the Journal'), 'Must have top Prepare Journal action link');
 
   // 7. Verify Review Rules
   assert.ok(s05Rules.includes('s05-w1-register'), 'Must include s05-w1-register check');

@@ -63,6 +63,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -80,6 +81,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -96,17 +98,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -236,6 +261,17 @@ export function Session07CleaningJourney({
   const [activeTableView, setActiveTableView] = useState<'split' | 'clean' | 'exceptions'>('split');
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S07-T01');
+
+  const WIZARD_STEPS = [
+    { id: 'S07-T01' as const, num: 1, label: 'TASK 01: Inspect Raw Receipts', short: '1. Inspect' },
+    { id: 'S07-T02' as const, num: 2, label: 'TASK 02: Find Data Issues', short: '2. Defects' },
+    { id: 'S07-T03' as const, num: 3, label: 'TASK 03: Clean and Quarantine', short: '3. Clean' },
+    { id: 'S07-T04' as const, num: 4, label: 'TASK 04: Verify the Totals', short: '4. Verify' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // Hydrate on mount
   useEffect(() => {
@@ -447,6 +483,73 @@ export function Session07CleaningJourney({
             </a>
           </div>
         </div>
+
+        {/* Sticky Horizontal Stepper */}
+        <nav
+          aria-label="Session Tasks Stepper"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 25,
+            background: '#ffffff',
+            borderRadius: '12px',
+            padding: '8px 12px',
+            marginBottom: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflowX: 'auto',
+            gap: '6px',
+          }}
+        >
+          {WIZARD_STEPS.map((step) => {
+            const isActive = activeTaskId === step.id;
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => setActiveTaskId(step.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  border: isActive ? '1px solid #0f766e' : '1px solid transparent',
+                  background: isActive ? '#0f766e' : '#f8fafc',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 700 : 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                  flex: '1 1 auto',
+                  justifyContent: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    background: isActive ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                    color: isActive ? '#ffffff' : '#64748b',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10.5px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {step.num}
+                </span>
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </section>
 
       {/* Toast Notification */}
@@ -483,7 +586,8 @@ export function Session07CleaningJourney({
             taskId="S07-T01"
             taskNumber="TASK 01"
             title="Inspect Raw Receipts"
-            instruction="Examine the seven raw receipt records imported from field operations in the immutable Case B Raw Inflow Grid."
+            instruction="Examine seven raw receipt records imported from field operations in the immutable Case B Raw Inflow Grid."
+            learningTakeaway="Raw transaction logs are legal audit evidence—never edit, delete, or overwrite original source files."
             whyMatters="In corporate audit and forensic accounting, raw data serves as legal source evidence. Under no circumstances should raw files be edited in-place, overwritten, or rows deleted; all data cleansing must branch into clean working views and quarantine logs."
             statusText="7 Records Verified"
             isActive={activeTaskId === 'S07-T01'}
@@ -599,7 +703,8 @@ export function Session07CleaningJourney({
             taskId="S07-T02"
             taskNumber="TASK 02"
             title="Find Data Issues"
-            instruction="Identify specific data defects across the receipt import: duplicate export keys, invalid calendar dates, ambiguous date formats, missing amounts, and customer casing mismatches."
+            instruction="Identify duplicate export keys, invalid dates, ambiguous formats, missing amounts, and casing defects."
+            learningTakeaway="Never zero out or discard suspicious records; isolate them in a structured quarantine register."
             whyMatters="Dirty data cascades into financial reporting errors. For example, treating a duplicate receipt as fresh cash overstates revenue, while guessing a blank invoice amount conceals unpaid receivables."
             statusText="4 Issue Types Flagged"
             isActive={activeTaskId === 'S07-T02'}
@@ -695,7 +800,8 @@ export function Session07CleaningJourney({
             taskId="S07-T03"
             taskNumber="TASK 03"
             title="Clean and Quarantine"
-            instruction="Segregate verified records into the Clean Approved dataset while routing suspect, duplicate, or unverified records to the Quarantine Suspense Register."
+            instruction="Segregate verified records into Clean Approved while routing suspect or unverified records to Quarantine Suspense."
+            learningTakeaway="Standardize text and isolate defective records in quarantine without losing any transaction volume."
             whyMatters="Quarantining preserves business continuity: verified customer receipts can immediately flow to the general ledger and receivables matching, while unresolved exceptions are placed in a monitored suspense queue for investigator follow-up."
             statusText="3 Clean · 4 Quarantined"
             isActive={activeTaskId === 'S07-T03'}
@@ -852,7 +958,8 @@ export function Session07CleaningJourney({
             taskId="S07-T04"
             taskNumber="TASK 04"
             title="Verify the Totals"
-            instruction="Execute mathematical reconciliation proof ($44k = $25k + $19k), compute formula-driven customer subtotals, and document the data cleaning method."
+            instruction="Execute mathematical reconciliation proof (₹44k = ₹25k + ₹19k) and compute formula-driven customer subtotals."
+            learningTakeaway="Clean volume plus quarantined volume must equal raw volume exactly—zero data lost in transit."
             whyMatters="Reconciliation guarantees that no monetary value disappeared or was duplicated during transformation. Live formulas (=SUMIFS, =COUNTIF) ensure audit traceability so external reviewers can independently recalculate results."
             statusText={
               metrics.isReconciled && metrics.isCleanTargetMatched && metrics.isExceptionsTargetMatched
@@ -1238,6 +1345,68 @@ export function Session07CleaningJourney({
             </div>
           </TaskCard>
         </section>
+
+        {/* Sticky Footer Navigation Bar */}
+        <footer
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 20,
+            background: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            padding: '12px 16px',
+            marginTop: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+            borderRadius: '0 0 16px 16px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              const prevIdx = Math.max(0, currentStepIdx - 1);
+              setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+            }}
+            disabled={currentStepIdx === 0}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+              color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            &larr; Previous
+          </button>
+          <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+            Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (currentStepIdx < WIZARD_STEPS.length - 1) {
+                setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+              }
+            }}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '8px',
+              border: 'none',
+              background: '#0f766e',
+              color: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Data Cleansing Complete ✓' : 'Save & Continue →'}
+          </button>
+        </footer>
       </div>
     </div>
   );

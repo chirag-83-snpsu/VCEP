@@ -71,6 +71,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   isActive?: boolean;
@@ -88,6 +89,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   isActive,
@@ -104,17 +106,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -246,6 +271,17 @@ export function Session08ReconciliationJourney({
   const [matchedStatementIds, setMatchedStatementIds] = useState<string[]>(['st1', 'st2', 'st3']);
   const [activeTaskId, setActiveTaskId] = useState<string>('S08-T01');
 
+  const WIZARD_STEPS = [
+    { id: 'S08-T01' as const, num: 1, label: 'TASK 01: Match Bank and Books', short: '1. Match' },
+    { id: 'S08-T02' as const, num: 2, label: 'TASK 02: Adjust the Cash Book', short: '2. Adjust' },
+    { id: 'S08-T03' as const, num: 3, label: 'TASK 03: Reconcile Timing Items', short: '3. Timing' },
+    { id: 'S08-T04' as const, num: 4, label: 'TASK 04: Close the Difference', short: '4. Close' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
+
   // Hydrate on mount
   useEffect(() => {
     const loaded = loadSession08State();
@@ -367,6 +403,73 @@ export function Session08ReconciliationJourney({
 
   return (
     <div className="vcep-session-clean-journey">
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                borderRadius: '8px',
+                border: isActive ? '1px solid #0f766e' : '1px solid transparent',
+                background: isActive ? '#0f766e' : '#f8fafc',
+                color: isActive ? '#ffffff' : '#475569',
+                fontSize: '12px',
+                fontWeight: isActive ? 700 : 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+                flex: '1 1 auto',
+                justifyContent: 'center',
+              }}
+            >
+              <span
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#64748b',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '10.5px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* =========================================================================
           HEADING 1: COMPARE BANK & BOOKS (#vcep-area-compare)
          ========================================================================= */}
@@ -390,7 +493,8 @@ export function Session08ReconciliationJourney({
           taskId="S08-T01"
           taskNumber="TASK 01"
           title="Match Bank and Books"
-          instruction="Compare Case C company cash book entries against commercial bank statement lines to tick-match cleared items and isolate outstanding discrepancies."
+          instruction="Compare Case C cash book entries against bank statements to tick-match cleared items and isolate differences."
+          learningTakeaway="Bank reconciliation begins with line-by-line matching to separate cleared items from unrecorded events."
           whyMatters="Bank reconciliation begins with item-by-item tick-matching. Cleared items establish transactions that both the company and bank already acknowledge, leaving only unrecorded bank events and timing delays to be resolved."
           statusText={`${matchedCashbookIds.length + matchedStatementIds.length} of 12 Lines Matched`}
           isActive={activeTaskId === 'S08-T01'}
@@ -587,7 +691,8 @@ export function Session08ReconciliationJourney({
           taskId="S08-T02"
           taskNumber="TASK 02"
           title="Adjust the Cash Book"
-          instruction="Classify isolated discrepancies and post formal double-entry adjustment journals for legitimate bank-only charges and interest not yet recorded."
+          instruction="Post formal double-entry adjustment journals for bank charges (₹500) and interest earned (₹200)."
+          learningTakeaway="Adjust cash books for legitimate bank-only charges and interest before preparing the reconciliation."
           whyMatters="Under accounting principles, only permanent bank-only events (such as service charges or interest) receive general ledger entries. Timing items must never be journalized because they will clear naturally through the banking network."
           statusText="2 Adjustment Journals Posted"
           isActive={activeTaskId === 'S08-T02'}
@@ -842,7 +947,8 @@ export function Session08ReconciliationJourney({
           taskId="S08-T03"
           taskNumber="TASK 03"
           title="Reconcile Timing Items"
-          instruction="Bridge deposit in transit and unpresented payments without double posting, assign follow-up action owners, and document your accounting defense."
+          instruction="Reconcile unpresented cheques (₹6,000) and deposits in transit (₹10,000) to bridge book and bank balances."
+          learningTakeaway="Bridge deposits in transit and unpresented cheques on the BRS schedule without double posting into ledgers."
           whyMatters="Deposits in transit and unpresented cheques are valid transactions already in company books that the bank clearinghouse has not processed yet. Reconciling them on the BRS schedule bridges the timing gap while tracking clearance dates prevents fraud and duplicate cash entries."
           statusText="2 Timing Items Controlled"
           isActive={activeTaskId === 'S08-T03'}
@@ -961,7 +1067,8 @@ export function Session08ReconciliationJourney({
           taskId="S08-T04"
           taskNumber="TASK 04"
           title="Close the Difference"
-          instruction="Construct the three-column Bank Reconciliation Statement, prove zero unexplained variance, and complete portfolio governance sign-off."
+          instruction="Construct the 3-column BRS schedule, prove zero unexplained variance (₹0), and complete portfolio sign-off."
+          learningTakeaway="A Bank Reconciliation Statement must achieve zero unexplained variance—never plug unexplained numbers."
           whyMatters="The Bank Reconciliation Statement provides legal and audit proof that Adjusted Book Cash (₹87,200) reconciles to the Bank Statement (₹83,200) via timing differences without forcing unexplained plugs or fictional balancing numbers."
           statusText={isBalanced ? 'Balanced (₹0 Variance)' : 'Pending Reconciliation'}
           isActive={activeTaskId === 'S08-T04'}
@@ -1450,6 +1557,68 @@ export function Session08ReconciliationJourney({
           )}
         </TaskCard>
       </section>
+
+      {/* Sticky Footer Navigation Bar */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Reconciliation Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }
