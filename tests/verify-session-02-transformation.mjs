@@ -68,6 +68,7 @@ async function runStaticVerification() {
   assert.ok(s02Comp.includes('#DCE5E9'), 'Must use neutral 1px #DCE5E9 border');
   assert.ok(s02Comp.includes('#0F766E'), 'Must use brand teal #0F766E');
   assert.ok(s02Comp.includes('#17245C'), 'Must use navy #17245C');
+  assert.ok(s02Comp.includes('learningTakeaway'), 'Must provide 1-line teaching takeaway per task');
 
   // 9. Verify Session 01 and 02 are preserved in driveJson
   assert.equal(driveJson[0].id, 1, 'Session 01 must be preserved');

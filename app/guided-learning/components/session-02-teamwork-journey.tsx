@@ -40,6 +40,7 @@ import {
   FileCheck,
   Lock,
   Unlock,
+  Lightbulb,
 } from 'lucide-react';
 
 interface Session02TeamworkJourneyProps {
@@ -56,6 +57,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway: string;
   hint?: string;
   statusText?: string;
   isActive?: boolean;
@@ -72,6 +74,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   hint,
   statusText,
   isActive,
@@ -94,6 +97,26 @@ function TaskCard({
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: '#f0fdfa',
+          border: '1px solid #ccfbf1',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          marginBottom: '16px',
+          fontSize: '12px',
+          color: '#0f766e',
+          fontWeight: 600,
+        }}
+      >
+        <Lightbulb size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+        <span>{learningTakeaway}</span>
+      </div>
+
       {/* Header */}
       <div
         style={{
@@ -729,8 +752,9 @@ export function Session02TeamworkJourney({
         taskId="S02-T01"
         taskNumber="TASK 01"
         title="Introduce Yourself"
-        instruction="Prepare and rehearse a 90-second professional self-introduction linking a technical commerce skill to entry-level deliverables."
-        hint="Campus recruiters evaluate day-one competence in the first 60–90 seconds. Concrete claims linking technical skills to specific deliverables prove immediate utility."
+        instruction="Draft and practice your 90-second professional self-introduction linking technical skills to workplace deliverables."
+        learningTakeaway="A concise 90-second self-introduction links your commerce skills to immediate team value."
+        hint="Focus on concrete claims. Linking skills to specific deliverables (e.g. reconciliations, journals) proves immediate value."
         statusText={wordCount(state.introText) >= 25 ? 'Intro Saved ✓' : 'Drafting'}
         isActive={activeTaskId === 'S02-T01'}
       >
@@ -904,8 +928,9 @@ export function Session02TeamworkJourney({
         taskId="S02-T02"
         taskNumber="TASK 02"
         title="Assign Team Roles"
-        instruction="Assign core functional responsibilities to each squad member and map planned role rotations across upcoming sessions."
-        hint="Clear role definitions prevent duplicate effort. Rotating roles ensures every squad member builds balanced analytical, operational, and audit capabilities."
+        instruction="Assign squad roles and review the 4-session rotation schedule so every deliverable has one owner."
+        learningTakeaway="Clear role ownership prevents duplicate work and ensures every deliverable has single-point accountability."
+        hint="Single-point accountability means one person owns the final outcome. Backups step in only during emergencies."
         statusText={state.members.every((m) => m.role) ? 'Roles Configured ✓' : 'In Progress'}
         isActive={activeTaskId === 'S02-T02'}
       >
@@ -1092,8 +1117,9 @@ export function Session02TeamworkJourney({
         taskId="S02-T03"
         taskNumber="TASK 03"
         title="Agree on Team Rules"
-        instruction="Negotiate 20-minute shared laptop slots and establish binding charter commitments for quality, SLAs, and backups."
-        hint="A team charter eliminates daily friction by codifying expectations in advance. Equitable 20-minute device slots ensure every student gets hands-on practice."
+        instruction="Allocate 20-minute laptop sharing slots and review your 5-clause squad governance charter."
+        learningTakeaway="Shared team resources require clear scheduling rules so no team member falls behind."
+        hint="Ensure every squad member gets at least 20 minutes keyboard time to build their practical evidence."
         statusText={allMembersMeet20Mins ? 'Rules Agreed ✓' : 'In Progress'}
         isActive={activeTaskId === 'S02-T03'}
       >
@@ -1306,8 +1332,9 @@ export function Session02TeamworkJourney({
         taskId="S02-T04"
         taskNumber="TASK 04"
         title="Plan for Setbacks"
-        instruction="Evaluate operational recovery options when a reviewer is delayed at 16:30, lock your decision, and document a formal audit justification."
-        hint="Operational setbacks happen in every workplace. Activating pre-agreed backup procedures early prevents unverified submissions without missing contract deadlines."
+        instruction="Select your crisis escalation strategy and justify how your team will hit the 18:00 deadline."
+        learningTakeaway="Workplace crises require disciplined escalation to backups rather than cutting quality corners."
+        hint="Never skip review to save time. Activate your pre-agreed backup reviewer to protect quality."
         statusText={decisionLocked && wordCount(state.justification) >= 15 ? 'Escalation Documented ✓' : 'Decision Pending'}
         isActive={activeTaskId === 'S02-T04'}
       >
@@ -1484,7 +1511,8 @@ export function Session02TeamworkJourney({
           taskId="S02-T05"
           taskNumber="TASK 05"
           title="Review & Submit"
-          instruction="Review your completed squad deliverables, confirm attributable integrity, and submit your official attempt for faculty evaluation."
+          instruction="Review your auto-synced answers, attach evidence files, declare integrity, and submit Session 2."
+          learningTakeaway="Submitting verified work with signed integrity declarations builds professional credibility."
           hint="All completed tasks auto-populate directly into your official submission fields. Verify personal reflections and check the attributable declaration."
           statusText={isSubmittedOrGraded ? 'Official Attempt Submitted ✓' : 'Ready for Submission'}
           isActive={activeTaskId === 'S02-T05'}
