@@ -32,6 +32,7 @@ import {
   Target,
   ChevronDown,
   ChevronUp,
+  Sparkles,
 } from 'lucide-react';
 
 interface TaskCardProps {
@@ -39,6 +40,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   persistenceText?: string;
@@ -54,6 +56,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   persistenceText,
@@ -75,6 +78,7 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
@@ -86,6 +90,27 @@ function TaskCard({
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
       {/* Task Card Header */}
       <div
         style={{
@@ -238,6 +263,12 @@ function TaskCard({
   );
 }
 
+const WIZARD_STEPS = [
+  { id: 'S22-T01' as const, num: 1, label: 'Task 01 — Prepare Interview Evidence', short: '1. Evidence' },
+  { id: 'S22-T02' as const, num: 2, label: 'Task 02 — Defend Your Work', short: '2. Defend Work' },
+  { id: 'S22-T03' as const, num: 3, label: 'Task 03 — Plan the Next 30 Days', short: '3. 30-Day Plan' },
+];
+
 interface Props {
   onUpdateDraft?: (field: string, value: any) => void;
 }
@@ -247,6 +278,8 @@ export function Session22HiringJourney({ onUpdateDraft }: Props) {
   const [state, setState] = useState<Session22State>(DEFAULT_SESSION_22_STATE);
   const [draftTimestamp, setDraftTimestamp] = useState<string>('');
   const [activeScenarioId, setActiveScenarioId] = useState<string>('V1');
+
+  const currentStepIdx = Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
 
   useEffect(() => {
     try {
@@ -302,6 +335,71 @@ export function Session22HiringJourney({ onUpdateDraft }: Props) {
 
   return (
     <div className="vcep-workstation-root" style={{ color: '#17245C' }}>
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ============================================================== */}
       {/* NATURAL HEADING 1: PREPARE FOR THE HIRING CONVERSATION         */}
       {/* ============================================================== */}
@@ -460,7 +558,8 @@ export function Session22HiringJourney({ onUpdateDraft }: Props) {
           taskId="S22-T01"
           taskNumber="TASK 01"
           title="Prepare Interview Evidence"
-          instruction="After completing the controlled Exit B assessment, select and review the five core technical viva scenarios to ground your interview defense in verifiable evidence."
+          instruction="Review five core technical viva scenarios to ground your interview defense in verified portfolio deliverables."
+          learningTakeaway="Anchor viva explanations in verified portfolio calculations rather than theoretical textbook definitions."
           whyMatters="Enterprise hiring panels test practical execution and technical reasoning under pressure. Inspecting core VCEP commercial scenarios and selecting genuine portfolio corrections allows candidates to demonstrate unvarnished authenticity, show exact calculation methods, and label uncertainty without pretension."
           outputBadge="Viva Defense Scenarios & Portfolio Evidence"
           persistenceText="State Preserved"
@@ -583,7 +682,8 @@ export function Session22HiringJourney({ onUpdateDraft }: Props) {
           taskId="S22-T02"
           taskNumber="TASK 02"
           title="Defend Your Work"
-          instruction="Complete the three-part STAR+V evidence register and answer structured interview questions on mathematical verification, error correction, and ethical escalation."
+          instruction="Complete the three-part STAR+V evidence register and defend error corrections and ethical escalation boundaries."
+          learningTakeaway="Articulate technical accomplishments and ethical positions using structured, auditable evidence."
           whyMatters="Technical interviews require proving personal contribution, error correction, and ethical firmness. Articulating the exact mathematical verification and refusing to conceal suspense discrepancies proves commercial integrity and readiness for fiduciary responsibility."
           outputBadge="Three-Part STAR+V & Ethical Defense"
           persistenceText={draftTimestamp ? `Auto-saved at ${draftTimestamp}` : 'Auto-saved'}
@@ -768,7 +868,8 @@ export function Session22HiringJourney({ onUpdateDraft }: Props) {
           taskId="S22-T03"
           taskNumber="TASK 03"
           title="Plan the Next 30 Days"
-          instruction="Formulate your 30-day post-assessment improvement plan, record human interviewer evaluation feedback, and execute three-tier governance sign-offs."
+          instruction="Formulate a 30-day post-assessment improvement plan and record human interviewer feedback and governance sign-offs."
+          learningTakeaway="Translate hiring panel feedback into actionable development commitments and career progression milestones."
           whyMatters="Professional competence is dynamic; top performers convert hiring panel feedback into actionable development commitments. Structuring a 30-day plan with concrete capability milestones and governance sign-offs establishes a clear trajectory toward corporate placement."
           outputBadge="30-Day Plan & Panel Feedback"
           persistenceText="State Preserved"
@@ -1072,6 +1173,68 @@ export function Session22HiringJourney({ onUpdateDraft }: Props) {
           </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Bottom Navigation Footer */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Interview Preparation Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

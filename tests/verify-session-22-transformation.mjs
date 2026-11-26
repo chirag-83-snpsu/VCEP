@@ -92,8 +92,8 @@ async function runStaticVerification() {
 
   // 12. Page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24 && (') || page.includes('selected > 22 && ('), 'Tabs must be suppressed');
-  assert.ok(page.includes('vcep-area-review'), 'Page must wire Complete Verified Review button');
-  assert.ok(page.includes('vcep-area-prepare'), 'Page must wire Prepare for Interview button');
+  assert.ok(journey.includes('vcep-area-review'), 'Journey must wire Complete Verified Review button');
+  assert.ok(journey.includes('vcep-area-prepare'), 'Journey must wire Prepare for Interview button');
   assert.ok(page.includes('Show your skills independently.'), 'Page must display Session 22 subline');
 
   // 13. Review Engine Rules in lib

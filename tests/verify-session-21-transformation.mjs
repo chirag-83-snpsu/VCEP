@@ -89,8 +89,8 @@ async function runStaticVerification() {
     page.includes('selected > 24 && (') || page.includes('selected > 21 && ('),
     'Tabs must be suppressed for selected <= 24'
   );
-  assert.ok(page.includes('vcep-area-portfolio'), 'Page must wire Build Resume & Portfolio button');
-  assert.ok(page.includes('vcep-area-evidence'), 'Page must wire Find Evidence button');
+  assert.ok(journey.includes('vcep-area-portfolio'), 'Journey must wire Build Resume & Portfolio button');
+  assert.ok(journey.includes('vcep-area-evidence'), 'Journey must wire Find Evidence button');
   assert.ok(page.includes('Turn real work into a credible resume.'), 'Page must display Session 21 subline');
 
   // 11. Check Review Engine Rules in lib
@@ -251,7 +251,7 @@ async function runBrowserVerification() {
           const portfolioArea = document.getElementById('vcep-area-portfolio');
           const tabs = document.querySelector('.v3-tabs');
           const taskCards = document.querySelectorAll('article[data-task-id]');
-          const pageText = document.body.innerText;
+          const pageText = document.body.textContent || '';
 
           const hasRecruiterTitle = pageText.includes('45-Second Recruiter Audit Challenge');
           const hasMathProof = pageText.includes('Mathematical Proof') || pageText.includes('Formula Defense');

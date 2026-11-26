@@ -52,6 +52,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   persistenceText?: string;
@@ -67,6 +68,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   persistenceText,
@@ -88,6 +90,7 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
@@ -99,6 +102,27 @@ function TaskCard({
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
       {/* Task Card Header */}
       <div
         style={{
@@ -251,6 +275,13 @@ function TaskCard({
   );
 }
 
+const WIZARD_STEPS = [
+  { id: 'S23-T01' as const, num: 1, label: 'Task 01 — Structure the Story', short: '1. Story' },
+  { id: 'S23-T02' as const, num: 2, label: 'Task 02 — Build the Presentation', short: '2. Deck' },
+  { id: 'S23-T03' as const, num: 3, label: 'Task 03 — Test the Live Demonstration', short: '3. Live Demo' },
+  { id: 'S23-T04' as const, num: 4, label: 'Task 04 — Practise the Defence', short: '4. Defense' },
+];
+
 const STORAGE_KEY = 'vcep:s23:drive-v3:student-workstation';
 
 interface Session23Props {
@@ -266,6 +297,8 @@ export function Session23PresentationJourney({ onUpdateDraft }: Session23Props) 
   const [activeChallengeId, setActiveChallengeId] = useState<string>('CH-01');
   const [draftTimestamp, setDraftTimestamp] = useState<string>('');
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const currentStepIdx = Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
 
   // Sync with LocalStorage
   useEffect(() => {
@@ -416,6 +449,71 @@ export function Session23PresentationJourney({ onUpdateDraft }: Session23Props) 
         )}
       </div>
 
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ========================================================================= */}
       {/* HEADING 1: CHOOSE WHAT MANAGEMENT NEEDS (#vcep-area-management)           */}
       {/* ========================================================================= */}
@@ -490,7 +588,8 @@ export function Session23PresentationJourney({ onUpdateDraft }: Session23Props) 
           taskId="S23-T01"
           taskNumber="TASK 01"
           title="Structure the Story"
-          instruction="Draft the one-page executive summary covering problem context, source evidence, working demo method, commercial decision, scope limitations, and next steps."
+          instruction="Structure a 6-slide executive deck and 1-page memo matching commercial management decision requirements."
+          learningTakeaway="Tailor presentations to executive decision makers by prioritizing high-stakes financial trade-offs."
           whyMatters="Executive boards need actionable decision documents before oral pitches. Structuring the narrative into six clear sections ensures leadership understands the operational risk, baseline financial facts, and verified model outcomes before the live demonstration."
           outputBadge="Executive Briefing Document"
           persistenceText={draftTimestamp ? `Auto-saved at ${draftTimestamp}` : 'Auto-saved'}
@@ -621,7 +720,8 @@ export function Session23PresentationJourney({ onUpdateDraft }: Session23Props) 
           taskId="S23-T02"
           taskNumber="TASK 02"
           title="Build the Presentation"
-          instruction="Construct up to six factual presentation slides tied directly to verified capstone evidence records and approved change orders."
+          instruction="Prepare an auditable live spreadsheet demonstration navigating calculation cells and parameter controls."
+          learningTakeaway="Demonstrate dynamic spreadsheet models live to prove mathematical integrity and ease of maintenance."
           whyMatters="Slide discipline prevents cognitive overload. A concise six-slide deck forces presenters to focus strictly on verified calculations, concrete change orders (CR-01 and CR-02), and defensible trade-offs rather than speculative claims."
           outputBadge="6-Slide Executive Deck"
           persistenceText="State Preserved"
@@ -788,7 +888,8 @@ export function Session23PresentationJourney({ onUpdateDraft }: Session23Props) 
           taskId="S23-T03"
           taskNumber="TASK 03"
           title="Test the Live Demonstration"
-          instruction="Rehearse the seven-minute squad agenda, verify source scope permissions, and test the dynamic As-Of date refresh in Model v2.0 showing zero variance in control totals."
+          instruction="Formulate defensible responses to three high-stakes reviewer challenges covering discounts, disputes, and boundaries."
+          learningTakeaway="Anticipate tough stakeholder questions and respond with verified ledger evidence and margin math."
           whyMatters="Live software demonstrations fail if timing or permissions are unverified. Rehearsing the exact 3-minute demo inside the 7-minute window and proving mathematical invariance under dynamic date shifts builds executive confidence."
           outputBadge="7m Rehearsal & Model v2.0 Demo"
           persistenceText="State Preserved"
@@ -1104,7 +1205,8 @@ export function Session23PresentationJourney({ onUpdateDraft }: Session23Props) 
           taskId="S23-T04"
           taskNumber="TASK 04"
           title="Practise the Defence"
-          instruction="Formulate rigorous verbal defenses for three hostile reviewer challenge questions, log individual squad contributions and peer defect corrections, and certify governance sign-offs."
+          instruction="Execute a timed 7-minute rehearsal drill, log individual contribution, and certify governance sign-offs."
+          learningTakeaway="Strict rehearsal timing and peer critiques ensure polished, professional executive presentations."
           whyMatters="Cross-examination tests candidate depth and fiduciary integrity. Defending the commercial discount trap, Beacon default resilience, and CRM isolation proves true ownership and workplace readiness."
           outputBadge="Panel Defense & Sign-Offs"
           persistenceText="State Preserved"
@@ -1381,6 +1483,68 @@ export function Session23PresentationJourney({ onUpdateDraft }: Session23Props) 
           </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Bottom Navigation Footer */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Presentation Rehearsal Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

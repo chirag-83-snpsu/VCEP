@@ -42,6 +42,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   persistenceText?: string;
@@ -62,6 +63,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   persistenceText,
@@ -83,17 +85,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -258,6 +283,17 @@ export function Session21PortfolioJourney({ onUpdateDraft }: Props) {
   const [timerActive, setTimerActive] = useState<boolean>(false);
   const [timerSeconds, setTimerSeconds] = useState<number>(45);
 
+  const WIZARD_STEPS = [
+    { id: 'S21-T01' as const, num: 1, label: 'Task 01 — Find Verified Evidence', short: '1. Evidence' },
+    { id: 'S21-T02' as const, num: 2, label: 'Task 02 — Write Resume Achievements', short: '2. Achievements' },
+    { id: 'S21-T03' as const, num: 3, label: 'Task 03 — Create Professional Summary', short: '3. Summary' },
+    { id: 'S21-T04' as const, num: 4, label: 'Task 04 — Build the Portfolio Index', short: '4. Portfolio Index' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SESSION_21_STORAGE_KEY);
@@ -404,6 +440,71 @@ export function Session21PortfolioJourney({ onUpdateDraft }: Props) {
 
   return (
     <div className="vcep-workstation-root" style={{ color: '#17245C' }}>
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ============================================================== */}
       {/* NATURAL HEADING 1: FIND YOUR EVIDENCE                          */}
       {/* ============================================================== */}
@@ -428,8 +529,9 @@ export function Session21PortfolioJourney({ onUpdateDraft }: Props) {
           title="Find Verified Evidence"
           outputBadge="Verified Evidence Library & Recruiter Defense"
           persistenceText="State Preserved"
+          instruction="Audit verified coursework artifacts and practice defending quantitative model calculations in a 45-second challenge."
+          learningTakeaway="Ground resume claims in verifiable project deliverables and mathematical evidence instead of inflated assertions."
           whyMatters="Recruiters and corporate hiring managers routinely reject candidates whose resumes make unsubstantiated claims or misrepresent academic simulations as enterprise profit gains. Grounding your resume in verified, cohort-authorized artifact IDs and mathematical proofs ensures complete defensibility under rigorous technical cross-examination."
-          instruction="Review the anti-inflation warning, inspect verified VCEP coursework artifacts, and execute the 45-second recruiter defense drill."
           isActive={activeTaskId === 'S21-T01'}
           onSelect={() => setActiveTaskId('S21-T01')}
         >
@@ -958,8 +1060,9 @@ export function Session21PortfolioJourney({ onUpdateDraft }: Props) {
           title="Write Resume Achievements"
           outputBadge="Three Google XYZ Bullets"
           persistenceText="Auto-saved"
-          whyMatters="The Google XYZ framework (Accomplished [X] measured by [Y] by doing [Z]) demonstrates technical competence with quantitative impact. Transparently tagging simulation projects highlights practical modeling capabilities without falsely claiming unauthorized corporate employment."
           instruction="Draft and refine three evidence-backed resume bullets using the Google XYZ formula while avoiding ungrounded claims."
+          learningTakeaway="Structure resume bullet points around measurable achievements and clear methodological contributions."
+          whyMatters="The Google XYZ framework (Accomplished [X] measured by [Y] by doing [Z]) demonstrates technical competence with quantitative impact. Transparently tagging simulation projects highlights practical modeling capabilities without falsely claiming unauthorized corporate employment."
           isActive={activeTaskId === 'S21-T02'}
           onSelect={() => setActiveTaskId('S21-T02')}
         >
@@ -1089,8 +1192,9 @@ export function Session21PortfolioJourney({ onUpdateDraft }: Props) {
           title="Create Professional Summary"
           outputBadge="90-Word Career Summary & Skills View"
           persistenceText="Auto-saved"
+          instruction="Author a 90-word executive professional summary aligned with verified commercial capabilities."
+          learningTakeaway="Summarize technical proficiencies succinctly to communicate commercial value to prospective employers."
           whyMatters="A concise, disciplined executive summary immediately establishes professional positioning for entry-level roles. Keeping within 75–100 words forces clarity, highlights verified technical skills, and matches target role requirements without filler."
-          instruction="Author an executive career profile (75–100 words, target ~90 words) aligned to your target role and technical skills taxonomy."
           isActive={activeTaskId === 'S21-T03'}
           onSelect={() => setActiveTaskId('S21-T03')}
         >
@@ -1188,8 +1292,9 @@ export function Session21PortfolioJourney({ onUpdateDraft }: Props) {
           title="Build the Portfolio Index"
           outputBadge="Six-Item Portfolio Index & Governance"
           persistenceText="State Preserved"
+          instruction="Compile a six-item verifiable portfolio index with artifact hashes, skill gaps, and deliverable governance sign-offs."
+          learningTakeaway="Curate an auditable portfolio index to demonstrate sustained work quality across commerce domains."
           whyMatters="A verifiable portfolio index provides cryptographic traceability for every deliverable, proving individual ownership. Documenting target skill gaps, peer corrections, and governance sign-offs completes the professional portfolio required for employment readiness."
-          instruction="Compile the six-item portfolio index, document your technical skill gap with a practice plan, record individual contributions, and certify governance sign-offs."
           isActive={activeTaskId === 'S21-T04'}
           onSelect={() => setActiveTaskId('S21-T04')}
         >
@@ -1551,6 +1656,68 @@ export function Session21PortfolioJourney({ onUpdateDraft }: Props) {
         </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Bottom Navigation Footer */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Portfolio Ready ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

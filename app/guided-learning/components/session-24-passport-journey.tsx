@@ -49,6 +49,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   persistenceText?: string;
@@ -64,6 +65,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   persistenceText,
@@ -85,6 +87,7 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
@@ -96,6 +99,27 @@ function TaskCard({
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
       {/* Task Card Header */}
       <div
         style={{
@@ -248,6 +272,13 @@ function TaskCard({
   );
 }
 
+const WIZARD_STEPS = [
+  { id: 'S24-T01' as const, num: 1, label: 'Task 01 — Present the Project', short: '1. Project' },
+  { id: 'S24-T02' as const, num: 2, label: 'Task 02 — Defend Your Contribution', short: '2. Defense' },
+  { id: 'S24-T03' as const, num: 3, label: 'Task 03 — Verify Your Industry Passport', short: '3. Passport' },
+  { id: 'S24-T04' as const, num: 4, label: 'Task 04 — Set Your 90-Day Plan', short: '4. 90-Day Plan' },
+];
+
 interface Session24Props {
   onUpdateDraft?: (field: string, value: string) => void;
 }
@@ -258,6 +289,8 @@ export function Session24PassportJourney({ onUpdateDraft }: Session24Props) {
   const [selectedExhibitId, setSelectedExhibitId] = useState<string>('EX-03');
   const [selectedCompetencyId, setSelectedCompetencyId] = useState<string>('PASSPORT-01');
   const [draftTimestamp, setDraftTimestamp] = useState<string>('');
+
+  const currentStepIdx = Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
 
   // Sync with LocalStorage
   useEffect(() => {
@@ -389,6 +422,71 @@ export function Session24PassportJourney({ onUpdateDraft }: Session24Props) {
         )}
       </div>
 
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ========================================================================= */}
       {/* HEADING 1: PRESENT & DEFEND YOUR WORK (#vcep-area-present)                 */}
       {/* ========================================================================= */}
@@ -459,7 +557,8 @@ export function Session24PassportJourney({ onUpdateDraft }: Session24Props) {
           taskNumber="TASK 01"
           title="Present the Project"
           outputBadge="Reviewed Showcase & External Evaluation"
-          instruction="Demonstrate approved business work and respond to reviewer questions before the external evaluation panel."
+          instruction="Deliver your individual demo day defense, presenting verified models and addressing panel inquiries."
+          learningTakeaway="Defend analytical decisions with confidence by referencing documented project artifacts and evidence."
           whyMatters="External executive reviewers expect concise demonstrations of working solutions rather than slide-only promises. Presenting your approved business model with complete transparency into methodology establishes professional credibility."
           statusText={state.conflictCheckCertified ? 'Scorecard & COI Signoff Complete' : 'Reviewer Evaluation Ready'}
           persistenceText="Showcase & Scorecard Synced"
@@ -610,7 +709,8 @@ export function Session24PassportJourney({ onUpdateDraft }: Session24Props) {
           taskNumber="TASK 02"
           title="Defend Your Contribution"
           outputBadge="Attributable Individual Defense Station"
-          instruction="Identify one personally attributable artifact and explain your method, evidence, defect correction history, and scope limitations in the 2-minute defense station."
+          instruction="Identify one personally attributable artifact and explain your method, evidence, defect corrections, and scope limits."
+          learningTakeaway="Articulate individual contributions clearly to demonstrate personal mastery of financial methodologies."
           whyMatters="Team deliverables can obscure individual capability. Corporate assessors require each candidate to stand behind a specific piece of work, explain its mechanics, acknowledge defect remediation, and define where the solution stops."
           statusText={isDefenseComplete ? 'Defense Ready (All Minima Met)' : 'Defense In Progress'}
           persistenceText="Defense Responses Autosaved"
@@ -741,7 +841,8 @@ export function Session24PassportJourney({ onUpdateDraft }: Session24Props) {
           taskNumber="TASK 03"
           title="Verify Your Industry Passport"
           outputBadge="6-Domain Competency Transcript"
-          instruction="Review student identity, verified artifact IDs, reviewer record, competency scores, and explicit competence scope boundaries across the 6 evaluated domains."
+          instruction="Review and verify your six-domain VCEP Industry Experience Passport and competency achievements."
+          learningTakeaway="A comprehensive industry passport validates verified practical capabilities across key commerce domains."
           whyMatters="An Industry Passport is only as valuable as its verification rigor. Reviewing authentic artifact hashes, faculty sign-offs, and clear boundary notices guarantees that your credential represents genuine verified execution rather than superficial attendance."
           statusText="6 Domains Verified"
           persistenceText="Passport Transcript Verified"
@@ -838,7 +939,8 @@ export function Session24PassportJourney({ onUpdateDraft }: Session24Props) {
           taskNumber="TASK 04"
           title="Set Your 90-Day Plan"
           outputBadge="Career Roadmap & Governance Sign-Off"
-          instruction="Record three dated improvement actions across 30-day horizons with tangible progress evidence, squad peer review logs, and three-tier governance sign-offs."
+          instruction="Formulate a 90-day post-programme career acceleration plan across three structured 30-day horizons."
+          learningTakeaway="Maintain professional momentum post-program by establishing concrete 30, 60, and 90-day career goals."
           whyMatters="Completing the program is the beginning of career progression. Establishing structured 30-day horizons backed by tangible portfolio artifacts and formal governance sign-offs ensures continuous momentum and professional accountability."
           statusText={state.governance.humanAcknowledged ? 'Roadmap & Sign-Offs Complete' : 'Roadmap In Progress'}
           persistenceText="Roadmap & Sign-Offs Synced"
@@ -1154,6 +1256,68 @@ export function Session24PassportJourney({ onUpdateDraft }: Session24Props) {
           </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Bottom Navigation Footer */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Program Complete — Passport Issued ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }
