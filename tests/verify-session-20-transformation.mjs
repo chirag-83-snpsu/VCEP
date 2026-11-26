@@ -104,8 +104,8 @@ async function runStaticVerification() {
     page.includes('selected > 24 && (') || page.includes('selected > 20 && ('),
     'Tabs must be suppressed for selected <= 24'
   );
-  assert.ok(page.includes('vcep-area-update'), 'Page must wire Update & Retest Model button');
-  assert.ok(page.includes('vcep-area-review'), 'Page must wire Review Approved Change button');
+  assert.ok(journey.includes('vcep-area-update'), 'Journey must wire Update & Retest Model button');
+  assert.ok(journey.includes('vcep-area-review'), 'Journey must wire Review Approved Change button');
   assert.ok(page.includes('Control the change. Keep the evidence.'), 'Page must display Session 20 subline');
 
   // 11. Check Review Engine Rules in lib
@@ -268,7 +268,7 @@ async function runBrowserVerification() {
           const updateArea = document.getElementById('vcep-area-update');
           const tabs = document.querySelector('.v3-tabs');
           const taskCards = document.querySelectorAll('article[data-task-id]');
-          const pageText = document.body.innerText;
+          const pageText = document.body.textContent || '';
 
           return {
             hasReviewArea: !!reviewArea,

@@ -37,6 +37,7 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
+  Sparkles,
 } from 'lucide-react';
 
 interface TaskCardProps {
@@ -44,6 +45,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   persistenceText?: string;
@@ -64,6 +66,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   persistenceText,
@@ -85,17 +88,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -256,6 +282,17 @@ export function Session20ChangeJourney({ onUpdateDraft }: Session20ChangeJourney
   const [draftTimestamp, setDraftTimestamp] = useState<string>('');
   const [activeTaskId, setActiveTaskId] = useState<string>('S20-T01');
 
+  const WIZARD_STEPS = [
+    { id: 'S20-T01' as const, num: 1, label: 'Task 01 — Review the Change Request', short: '1. Review Request' },
+    { id: 'S20-T02' as const, num: 2, label: 'Task 02 — Apply Version 2 Changes', short: '2. Apply v2' },
+    { id: 'S20-T03' as const, num: 3, label: 'Task 03 — Recalculate and Retest', short: '3. Retest Model' },
+    { id: 'S20-T04' as const, num: 4, label: 'Task 04 — Issue the Manager Update', short: '4. Executive Memo' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
+
   useEffect(() => {
     const loaded = loadSession20State();
     setState(loaded);
@@ -389,6 +426,71 @@ export function Session20ChangeJourney({ onUpdateDraft }: Session20ChangeJourney
 
   return (
     <div className="vcep-workstation-root" style={{ color: '#17245C' }}>
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ============================================================== */}
       {/* NATURAL HEADING 1: REVIEW THE APPROVED CHANGE                  */}
       {/* ============================================================== */}
@@ -479,7 +581,8 @@ export function Session20ChangeJourney({ onUpdateDraft }: Session20ChangeJourney
           taskId="S20-T01"
           taskNumber="TASK 01"
           title="Review the Change Request"
-          instruction="Review the Change Control Board (CCB) approved change orders, identify affected financial outputs, and defend baseline Version 1.0 preservation against client pushback."
+          instruction="Review Change Control Board change orders and defend baseline Version 1.0 preservation against unapproved edits."
+          learningTakeaway="Never alter approved baseline models without formal change control authorization and impact analysis."
           whyMatters="Change governance ensures every modification to financial records has documented business justification and named authority. Retaining Version 1.0 as an immutable baseline is essential for regulatory auditability and proving why cash variances occur without confusion."
           outputBadge="Approved CCB Register + Version Defense"
           statusText="2 Change Orders Approved · CCB Active"
@@ -576,7 +679,8 @@ export function Session20ChangeJourney({ onUpdateDraft }: Session20ChangeJourney
           taskId="S20-T02"
           taskNumber="TASK 02"
           title="Apply Version 2 Changes"
-          instruction="Implement the approved ₹5,000 Beacon Retail credit note in the receivables schedule and reflect the ₹8,000 supplier payment deferral in 7-day liquidity forecasts."
+          instruction="Apply approved ₹5,000 credit note in receivables and reflect ₹8,000 supplier deferral in liquidity."
+          learningTakeaway="Incorporate approved change orders systematically while maintaining full audit trail visibility."
           whyMatters="Applying approved credit notes directly extinguishes disputed debtor balances while leaving bank cash strictly invariant. Rescheduling supplier outflows modifies short-term liquidity timing to compress working capital deficits without altering overall liabilities."
           outputBadge="Version 2.0 Change Branch + Delta Metrics"
           statusText="Model v2.0 Applied · Zero Cash Added"
@@ -747,8 +851,9 @@ export function Session20ChangeJourney({ onUpdateDraft }: Session20ChangeJourney
           title="Recalculate and Retest"
           outputBadge="Updated Totals & Regression Register"
           persistenceText="Calculated & Verified"
+          instruction="Recalculate dynamic ageing buckets and re-run all five acceptance tests to verify model integrity."
+          learningTakeaway="Re-testing after model updates ensures revisions do not introduce broken formulas or regressions."
           whyMatters="Under strict change control, modifying inputs requires proving that core formulas and validation gates still function identically. Recalculating receivables across age buckets and re-running all 5 regression tests ensures the model remains mathematically sound and resilient against bad data before management sign-off."
-          instruction="Recalculate receivables across ageing buckets, test the date shift invariant, verify automated exception halts, and execute the five regression tests."
           isActive={activeTaskId === 'S20-T03'}
           onSelect={() => setActiveTaskId('S20-T03')}
         >
@@ -1129,8 +1234,9 @@ export function Session20ChangeJourney({ onUpdateDraft }: Session20ChangeJourney
           title="Issue the Manager Update"
           outputBadge="Executive Memo & Change Sign-Off"
           persistenceText="Auto-saved"
+          instruction="Draft a 70–140 word executive update memo, document peer defect resolution, and complete CCB sign-offs."
+          learningTakeaway="Communicate model revisions clearly to management with concise summaries of financial impacts."
           whyMatters="Executive decisions depend on unvarnished transparency regarding financial liquidity. Communicating the ₹8,000 operational improvement alongside the persistent ₹12,000 cash deficit, individual contributions, and verified peer defect corrections establishes complete auditability and governance."
-          instruction="Draft an executive update memo (70–140 words), document individual contribution and peer defect resolution, execute CCB governance sign-offs, and complete the final verification checklist."
           isActive={activeTaskId === 'S20-T04'}
           onSelect={() => setActiveTaskId('S20-T04')}
         >
@@ -1392,6 +1498,68 @@ export function Session20ChangeJourney({ onUpdateDraft }: Session20ChangeJourney
         </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Bottom Navigation Footer */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Change Control Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

@@ -74,8 +74,8 @@ async function runStaticVerification() {
 
   // 10. Check page.tsx tab suppression and button wiring
   assert.ok(page.includes('selected > 24 && (') || page.includes('selected > 18 && ('), 'Tabs must be suppressed for selected <= 18');
-  assert.ok(page.includes('vcep-area-plan'), 'Page must wire Plan Tasks & Acceptance Tests button');
-  assert.ok(page.includes('vcep-area-solution'), 'Page must wire Select Feasible Solution button');
+  assert.ok(journey.includes('vcep-area-plan'), 'Journey must wire Plan Tasks & Acceptance Tests button');
+  assert.ok(journey.includes('vcep-area-solution'), 'Journey must wire Select Feasible Solution button');
   assert.ok(page.includes('Choose a solution. Plan the delivery.'), 'Page must display Session 18 subline');
 
   // 11. Check Review Engine Rules in lib
@@ -236,7 +236,7 @@ async function runBrowserVerification() {
           const solutionArea = document.getElementById('vcep-area-solution');
           const planArea = document.getElementById('vcep-area-plan');
           const tabs = document.querySelector('.v3-tabs');
-          const pageText = document.body.innerText;
+          const pageText = document.body.textContent || '';
           const taskCards = document.querySelectorAll('article[data-task-id]');
 
           return {

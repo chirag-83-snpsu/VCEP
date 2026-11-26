@@ -83,8 +83,8 @@ async function runStaticVerification() {
     page.includes('selected > 24 && (') || page.includes('selected > 16 && ('),
     'Tabs must be suppressed for Session 16'
   );
-  assert.ok(page.includes('vcep-area-decide'), 'Page must wire Compare Scenarios & Decide button');
-  assert.ok(page.includes('vcep-area-proposal'), 'Page must wire Understand Pricing Proposal button');
+  assert.ok(journey.includes('vcep-area-decide'), 'Journey must wire Compare Scenarios & Decide button');
+  assert.ok(journey.includes('vcep-area-proposal'), 'Journey must wire Understand Pricing Proposal button');
   assert.ok(page.includes('Make the decision with numbers.'), 'Page must display Session 16 subline');
 
   // 8. Check Review Engine Rules in lib
@@ -250,7 +250,7 @@ async function runBrowserVerification() {
           const card3 = document.querySelector('[data-task-id="S16-T03"]');
           const card4 = document.querySelector('[data-task-id="S16-T04"]');
           const tabs = document.querySelector('.v3-tabs');
-          const bodyText = document.body.innerText;
+          const bodyText = document.body.textContent || '';
 
           return {
             hasProposalArea: !!areaProposal,
@@ -259,10 +259,10 @@ async function runBrowserVerification() {
             hasTask02: !!card2,
             hasTask03: !!card3,
             hasTask04: !!card4,
-            t1Title: card1?.querySelector('h3')?.innerText || '',
-            t2Title: card2?.querySelector('h3')?.innerText || '',
-            t3Title: card3?.querySelector('h3')?.innerText || '',
-            t4Title: card4?.querySelector('h3')?.innerText || '',
+            t1Title: card1?.querySelector('h3')?.textContent || '',
+            t2Title: card2?.querySelector('h3')?.textContent || '',
+            t3Title: card3?.querySelector('h3')?.textContent || '',
+            t4Title: card4?.querySelector('h3')?.textContent || '',
             tabsHidden: !tabs,
             containsMatrixTable: bodyText.includes('Side-by-Side Commercial Evaluation Matrix') && (bodyText.includes('2,50,000') || bodyText.includes('250,000')) && (bodyText.includes('2,70,000') || bodyText.includes('270,000')),
             containsZeroGainProof: bodyText.includes('ZERO INCREMENTAL PROFIT') || bodyText.includes('Zero Economic Gain'),

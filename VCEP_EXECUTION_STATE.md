@@ -137,6 +137,24 @@ All core quality gates, headless browser CDP acceptance suites, and regression s
      - `pnpm test` (all 12 auth tests + 300 Vivi suggestions) passed 100%.
      - `pnpm build` passed completely with production bundles generated.
 
+8. **Batch 4 (Sessions 15–20) Simplicity Wizard Standard Rollout:**
+   - **Full Batch 4 Redesign:** Sessions 15, 16, 17, 18, 19, 20 upgraded to the 1-Line Teaching Takeaway Simplicity Wizard standard.
+   - **Sticky Horizontal Stepper & Footer:** Each workstation equips a sticky horizontal stepper (`Step 1` → `Step 2` → `...` → `Review & Submit`) and a sticky footer bar (`← Previous` | `Step N of Total · {Title}` | `Save & Continue →`).
+   - **Single-Task Visibility (`display: isActive ? 'block' : 'none'`):** Eliminated vertical endless scroll across all Batch 4 components while keeping all components in the DOM for autosaving, draft updating, and automated tests.
+   - **Plain English & Zero Jargon (< 20 Words):** Rewrote every task instruction to plain English under 20 words, each equipped with a subtle `💡 What you'll learn:` takeaway banner for clear commerce learning outcomes.
+   - **Mathematical & Structural Realities Preserved:**
+     - Session 15 (Sales Operations): 8 leads (L01–L08), dual win-rate calculation (Total 37.5% vs Qualified 50.0%), and follow-up queue for overdue commercial inquiries.
+     - Session 16 (Commercial Decision Making): Pricing sensitivity matrix, break-even shift (20 seats at ₹10k vs 24 seats at ₹9k), and executive pricing decision memo.
+     - Session 17 (Discovery Journey): Founder interview simulation, strict no-join boundary between Case F and Case G, 8 discovery questions, and 80-word problem statement with 5 architectural elements.
+     - Session 18 (Project Planning): Dynamic spreadsheet vs static presentation trade-offs, scope exclusions (no live ERP writes), 5 binary acceptance test gates, and 10-day WBS capped at 6.0 individual hours.
+     - Session 19 (Project Execution): Case F version 1 ingestion (₹1,00,000 control total), date sensitivity engine (31 Oct vs 1 Nov), duplicate/blank exception injection traps, and 5 executed acceptance tests.
+     - Session 20 (Change Management): Model v1.0 baseline preservation, CCB approved order log (CR-01 ₹5k credit note, CR-02 ₹8k supplier deferral), non-cash credit note invariance (bank cash strictly invariant at ₹25k), and executive memo (70–140 words).
+   - **100% Verification:**
+     - All 6 transformation test suites (`verify-session-15` through `verify-session-20`) passed 100% with live headless Chrome CDP screenshots across Desktop, Tablet, and Mobile.
+     - `pnpm exec tsc --noEmit` passed with 0 errors.
+     - `pnpm test` (all 12 auth tests + 300 Vivi suggestions) passed 100%.
+     - `pnpm build` passed completely with production bundles generated.
+
 ---
 
 ## 4. Remaining Blockers & Next Actions

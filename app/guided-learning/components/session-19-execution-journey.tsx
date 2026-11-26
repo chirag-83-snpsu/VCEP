@@ -22,6 +22,7 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
+  Sparkles,
 } from 'lucide-react';
 import {
   CASE_F_RAW_RECORDS,
@@ -47,6 +48,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   outputBadge?: string;
@@ -65,6 +67,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   outputBadge,
@@ -82,17 +85,40 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
       {/* Task Card Header */}
       <div
         style={{
@@ -253,6 +279,17 @@ export function Session19ExecutionJourney({ onUpdateDraft }: Session19ExecutionJ
   const [draftTimestamp, setDraftTimestamp] = useState<string>('');
   const [activeTaskId, setActiveTaskId] = useState<string>('S19-T01');
 
+  const WIZARD_STEPS = [
+    { id: 'S19-T01' as const, num: 1, label: 'Task 01 — Build Version 1', short: '1. Build v1' },
+    { id: 'S19-T02' as const, num: 2, label: 'Task 02 — Run Acceptance Tests', short: '2. Tests' },
+    { id: 'S19-T03' as const, num: 3, label: 'Task 03 — Fix and Retest', short: '3. Fix & Retest' },
+    { id: 'S19-T04' as const, num: 4, label: 'Task 04 — Prepare the Handover', short: '4. Handover' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
+
   useEffect(() => {
     const loaded = getStoredSession19State();
     setState(loaded);
@@ -368,6 +405,71 @@ export function Session19ExecutionJourney({ onUpdateDraft }: Session19ExecutionJ
 
   return (
     <div className="vcep-workstation-root" style={{ color: '#17245C' }}>
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       {/* ============================================================== */}
       {/* NATURAL HEADING 1: BUILD THE APPROVED SOLUTION                 */}
       {/* ============================================================== */}
@@ -433,7 +535,8 @@ export function Session19ExecutionJourney({ onUpdateDraft }: Session19ExecutionJ
           taskId="S19-T01"
           taskNumber="TASK 01"
           title="Build Version 1"
-          instruction="Ingest the four Case F receivables records into an immutable intake table, parameterize the calculation As-Of Date in cell $B$1 to dynamically drive ageing buckets, and verify edge-case exception triggers."
+          instruction="Ingest Case F receivables records into an immutable table and parameterize the calculation As-Of Date."
+          learningTakeaway="Keep source data immutable and use parameterized cells to drive dynamic calculation models."
           whyMatters="Source data immutability ensures financial models can be audited back to verifiable raw records. Parameterizing calculation dates via dynamic formulas (=MAX(0, AsOfDate - DueDate)) allows scenario forecasting without hardcoded date errors. Exception traps protect management from making liquidity decisions on duplicated or corrupted inputs."
           outputBadge="Working Dynamic Ageing Engine + Exception Simulator"
           statusText="Baseline Reconciled · Dynamic Engine Active"
@@ -849,7 +952,8 @@ export function Session19ExecutionJourney({ onUpdateDraft }: Session19ExecutionJ
           taskId="S19-T02"
           taskNumber="TASK 02"
           title="Run Acceptance Tests"
-          instruction="Execute all five formal acceptance tests against the prototype, record demonstrated outcomes against expected criteria, and audit technical Excel formulas against institutional quality standards."
+          instruction="Execute all five formal acceptance tests against the prototype and record demonstrated outcomes."
+          learningTakeaway="Systematically execute test cases to catch formula discrepancies and edge-case exceptions early."
           whyMatters="Formal acceptance tests verify that commercial software and financial models satisfy operational requirements before production deployment. Auditing formula syntax, ranges, and data types prevents circular references and silent computation failures that corrupt balance sheets."
           outputBadge="5 Executed Tests + Formula Audit Matrix"
           statusText={`${state.acceptanceTests.filter((t) => t.verdict === 'PASS').length}/5 Tests PASS`}
@@ -980,7 +1084,8 @@ export function Session19ExecutionJourney({ onUpdateDraft }: Session19ExecutionJ
           taskId="S19-T03"
           taskNumber="TASK 03"
           title="Fix and Retest"
-          instruction="Document your specific individual contributions to the prototype deliverables and log an authentic before/after defect correction identified during peer review."
+          instruction="Document individual contributions and log an authentic before/after defect resolution identified during peer review."
+          learningTakeaway="Rigorous peer reviews and traceable defect correction logs elevate analytical deliverable quality."
           whyMatters="Documenting individual accountability ensures governance transparency in collaborative enterprise projects. Recording peer review defect corrections provides auditable proof that quality verification actively caught and corrected modeling flaws prior to handover."
           outputBadge="Individual Contribution + Defect Correction Log"
           statusText="Contribution & Defect Logged"
@@ -1049,7 +1154,8 @@ export function Session19ExecutionJourney({ onUpdateDraft }: Session19ExecutionJ
           taskId="S19-T04"
           taskNumber="TASK 04"
           title="Prepare the Handover"
-          instruction="Draft independent refresh instructions for the commercial lead, record governance sign-offs, complete the pre-submission checklist, and verify deliverable metadata."
+          instruction="Draft client refresh instructions, complete the pre-submission checklist, and record deliverable governance sign-offs."
+          learningTakeaway="Clear handover documentation empowers commercial stakeholders to maintain financial tools independently."
           whyMatters="Operational handover ensures financial tools can be executed independently by line managers without relying on original authors. Governance sign-offs and structured pre-flight checks enforce professional compliance and prevent unverified files from entering production."
           outputBadge="Operational Runbook + Sign-Off + Rubric Review"
           statusText={`${state.checkedIndices.length}/6 Pre-Flight Items Verified`}
@@ -1286,6 +1392,68 @@ export function Session19ExecutionJourney({ onUpdateDraft }: Session19ExecutionJ
           </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Bottom Navigation Footer */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Execution Prototype Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

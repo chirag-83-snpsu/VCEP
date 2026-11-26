@@ -53,6 +53,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   outputBadge?: string;
@@ -71,6 +72,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   outputBadge,
@@ -88,17 +90,41 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
+      {/* Task Card Header */}
       {/* Task Card Header */}
       <div
         style={{
@@ -254,6 +280,17 @@ export function Session16DecisionJourney({ onUpdateDraft }: Session16DecisionJou
   const [state, setState] = useState<Session16State>(() => loadSession16State());
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S16-T01');
+
+  const WIZARD_STEPS = [
+    { id: 'S16-T01' as const, num: 1, label: 'TASK 01: Pricing Proposal', short: '1. Pricing Proposal' },
+    { id: 'S16-T02' as const, num: 2, label: 'TASK 02: Contribution & Break-Even', short: '2. Contribution' },
+    { id: 'S16-T03' as const, num: 3, label: 'TASK 03: Capacity & Sensitivity', short: '3. Sensitivity' },
+    { id: 'S16-T04' as const, num: 4, label: 'TASK 04: Commercial Verdict', short: '4. Commercial Verdict' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
 
   // Initial mount sync
   useEffect(() => {
@@ -454,6 +491,70 @@ export function Session16DecisionJourney({ onUpdateDraft }: Session16DecisionJou
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
       {/* ==================================================== */}
       {/* EXECUTIVE MISSION BANNER */}
       {/* ==================================================== */}
@@ -535,7 +636,8 @@ export function Session16DecisionJourney({ onUpdateDraft }: Session16DecisionJou
           taskId="S16-T01"
           taskNumber="TASK 01"
           title="Task 01 — Understand the Proposal"
-          instruction="Inspect the approved baseline parameters (Price ₹10,000, Variable Cost ₹4,000, Fixed Overhead ₹1,20,000) and compare the baseline (25 seats) versus the proposed 10% volume discount (30 seats)."
+          instruction="Inspect baseline parameters and compare 25 seats at full price against 30 seats with discount."
+          learningTakeaway="Evaluate volume discount proposals on incremental gross contribution, not total top-line revenue."
           whyMatters="Rigorous pricing begins with clear baseline inventory. Confusing fixed overhead with variable costs or ignoring physical delivery limits leads to fatal commercial commitments."
           statusText="Approved Case Ground Truth"
           outputBadge="Output: Baseline Parameter Inventory"
@@ -587,7 +689,8 @@ export function Session16DecisionJourney({ onUpdateDraft }: Session16DecisionJou
           taskId="S16-T02"
           taskNumber="TASK 02"
           title="Task 02 — Calculate Contribution & Break-Even"
-          instruction="Calculate unit contribution (Price − Variable Cost), break-even seats (Fixed Overhead ÷ Unit Contribution), and projected operating profit for baseline (20 BE seats) and proposed discount (24 BE seats)."
+          instruction="Calculate unit contribution, break-even seats, and projected operating profits across baseline and discounted scenarios."
+          learningTakeaway="Price cuts decrease unit contribution margins, raising the break-even volume required for solvency."
           whyMatters="Top-line revenue expansion is an illusion if unit contribution is compressed. The break-even volume shift from 20 to 24 seats increases operational downside vulnerability by 20%."
           statusText="20 vs 24 Break-Even Seats"
           outputBadge="Output: Comparative Pricing Matrix"
@@ -732,7 +835,8 @@ export function Session16DecisionJourney({ onUpdateDraft }: Session16DecisionJou
           taskId="S16-T03"
           taskNumber="TASK 03"
           title="Task 03 — Test Demand & Capacity Constraints"
-          instruction="Model demand sensitivity and downside risk drills (Independent Practice 04: 28-seat soft demand and ₹6k marketing spend add-on). Verify the exact minimum seats (30 seats) required to match baseline profit."
+          instruction="Model downside volume sensitivity and verify the minimum 30 seats needed to match baseline profit."
+          learningTakeaway="Verify whether customer demand and operational capacity can realistically deliver the required volume."
           whyMatters="Testing downside variations proves whether a proposal is robust against soft demand. The 30-seat requirement consumes 100% of capacity, leaving zero margin for cancellations."
           statusText="30-Seat Equivalence Proof"
           outputBadge="Output: Sensitivity Model & Downside Drill"
@@ -1020,7 +1124,8 @@ export function Session16DecisionJourney({ onUpdateDraft }: Session16DecisionJou
           taskId="S16-T04"
           taskNumber="TASK 04"
           title="Task 04 — Recommend a Commercial Decision"
-          instruction="Select formal managerial verdict, draft an evidence-based executive decision memo (max 130 words), state demand verification requirements, and complete deliverable governance."
+          instruction="Draft a 130-word executive decision memo recommending a commercial verdict with explicit data conditions."
+          learningTakeaway="Commercial recommendations must weigh profit impact against customer delivery capacity and downside risks."
           whyMatters="Strategic finance professionals do not simply reject sales proposals—they propose structured counter-proposals (tiered discounts) and enforce demand verification conditions before contractual sign-off."
           statusText="≤ 130 Words Compliant"
           outputBadge="Output: Executive Decision Memo & Handover"
@@ -1356,6 +1461,68 @@ export function Session16DecisionJourney({ onUpdateDraft }: Session16DecisionJou
           </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Footer Navigation Bar */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Commercial Evaluation Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }

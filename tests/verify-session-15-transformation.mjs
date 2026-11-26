@@ -77,8 +77,8 @@ async function runStaticVerification() {
     page.includes('selected > 24 && (') || page.includes('selected > 15 && ('),
     'Tabs must be suppressed for Session 15'
   );
-  assert.ok(page.includes('vcep-area-crm'), 'Page must wire Build CRM Action Queue button');
-  assert.ok(page.includes('vcep-area-pipeline'), 'Page must wire Review Sales Pipeline button');
+  assert.ok(journey.includes('vcep-area-crm'), 'Journey must wire Build CRM Action Queue button');
+  assert.ok(journey.includes('vcep-area-pipeline'), 'Journey must wire Review Sales Pipeline button');
   assert.ok(page.includes('Manage the pipeline. Own the follow-up.'), 'Page must display Session 15 subline');
 
   // 8. Check Review Engine Rules in lib
@@ -244,7 +244,7 @@ async function runBrowserVerification() {
           const card3 = document.querySelector('[data-task-id="S15-T03"]');
           const card4 = document.querySelector('[data-task-id="S15-T04"]');
           const tabs = document.querySelector('.v3-tabs');
-          const bodyText = document.body.innerText;
+          const bodyText = document.body.textContent || '';
 
           return {
             hasPipelineArea: !!areaPipeline,
@@ -253,10 +253,10 @@ async function runBrowserVerification() {
             hasTask02: !!card2,
             hasTask03: !!card3,
             hasTask04: !!card4,
-            t1Title: card1?.querySelector('h3')?.innerText || '',
-            t2Title: card2?.querySelector('h3')?.innerText || '',
-            t3Title: card3?.querySelector('h3')?.innerText || '',
-            t4Title: card4?.querySelector('h3')?.innerText || '',
+            t1Title: card1?.querySelector('h3')?.textContent || '',
+            t2Title: card2?.querySelector('h3')?.textContent || '',
+            t3Title: card3?.querySelector('h3')?.textContent || '',
+            t4Title: card4?.querySelector('h3')?.textContent || '',
             tabsHidden: !tabs,
             containsCaseGTable: bodyText.includes('Case G CRM Release') && bodyText.includes('L01') && bodyText.includes('L08'),
             containsDualWinRates: bodyText.includes('37.5%') && bodyText.includes('60.0%') && bodyText.includes('All-Lead Win Rate') && bodyText.includes('Closed-Lead Win Rate'),

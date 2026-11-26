@@ -52,6 +52,7 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
+  learningTakeaway?: string;
   whyMatters?: string;
   statusText?: string;
   outputBadge?: string;
@@ -70,6 +71,7 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
+  learningTakeaway,
   whyMatters,
   statusText,
   outputBadge,
@@ -87,17 +89,41 @@ function TaskCard({
       tabIndex={0}
       aria-label={`${taskNumber}: ${title}`}
       style={{
+        display: isActive ? 'block' : 'none',
         background: '#ffffff',
         border: '1px solid #DCE5E9',
         borderLeft: isActive ? '3px solid #0F766E' : '1px solid #DCE5E9',
         borderRadius: '16px',
         padding: 'clamp(18px, 2.5vw, 24px)',
-        marginBottom: '28px',
+        marginBottom: '20px',
         boxShadow: isActive ? '0 4px 16px rgba(15, 118, 110, 0.08)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         outline: 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      {learningTakeaway && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#f0fdfa',
+            border: '1px solid #ccfbf1',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#0f766e',
+            fontWeight: 600,
+          }}
+        >
+          <Sparkles size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+          <span>💡 <strong>What you&apos;ll learn:</strong> {learningTakeaway}</span>
+        </div>
+      )}
+
+      {/* Task Card Header */}
       {/* Task Card Header */}
       <div
         style={{
@@ -254,6 +280,17 @@ export function Session15SalesJourney({ onUpdateDraft }: Session15SalesJourneyPr
   const [reviewReport, setReviewReport] = useState<SessionReviewReport | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string>('S15-T01');
 
+  const WIZARD_STEPS = [
+    { id: 'S15-T01' as const, num: 1, label: 'TASK 01: Lead Queue', short: '1. Lead Queue' },
+    { id: 'S15-T02' as const, num: 2, label: 'TASK 02: CRM Schedule', short: '2. CRM Schedule' },
+    { id: 'S15-T03' as const, num: 3, label: 'TASK 03: Funnel Metrics', short: '3. Funnel Metrics' },
+    { id: 'S15-T04' as const, num: 4, label: 'TASK 04: Follow-Up Outreach', short: '4. Outreach' },
+  ];
+
+  const currentStepIdx = useMemo(() => {
+    return Math.max(0, WIZARD_STEPS.findIndex((s) => s.id === activeTaskId));
+  }, [activeTaskId]);
+
   // Initial mount sync
   useEffect(() => {
     const loaded = loadSession15State();
@@ -397,6 +434,70 @@ export function Session15SalesJourney({ onUpdateDraft }: Session15SalesJourneyPr
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      {/* Sticky Horizontal Stepper */}
+      <nav
+        aria-label="Session Tasks Stepper"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 25,
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '8px 12px',
+          marginBottom: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          overflowX: 'auto',
+          gap: '6px',
+        }}
+      >
+        {WIZARD_STEPS.map((step) => {
+          const isActive = activeTaskId === step.id;
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveTaskId(step.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#0f766e' : '#475569',
+                background: isActive ? '#f0fdfa' : 'transparent',
+                border: isActive ? '1px solid #99f6e4' : '1px solid transparent',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: isActive ? '#0f766e' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#475569',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }}
+              >
+                {step.num}
+              </span>
+              <span>{step.label}</span>
+            </button>
+          );
+        })}
+      </nav>
       {/* ==================================================== */}
       {/* EXECUTIVE MISSION BANNER */}
       {/* ==================================================== */}
@@ -478,7 +579,8 @@ export function Session15SalesJourney({ onUpdateDraft }: Session15SalesJourneyPr
           taskId="S15-T01"
           taskNumber="TASK 01"
           title="Task 01 — Review the Lead Queue"
-          instruction="Inspect the eight distinct Case G inquiry records as of 31 October 2026. Verify stages (3 Won, 2 Lost, 3 Open) and note the strict curriculum safeguard against linking to Case F invoices."
+          instruction="Inspect eight Case G inquiry records as of 31 October 2026 to verify sales pipeline stages."
+          learningTakeaway="Auditing lead statuses establishes clean baseline pipeline data before calculating sales conversion rates."
           whyMatters="Stable stage definitions and zero synthetic data merges are fundamental to pipeline integrity. In commercial operations, combining unrelated customer records creates fictitious accounts and invalid forecasts."
           statusText="Case G Ground Truth (8 Leads)"
           outputBadge="Output: Validated 8-Lead Source Queue"
@@ -607,7 +709,8 @@ export function Session15SalesJourney({ onUpdateDraft }: Session15SalesJourneyPr
           taskId="S15-T02"
           taskNumber="TASK 02"
           title="Task 02 — Update the CRM Schedule"
-          instruction="Maintain an operational working schedule for all 8 inquiries. Preserve original source stages while logging updated next action, single designated owner, and target resolution date."
+          instruction="Update next actions, designated owners, and resolution target dates for all eight customer inquiries."
+          learningTakeaway="Every CRM record requires an assigned owner, clear next step, and enforceable follow-up deadline."
           whyMatters="Single ownership prevents overlapping customer communications and conflicting commitments. Original historical stages must remain unaltered to preserve audit trails."
           statusText="8 / 8 Active Plans Tracked"
           outputBadge="Output: Active CRM Working Schedule"
@@ -740,7 +843,8 @@ export function Session15SalesJourney({ onUpdateDraft }: Session15SalesJourneyPr
           taskId="S15-T03"
           taskNumber="TASK 03"
           title="Task 03 — Calculate Conversion Funnel Metrics"
-          instruction="Calculate both All-Lead Win Rate (3/8 = 37.5%) and Closed-Lead Win Rate (3/5 = 60.0%). Transparently state explicit denominators and draft a commercial narrative explaining the difference between acquisition yield and closing effectiveness."
+          instruction="Calculate All-Lead Win Rate (37.5%) and Closed-Lead Win Rate (60.0%) using explicit denominators."
+          learningTakeaway="Distinguish total acquisition conversion from qualified closing rates to pinpoint pipeline drop-offs."
           whyMatters="A conversion funnel is mathematically meaningless without explicit denominators. Blending top-of-funnel inquiries with closed decisions masks sales bottlenecks and skews revenue forecasts."
           statusText="Dual Denominators (37.5% & 60.0%)"
           outputBadge="Output: Dual Win-Rate Analysis"
@@ -871,7 +975,8 @@ export function Session15SalesJourney({ onUpdateDraft }: Session15SalesJourneyPr
           taskId="S15-T04"
           taskNumber="TASK 04"
           title="Task 04 — Prioritise Follow-Up & Compose Outreach"
-          instruction="Filter open inquiries overdue as of 31 October 2026 (L06: 3 days overdue, L07: 1 day overdue). Draft two professional, milestone-driven follow-up communications referencing prior touchpoints and specific meeting times."
+          instruction="Filter overdue inquiries and draft milestone-driven follow-up messages proposing specific meeting dates."
+          learningTakeaway="Timely, structured follow-ups referencing specific prior discussions dramatically improve sales deal velocity."
           whyMatters="Follow-ups must be prioritized strictly by business urgency and calendar due date, never demographic or personal traits. Clear deadlines with concrete meeting requests maximize deal velocity."
           statusText="2 Overdue Leads (L06 & L07)"
           outputBadge="Output: 2 Overdue Outreach Drafts"
@@ -1166,6 +1271,68 @@ export function Session15SalesJourney({ onUpdateDraft }: Session15SalesJourneyPr
           </div>
         </TaskCard>
       </section>
+
+      {/* Sticky Footer Navigation Bar */}
+      <footer
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 20,
+          background: '#ffffff',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 16px',
+          marginTop: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.03)',
+          borderRadius: '0 0 16px 16px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            const prevIdx = Math.max(0, currentStepIdx - 1);
+            setActiveTaskId(WIZARD_STEPS[prevIdx].id);
+          }}
+          disabled={currentStepIdx === 0}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            background: currentStepIdx === 0 ? '#f1f5f9' : '#ffffff',
+            color: currentStepIdx === 0 ? '#94a3b8' : '#334155',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: currentStepIdx === 0 ? 'not-allowed' : 'pointer',
+          }}
+        >
+          &larr; Previous
+        </button>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
+          Step {currentStepIdx + 1} of {WIZARD_STEPS.length}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (currentStepIdx < WIZARD_STEPS.length - 1) {
+              setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
+            }
+          }}
+          style={{
+            padding: '8px 18px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#0f766e',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          {currentStepIdx === WIZARD_STEPS.length - 1 ? 'Pipeline Review Complete ✓' : 'Save & Continue →'}
+        </button>
+      </footer>
     </div>
   );
 }
