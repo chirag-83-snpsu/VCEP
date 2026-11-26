@@ -1350,6 +1350,12 @@ export interface StartupLabState {
     tradeoffExplained: boolean | null;
   };
   reflectionChange?: string;
+  unitPrice?: number;
+  unitCost?: number;
+  expectedMonthlyUnits?: number;
+  cashDecision?: 'yes' | 'no' | '';
+  cashRationale?: string;
+  firstStepAction?: string;
   lastSaved?: string;
 }
 
@@ -1561,7 +1567,13 @@ export function loadStartupLabState(): StartupLabState {
       businessModelClear: null,
       tradeoffExplained: null,
     },
-    reflectionChange: 'I would spend more time interviewing early adopters directly rather than relying on initial assumptions.'
+    reflectionChange: 'I would spend more time interviewing early adopters directly rather than relying on initial assumptions.',
+    unitPrice: 90,
+    unitCost: 55,
+    expectedMonthlyUnits: 500,
+    cashDecision: 'no',
+    cashRationale: 'Closing bank balance is only ₹10,000, leaving just ₹5,000 free cash after reserving ₹5,000. Paying ₹15,000 creates a ₹10,000 deficit.',
+    firstStepAction: 'Interview 5 students outside the hostel gate on Sunday to validate willingness to pay.',
   };
 
   if (typeof window === 'undefined') return defaultState;

@@ -41,27 +41,28 @@ async function runStaticVerification() {
 
   // 6. Verify 5 Unified Premium Bordered Task Cards & IDs
   assert.ok(s01Comp.includes('taskId="S01-T01"'), 'Must define S01-T01');
-  assert.ok(s01Comp.includes('TASK 01') && s01Comp.includes('Identify the Opportunity'), 'Must have Task 01 Identify Opportunity');
+  assert.ok(s01Comp.includes('TASK 01') && s01Comp.includes('Pick a Real Problem'), 'Must have Task 01 Pick a Real Problem');
 
   assert.ok(s01Comp.includes('taskId="S01-T02"'), 'Must define S01-T02');
-  assert.ok(s01Comp.includes('TASK 02') && s01Comp.includes('Test the Idea'), 'Must have Task 02 Test Idea');
+  assert.ok(s01Comp.includes('TASK 02') && s01Comp.includes('Define Your Solution'), 'Must have Task 02 Define Your Solution');
 
   assert.ok(s01Comp.includes('taskId="S01-T03"'), 'Must define S01-T03');
-  assert.ok(s01Comp.includes('TASK 03') && s01Comp.includes('Shape the Business'), 'Must have Task 03 Shape Business');
+  assert.ok(s01Comp.includes('TASK 03') && s01Comp.includes('Check Your Pricing & Profit'), 'Must have Task 03 Check Your Pricing & Profit');
 
   assert.ok(s01Comp.includes('taskId="S01-T04"'), 'Must define S01-T04');
-  assert.ok(s01Comp.includes('TASK 04') && s01Comp.includes('Check Business Reality'), 'Must have Task 04 Check Business Reality');
+  assert.ok(s01Comp.includes('TASK 04') && s01Comp.includes('Profit vs. Cash Reality Check'), 'Must have Task 04 Profit vs. Cash Reality Check');
 
   assert.ok(s01Comp.includes('taskId="S01-T05"'), 'Must define S01-T05');
-  assert.ok(s01Comp.includes('TASK 05') && s01Comp.includes('Build the Pitch Deck'), 'Must have Task 05 Build Pitch Deck');
+  assert.ok(s01Comp.includes('TASK 05') && s01Comp.includes('Your 1-Page Business Pitch'), 'Must have Task 05 Your 1-Page Business Pitch');
 
-  // 7. Verify TaskCard Design Specs: 1px border, 16px radius, 3px teal accent, why-matters disclosure
+  // 7. Verify TaskCard Design Specs: 1px border, 16px radius, 3px teal accent, learning takeaway
   assert.ok(s01Comp.includes('function TaskCard'), 'Must define reusable TaskCard component');
   assert.ok(s01Comp.includes('#DCE5E9'), 'Must use neutral 1px #DCE5E9 border');
   assert.ok(s01Comp.includes('#0F766E'), 'Must use brand teal #0F766E');
   assert.ok(s01Comp.includes('#17245C'), 'Must use navy #17245C');
-  assert.ok(s01Comp.includes('Why this matters') || s01Comp.includes('whyMatters'), 'Must provide collapsible theory disclosure');
-  assert.ok(s01Comp.includes('ORDER_TO_CASH_STEPS.map'), 'Must render order-to-cash process mapping in Task 04');
+  assert.ok(s01Comp.includes('learningTakeaway'), 'Must provide 1-line teaching takeaway per task');
+  assert.ok(s01Comp.includes('oneSentencePitch'), 'Must render live 1-sentence pitch preview');
+  assert.ok(s01Comp.includes('Unit Economics Calculator'), 'Must render unit economics calculator in Task 03');
 
   console.log('✅ Static Verification Passed (100%)\n');
 }

@@ -85,12 +85,14 @@ All core quality gates, headless browser CDP acceptance suites, and regression s
      - Active task rendered with `display: activeTaskId === taskId ? 'block' : 'none'`, maintaining DOM presence for single-page persistence and automated test stability without vertical endless scroll.
      - Sticky footer navigation bar with `← Previous`, `Step {N} of 5 · {Title}`, and `Save & Continue →` / `Review & Submit Session ↓`.
    - **Sleek Collapsible Baseline Diagnostic A Banner:** Replaced wall of exam rules with 44px collapsible alert banner with `View Rules` toggle and `Confirm & Begin` action.
-   - **Task-Level Simplifications:**
-     - Task 1: Compact 3-column idea cards with category pill and hidden hint until selected.
-     - Task 2: 2x2 desktop grid / 1-column mobile layout, concise labels, and max 3 quick-insert chips.
-     - Task 3: Interactive tabs for Indian startup cases (Zerodha, Nykaa, Meesho) showing 1 case at a time with 2 punchy bullets + decision question; interactive Unit Economics calculator with live auto-calculated contribution margin (`₹35 / unit (+38.9%)`).
-     - Task 4: Removed institutional boundary notice; 4-metric mini-card (Revenue, Expenses, Cash In, Opening Bank); answer gate hiding audit lesson and payment deferral recommendation until student prediction is committed; interactive 6-row Order-to-Cash table.
-     - Task 5: 8-slide fixed tabs (`1. Startup` to `8. Ask`) with clean slide editor and slide reflection textarea.
+   - **Session 01 Simple & Informative Redesign (`app/guided-learning/components/session-01-startup-journey.tsx`):**
+     - **1-Line Teaching Takeaways:** Subtle top banner on each task explaining the commerce concept in plain English.
+     - **Zero Jargon & Under 20 Words:** All instructions strictly concise; removed internal ref codes (`Ref: S01-T01`), repetitive dropdowns, and institutional boundary notices.
+     - **Step 1 (Pick a Real Problem):** 4 clean, scannable cards (Student Laundry, Mess Food, Campus Essentials/Stationery, My Own Idea). Selecting reveals a short "Founder Insight" pill.
+     - **Step 2 (Define Your Solution):** Replaced 4 heavy essay boxes with 3 focused inputs (Target Customer, Your Solution, Why You?) with starter chips and a live auto-combined "Your 1-Sentence Pitch" preview box.
+     - **Step 3 (Check Your Pricing & Profit):** Concise toggleable concept card (Zerodha transparent pricing vs. Meesho unit-cost discipline); interactive Unit Economics calculator (Price, Direct Cost, Monthly Units) auto-calculating Unit Profit, Margin %, and Monthly Profit with dynamic <20% warning.
+     - **Step 4 (Profit vs. Cash Reality Check):** Removed 6-stage Order-to-Cash mapping table; 4-stat summary card (Revenue ₹1,00,000, Expenses ₹75,000, Cash Collected ₹60,000, Opening Bank ₹20,000); Yes/No decision on ₹15,000 bill with ₹5,000 safety buffer + Why justification; "Check Answer" reveal showing visual breakdown (+₹25,000 profit vs. ₹5,000 free cash -> ₹10,000 deficit) and the golden rule: *"Profit on paper doesn't pay bills—cash in the bank does."*
+     - **Step 5 (Your 1-Page Business Pitch):** Replaced complex 8-slide editor with clean executive 1-Page Pitch Card auto-populated from Steps 1–4; final input: "My First Step This Week"; clean `Preview Pitch Card` view and `Review & Submit Session 1` action.
    - **Full Viewport Verification:** Verified with headless Chrome CDP across Desktop (`1440x900`), Tablet (`768x1024`), and Mobile (`390x844`) with zero horizontal overflow.
 6. **Session 02 UI/UX Simplification & 5-Step Wizard (`app/guided-learning/components/session-02-teamwork-journey.tsx`):**
    - **5-Step Wizard Stepper:** Sticky horizontal stepper (`1. Introduce Yourself` → `2. Assign Roles` → `3. Team Rules` → `4. Crisis Plan` → `5. Review & Submit`) with single-task visibility (`display: activeTaskId === taskId ? 'block' : 'none'`).

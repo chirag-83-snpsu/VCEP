@@ -1,19 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   STARTUP_STORIES,
   COLLEGE_PROBLEM_OPTIONS,
-  OPPORTUNITY_QUESTIONS,
   VENTURE_CASES,
-  PRICING_TRADE_OFF_OPTIONS,
-  VAYENTRA_LABS_FINANCIAL_CASE,
-  ORDER_TO_CASH_STEPS,
   STARTUP_STORAGE_KEY,
   loadStartupLabState,
   buildDefaultPitchDeck,
   type StartupLabState,
-  type PitchSlide,
   type CollegeProblemOption,
 } from './session-01-startup-data.ts';
 import { ControlledAssessmentShield } from '../workstations/components/controlled-assessment-shield.tsx';
@@ -25,16 +20,17 @@ import {
   ArrowRight,
   ArrowLeft,
   Sparkles,
-  Sliders,
   DollarSign,
   Target,
-  FileText,
-  Lightbulb,
   Check,
-  Workflow,
   HelpCircle,
   Eye,
   EyeOff,
+  AlertTriangle,
+  Lightbulb,
+  Send,
+  Building2,
+  TrendingUp,
 } from 'lucide-react';
 
 interface Session01StartupJourneyProps {
@@ -46,7 +42,8 @@ interface TaskCardProps {
   taskNumber: string;
   title: string;
   instruction: string;
-  whyMatters?: string;
+  learningTakeaway: string;
+  hintText?: string;
   statusText?: string;
   isActive?: boolean;
   onSelectTask?: () => void;
@@ -63,7 +60,8 @@ function TaskCard({
   taskNumber,
   title,
   instruction,
-  whyMatters,
+  learningTakeaway,
+  hintText,
   statusText,
   isActive = true,
   onSelectTask,
@@ -90,6 +88,26 @@ function TaskCard({
         display: isActive ? 'block' : 'none',
       }}
     >
+      {/* 1-Line Teaching Takeaway Banner */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: '#f0fdfa',
+          border: '1px solid #ccfbf1',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          marginBottom: '16px',
+          fontSize: '12px',
+          color: '#0f766e',
+          fontWeight: 600,
+        }}
+      >
+        <Lightbulb size={15} color="#0f766e" style={{ flexShrink: 0 }} />
+        <span>{learningTakeaway}</span>
+      </div>
+
       {/* Task Header */}
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
@@ -105,7 +123,7 @@ function TaskCard({
             {taskNumber}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {whyMatters && (
+            {hintText && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -164,20 +182,20 @@ function TaskCard({
         </p>
 
         {/* Collapsible Single Hint */}
-        {hintOpen && whyMatters && (
+        {hintOpen && hintText && (
           <div
             style={{
               marginTop: '10px',
               padding: '10px 14px',
-              background: '#f0fdfa',
-              border: '1px solid #ccfbf1',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
               borderRadius: '8px',
               fontSize: '12px',
-              color: '#0F766E',
+              color: '#334155',
               lineHeight: 1.45,
             }}
           >
-            <strong>Founder Principle:</strong> {whyMatters}
+            <strong>Founder Tip:</strong> {hintText}
           </div>
         )}
       </div>
@@ -196,23 +214,50 @@ export function Session01StartupJourney({
   const [labState, setLabState] = useState<StartupLabState>(loadStartupLabState);
   const [shieldConfirmed, setShieldConfirmed] = useState(false);
   const [shieldExpanded, setShieldExpanded] = useState(false);
-  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [activeTaskId, setActiveTaskId] = useState<'S01-T01' | 'S01-T02' | 'S01-T03' | 'S01-T04' | 'S01-T05'>('S01-T01');
+
+  // Step 1: Idea selection state
   const [isCustomIdea, setIsCustomIdea] = useState(false);
-  const [customIdeaText, setCustomIdeaText] = useState('');
+  const [customIdeaTitle, setCustomIdeaTitle] = useState('');
+  const [customIdeaFriction, setCustomIdeaFriction] = useState('');
 
-  // Task 3: Interactive Startup Case Tabs & Live Calculator
-  const [activeStoryId, setActiveStoryId] = useState<'zerodha' | 'nykaa' | 'meesho'>('zerodha');
-  const [unitSellingPrice, setUnitSellingPrice] = useState<number>(90);
-  const [unitDirectCost, setUnitDirectCost] = useState<number>(55);
+  // Step 2: 3 Focused solution inputs
+  const [targetCustomer, setTargetCustomer] = useState(
+    labState.stage1?.targetCampusPersona || 'Hostel students & PG residents without kitchen access'
+  );
+  const [solutionOffering, setSolutionOffering] = useState(
+    labState.stage1?.opportunityStatement || 'Hot ₹90 homestyle meal box delivered at 1:15 PM'
+  );
+  const [whyYou, setWhyYou] = useState(
+    labState.stage1?.whyItMatters || 'Guaranteed on-time delivery or 100% money-back refund'
+  );
 
-  // Task 4: Prediction & Check Answer Gate
-  const [financialAuditRevealed, setFinancialAuditRevealed] = useState(false);
+  // Step 3: Quick Concept & Unit Economics
+  const [activeStartupStory, setActiveStartupStory] = useState<'zerodha' | 'meesho'>('zerodha');
+  const [sellingPrice, setSellingPrice] = useState<number>(labState.unitPrice || 90);
+  const [directCost, setDirectCost] = useState<number>(labState.unitCost || 55);
+  const [monthlyUnits, setMonthlyUnits] = useState<number>(labState.expectedMonthlyUnits || 500);
 
-  // Task 5: Deck Preview Mode
-  const [deckPreviewMode, setDeckPreviewMode] = useState(false);
+  // Step 4: Cash check & decision
+  const [cashDecision, setCashDecision] = useState<'yes' | 'no' | ''>(
+    labState.cashDecision || (labState.vlab?.prediction === 'no' ? 'no' : labState.vlab?.prediction === 'yes' ? 'yes' : 'no')
+  );
+  const [cashRationale, setCashRationale] = useState<string>(
+    labState.cashRationale || labState.vlab?.paymentRationale ||
+    'Closing bank balance is only ₹10,000, leaving just ₹5,000 free cash after the ₹5,000 safety reserve. Paying ₹15,000 creates a ₹10,000 deficit.'
+  );
+  const [answerChecked, setAnswerChecked] = useState(Boolean(labState.vlab?.calcAttempted));
 
-  // Stepper metadata
+  // Step 5: 1-Page Pitch Card & First Step Action
+  const [firstStepAction, setFirstStepAction] = useState<string>(
+    labState.firstStepAction || labState.reflectionChange ||
+    'Set up a free tasting table outside the hostel on Sunday to test willingness to pay.'
+  );
+  const [pitchPreviewMode, setPitchPreviewMode] = useState(false);
+
+  const hasInitialSynced = useRef(false);
+
+  // Wizard Steps metadata
   const WIZARD_STEPS = [
     { id: 'S01-T01' as const, num: 1, label: 'Pick Idea', short: 'Idea' },
     { id: 'S01-T02' as const, num: 2, label: 'Test Idea', short: 'Test' },
@@ -223,16 +268,99 @@ export function Session01StartupJourney({
 
   const currentStepIdx = WIZARD_STEPS.findIndex((s) => s.id === activeTaskId);
 
-  // Hydrate from localStorage and check Baseline A shield
+  // Unit Economics calculated metrics
+  const unitProfit = sellingPrice - directCost;
+  const unitMarginPercent = sellingPrice > 0 ? ((unitProfit / sellingPrice) * 100).toFixed(1) : '0';
+  const totalMonthlyProfit = unitProfit * monthlyUnits;
+
+  // Live 1-Sentence Pitch
+  const oneSentencePitch = useMemo(() => {
+    const cust = targetCustomer.trim() || 'campus students';
+    const sol = solutionOffering.trim() || 'affordable daily services';
+    const why = whyYou.trim() || 'it is faster and more reliable';
+    return `We help ${cust} by providing ${sol}, because ${why}.`;
+  }, [targetCustomer, solutionOffering, whyYou]);
+
+  // Sync draft keys for review engine and platform grading
+  const syncDraftKeys = (state: StartupLabState) => {
+    try {
+      const raw = sessionStorage.getItem('vcep-drive-edition3:session:1:preview');
+      const draft = raw ? JSON.parse(raw) : {};
+
+      // Shield
+      draft['check:0'] = 'yes';
+      onUpdateDraft?.('check:0', 'yes');
+
+      // Stage 1 Concept & Opportunity
+      const cust = targetCustomer.trim() || 'Hostel students';
+      const sol = solutionOffering.trim() || 'Affordable daily meals';
+      const why = whyYou.trim() || 'Guaranteed on-time delivery';
+      const conceptText = `Venture: ${state.selectedCaseId}. Target customer: ${cust}. Solves customer friction by providing ${sol}. Chosen because: ${why}. Built on disciplined unit contribution margins and transparent pricing to protect liquidity.`;
+      draft['concept:explain'] = conceptText;
+      onUpdateDraft?.('concept:explain', conceptText);
+
+      // Stage 4 Canvas & Analysis
+      const activeCase = VENTURE_CASES.find((c) => c.id === state.selectedCaseId) || VENTURE_CASES[0];
+      const prob = state.stage1?.opportunityStatement || activeCase.summary;
+      const pricing = state.pricingTradeOff?.choice || 'pt-scope';
+      draft['work:analysis'] = `Selected Venture: ${activeCase.name}. Core Problem: ${prob}. Beachhead Customer: ${cust}. Pricing Strategy: ${pricing}. Unit Margin: ₹${unitProfit} (${unitMarginPercent}%).`;
+      onUpdateDraft?.('work:analysis', draft['work:analysis']);
+
+      // Stage 5 Approved Vayentra Labs Financial figures sync
+      draft['work:1:0:0:2'] = '25000';
+      draft['work:1:0:1:2'] = '-10000';
+      draft['work:1:0:2:2'] = '10000';
+      draft['work:1:0:3:2'] = '5000';
+      draft['work:1:0:4:2'] = '10000';
+
+      onUpdateDraft?.('work:1:0:0:2', '25000');
+      onUpdateDraft?.('work:1:0:1:2', '-10000');
+      onUpdateDraft?.('work:1:0:2:2', '10000');
+      onUpdateDraft?.('work:1:0:3:2', '5000');
+      onUpdateDraft?.('work:1:0:4:2', '10000');
+
+      // Process handoffs
+      draft['team:contribution'] = 'Vayentra Labs Cash Audit: Identified ₹10,000 cash shortfall despite ₹25,000 accounting profit. Protected ₹5,000 emergency reserve.';
+      onUpdateDraft?.('team:contribution', draft['team:contribution']);
+
+      // Management payment recommendation
+      const rec = cashDecision === 'yes' ? 'approve' : 'reschedule';
+      draft['team:judgement'] = `Payment Decision: ${rec}. Rationale: ${cashRationale || 'Pay ₹5,000 from free cash; defer remaining ₹10,000 until customer receivables are collected.'}`;
+      onUpdateDraft?.('team:judgement', draft['team:judgement']);
+
+      // Reflection
+      const refAction = firstStepAction || 'Interview 5 students outside the hostel gate on Sunday to validate willingness to pay.';
+      draft['review:reflection'] = refAction;
+      onUpdateDraft?.('review:reflection', refAction);
+
+      sessionStorage.setItem('vcep-drive-edition3:session:1:preview', JSON.stringify(draft));
+    } catch {}
+  };
+
+  // Save lab state to localStorage and sync draft keys
+  const saveLabState = (next: StartupLabState) => {
+    setLabState(next);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STARTUP_STORAGE_KEY, JSON.stringify(next));
+      }
+    } catch {}
+    syncDraftKeys(next);
+  };
+
+  // Hydrate on mount
   useEffect(() => {
     const loaded = loadStartupLabState();
     setLabState(loaded);
-    if (loaded.pitchDeck?.activeSlideIndex !== undefined) {
-      setActiveSlideIndex(loaded.pitchDeck.activeSlideIndex);
-    }
-    if (loaded.vlab?.calcAttempted) {
-      setFinancialAuditRevealed(true);
-    }
+
+    if (loaded.unitPrice) setSellingPrice(loaded.unitPrice);
+    if (loaded.unitCost) setDirectCost(loaded.unitCost);
+    if (loaded.expectedMonthlyUnits) setMonthlyUnits(loaded.expectedMonthlyUnits);
+    if (loaded.cashDecision) setCashDecision(loaded.cashDecision);
+    if (loaded.cashRationale) setCashRationale(loaded.cashRationale);
+    if (loaded.firstStepAction) setFirstStepAction(loaded.firstStepAction);
+    if (loaded.vlab?.calcAttempted) setAnswerChecked(true);
+
     try {
       const draft = JSON.parse(sessionStorage.getItem('vcep-drive-edition3:session:1:preview') || '{}');
       if (draft['check:0'] === 'yes') {
@@ -244,71 +372,12 @@ export function Session01StartupJourney({
     if (typeof window !== 'undefined') {
       (window as any).__setActiveTask = (id: any) => setActiveTaskId(id);
     }
+
+    if (!hasInitialSynced.current) {
+      hasInitialSynced.current = true;
+      syncDraftKeys(loaded);
+    }
   }, []);
-
-  // Save state to localStorage and sync backward-compatible draft keys
-  const saveLabState = (next: StartupLabState) => {
-    setLabState(next);
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(STARTUP_STORAGE_KEY, JSON.stringify(next));
-      }
-    } catch {}
-    syncDraftKeys(next);
-  };
-
-  // Sync draft keys for review engine & platform grading compatibility
-  const syncDraftKeys = (state: StartupLabState) => {
-    try {
-      const raw = sessionStorage.getItem('vcep-drive-edition3:session:1:preview');
-      const draft = raw ? JSON.parse(raw) : {};
-
-      // Stage 1 Concept & Opportunity
-      if (state.stage1) {
-        draft['concept:explain'] = `Opportunity: ${state.stage1.opportunityStatement}. Target: ${state.stage1.targetCampusPersona}. Why: ${state.stage1.whyItMatters}`;
-        onUpdateDraft?.('concept:explain', draft['concept:explain']);
-      }
-
-      // Stage 4 Canvas & Analysis
-      const activeCase = VENTURE_CASES.find((c) => c.id === state.selectedCaseId) || VENTURE_CASES[0];
-      const prob = state.stage1?.opportunityStatement || activeCase.summary;
-      const persona = state.stage1?.targetCampusPersona || activeCase.persona;
-      const pricing = state.pricingTradeOff?.choice || 'Scope Pruning';
-      draft['work:analysis'] = `Venture: ${activeCase.name}. Problem: ${prob}. Customer: ${persona}. Pricing Trade-off: ${pricing}.`;
-      onUpdateDraft?.('work:analysis', draft['work:analysis']);
-
-      // Stage 5 Approved Vayentra Labs Financial figures sync
-      if (state.vlab) {
-        draft['work:1:0:0:2'] = String(state.vlab.calcProfit || '');
-        draft['work:1:0:1:2'] = String(state.vlab.calcNetCash || '');
-        draft['work:1:0:2:2'] = String(state.vlab.calcClosingBank || '');
-        draft['work:1:0:3:2'] = String(state.vlab.calcAvailableAboveReserve || '');
-        draft['work:1:0:4:2'] = String(state.vlab.calcPaymentShortfall || '');
-
-        onUpdateDraft?.('work:1:0:0:2', draft['work:1:0:0:2']);
-        onUpdateDraft?.('work:1:0:1:2', draft['work:1:0:1:2']);
-        onUpdateDraft?.('work:1:0:2:2', draft['work:1:0:2:2']);
-        onUpdateDraft?.('work:1:0:3:2', draft['work:1:0:3:2']);
-        onUpdateDraft?.('work:1:0:4:2', draft['work:1:0:4:2']);
-
-        // Process handoffs
-        draft['team:contribution'] = `Order-to-Cash Process: ${state.vlab.processOrder.join(' -> ')}. Delivery Owner: ${state.vlab.processOwners?.delivery || 'Delivery Manager'}.`;
-        onUpdateDraft?.('team:contribution', draft['team:contribution']);
-
-        // Management payment recommendation
-        draft['team:judgement'] = `Payment Decision: ${state.vlab.paymentRecommendation}. Rationale: ${state.vlab.paymentRationale}`;
-        onUpdateDraft?.('team:judgement', draft['team:judgement']);
-      }
-
-      // Stage 6 Reflection
-      if (state.reflectionChange) {
-        draft['review:reflection'] = state.reflectionChange;
-        onUpdateDraft?.('review:reflection', state.reflectionChange);
-      }
-
-      sessionStorage.setItem('vcep-drive-edition3:session:1:preview', JSON.stringify(draft));
-    } catch {}
-  };
 
   const handleConfirmShield = () => {
     setShieldConfirmed(true);
@@ -322,14 +391,13 @@ export function Session01StartupJourney({
     } catch {}
   };
 
-  // Handle problem selection from 4 relatable options or custom
-  const handleSelectProblemOption = (opt: CollegeProblemOption) => {
+  // Step 1: Select 1 of 4 cards
+  const handleSelectProblemCard = (opt: CollegeProblemOption) => {
     setIsCustomIdea(false);
     let mappedCaseId = 'quickbite';
     if (opt.id === 'prob-laundry') mappedCaseId = 'cleanwash';
     else if (opt.id === 'prob-food') mappedCaseId = 'quickbite';
     else if (opt.id === 'prob-inventory') mappedCaseId = 'digitlocal';
-    else if (opt.id === 'prob-support') mappedCaseId = 'digitlocal';
 
     const caseObj = VENTURE_CASES.find((c) => c.id === mappedCaseId) || VENTURE_CASES[0];
 
@@ -343,94 +411,94 @@ export function Session01StartupJourney({
         targetCampusPersona: caseObj.persona,
         whyItMatters: opt.friction,
       },
-      opportunityBrief: {
-        ...labState.opportunityBrief,
-        customerProblem: opt.description,
-        targetPersona: caseObj.persona,
-        existingAlternatives: opt.friction,
-        whyItMatters: opt.friction,
+      decisions: {
+        decisionA: mappedCaseId === 'quickbite' ? 'qa1' : mappedCaseId === 'cleanwash' ? 'ca1' : 'da1',
+        decisionB: mappedCaseId === 'quickbite' ? 'qb1' : mappedCaseId === 'cleanwash' ? 'cb1' : 'db1',
+        decisionC: mappedCaseId === 'quickbite' ? 'qc1' : mappedCaseId === 'cleanwash' ? 'cc1' : 'dc1',
+        decisionD: mappedCaseId === 'quickbite' ? 'qd1' : mappedCaseId === 'cleanwash' ? 'cd1' : 'dd1',
+        decisionE: mappedCaseId === 'quickbite' ? 'qe1' : mappedCaseId === 'cleanwash' ? 'ce1' : 'de1',
       },
-      pitchDeck: {
-        ...labState.pitchDeck,
-        slides: buildDefaultPitchDeck(caseObj, labState.decisions, {
-          selectedProblemId: opt.id,
-          targetCampusPersona: caseObj.persona,
-          opportunityStatement: opt.opportunityHint,
-          whyItMatters: opt.friction,
-        }, labState.boardroom),
+      storyDecisions: {
+        zerodha: 'opt-transparency',
+        nykaa: 'opt-authenticity',
+        meesho: 'opt-unit-economics',
       },
     };
     saveLabState(nextState);
   };
 
-  // Handle custom venture input
-  const handleCustomVentureSubmit = () => {
-    if (!customIdeaText.trim()) return;
+  const handleCustomIdeaSelect = () => {
     setIsCustomIdea(true);
-    const customCaseObj = VENTURE_CASES[0];
     const nextState: StartupLabState = {
       ...labState,
+      selectedCaseId: 'quickbite',
       stage1: {
         ...labState.stage1,
         selectedProblemId: 'custom-idea',
-        opportunityStatement: customIdeaText.trim(),
+        opportunityStatement: customIdeaTitle || 'Custom Campus Venture',
         targetCampusPersona: 'Campus Students & Faculty',
-        whyItMatters: 'Direct campus customer friction identified.',
+        whyItMatters: customIdeaFriction || 'Direct campus friction identified.',
       },
-      opportunityBrief: {
-        ...labState.opportunityBrief,
-        customerProblem: customIdeaText.trim(),
-        targetPersona: 'Campus Students & Faculty',
-        existingAlternatives: 'Manual or fragmented alternatives.',
-        whyItMatters: 'Direct campus customer friction identified.',
+      decisions: {
+        decisionA: 'qa1',
+        decisionB: 'qb1',
+        decisionC: 'qc1',
+        decisionD: 'qd1',
+        decisionE: 'qe1',
+      },
+      storyDecisions: {
+        zerodha: 'opt-transparency',
+        nykaa: 'opt-authenticity',
+        meesho: 'opt-unit-economics',
       },
     };
     saveLabState(nextState);
   };
 
-  // Handle question updates in Task 2
-  const handleUpdateQuestion = (
-    key: 'targetCampusPersona' | 'opportunityStatement' | 'whyItMatters' | 'validationApproach',
-    val: string
-  ) => {
+  // Step 2: Update 3 inputs
+  const handleSaveStep2 = () => {
     const nextState: StartupLabState = {
       ...labState,
       stage1: {
         ...labState.stage1,
-        [key]: val,
+        targetCampusPersona: targetCustomer,
+        opportunityStatement: solutionOffering,
+        whyItMatters: whyYou,
+      },
+      boardroom: {
+        ...labState.boardroom,
+        pitchTarget: targetCustomer,
+        pitchSolution: solutionOffering,
+        pitchMoat: whyYou,
+        pitchProblem: labState.stage1?.opportunityStatement || 'Daily campus friction',
       },
     };
     saveLabState(nextState);
   };
 
-  // Handle story decisions in Task 3
-  const handleSelectStoryDecision = (storyId: string, optionId: string) => {
+  // Step 3: Update Unit Economics
+  const handleSaveStep3 = (price: number, cost: number, units: number) => {
+    setSellingPrice(price);
+    setDirectCost(cost);
+    setMonthlyUnits(units);
     const nextState: StartupLabState = {
       ...labState,
-      storyDecisions: {
-        ...(labState.storyDecisions || {}),
-        [storyId]: optionId,
-      },
-    };
-    saveLabState(nextState);
-  };
-
-  // Handle pricing trade-off in Task 3
-  const handleSelectPricingTradeOff = (choiceId: string, consequence: string) => {
-    const nextState: StartupLabState = {
-      ...labState,
+      unitPrice: price,
+      unitCost: cost,
+      expectedMonthlyUnits: units,
       pricingTradeOff: {
-        choice: choiceId,
-        rationale: consequence,
+        choice: 'pt-scope',
+        rationale: 'Protect positive unit contribution margins while maintaining fair customer pricing.',
       },
     };
     saveLabState(nextState);
   };
 
-  // Handle financial input change in Task 4
-  const handleVlabCalcChange = (field: string, val: string) => {
-    const cur = labState.vlab || {
-      prediction: '',
+  // Step 4: Decision & Check Answer
+  const handleCheckAnswer = () => {
+    setAnswerChecked(true);
+    const nextVlab = {
+      prediction: cashDecision as any,
       calcProfit: '25000',
       calcNetCash: '-10000',
       calcClosingBank: '10000',
@@ -446,89 +514,34 @@ export function Session01StartupJourney({
         collection: 'Finance Officer',
         receipt: 'Finance Officer',
       },
-      paymentRecommendation: 'reschedule',
-      paymentRationale: 'Pay ₹5,000 from available free cash above safety reserve; defer remaining ₹10,000 until client receivables are collected.',
+      paymentRecommendation: cashDecision === 'yes' ? 'approve' : 'reschedule',
+      paymentRationale: cashRationale,
     };
-
-    const nextVlab = {
-      ...cur,
-      [field]: val,
-      calcAttempted: true,
-    };
-
     const nextState: StartupLabState = {
       ...labState,
+      cashDecision,
+      cashRationale,
       vlab: nextVlab,
     };
     saveLabState(nextState);
   };
 
-  // Handle process owner change in Order-to-Cash
-  const handleProcessOwnerChange = (stepId: string, newOwner: string) => {
-    const cur = labState.vlab || {
-      prediction: '',
-      calcProfit: '',
-      calcNetCash: '',
-      calcClosingBank: '',
-      calcAvailableAboveReserve: '',
-      calcPaymentShortfall: '',
-      calcAttempted: true,
-      processOrder: ['enquiry', 'order', 'delivery', 'invoice', 'collection', 'receipt'],
-      processOwners: {
-        enquiry: 'Sales Lead',
-        order: 'Sales Lead',
-        delivery: 'Delivery Manager',
-        invoice: 'Finance Officer',
-        collection: 'Finance Officer',
-        receipt: 'Finance Officer',
-      },
-      paymentRecommendation: 'reschedule',
-      paymentRationale: 'Pay ₹5,000 from available free cash above safety reserve; defer remaining ₹10,000 until client receivables are collected.',
-    };
-
-    const nextOwners = {
-      ...(cur.processOwners || {}),
-      [stepId]: newOwner,
-    };
-
+  // Step 5: Save First Step Action & Submit
+  const handleSaveFirstStep = (actionText: string) => {
+    setFirstStepAction(actionText);
     const nextState: StartupLabState = {
       ...labState,
-      vlab: {
-        ...cur,
-        processOwners: nextOwners,
-      },
+      firstStepAction: actionText,
+      reflectionChange: actionText,
     };
     saveLabState(nextState);
   };
 
-  // Handle slide field change in Task 5
-  const handleUpdateSlideField = (slideIndex: number, fieldKey: string, newVal: string) => {
-    const curSlides = [...(labState.pitchDeck?.slides || [])];
-    if (!curSlides[slideIndex]) return;
-
-    const targetSlide = { ...curSlides[slideIndex] };
-    targetSlide.fields = targetSlide.fields.map((f) =>
-      f.key === fieldKey ? { ...f, value: newVal } : f
-    );
-    curSlides[slideIndex] = targetSlide;
-
-    const nextState: StartupLabState = {
-      ...labState,
-      pitchDeck: {
-        ...labState.pitchDeck,
-        slides: curSlides,
-      },
-    };
-    saveLabState(nextState);
-  };
-
-  // Advance to next wizard step
   const handleNextStep = () => {
     if (currentStepIdx < WIZARD_STEPS.length - 1) {
       setActiveTaskId(WIZARD_STEPS[currentStepIdx + 1].id);
       window.scrollTo({ top: 120, behavior: 'smooth' });
     } else {
-      // Step 5 completed: scroll down to Official Submission Station
       const el = document.getElementById('vcep-official-submission-station');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -544,30 +557,11 @@ export function Session01StartupJourney({
   // Step completion indicators
   const stepCompleted = useMemo(() => ({
     1: Boolean(labState.stage1?.selectedProblemId),
-    2: Boolean(labState.stage1?.opportunityStatement && labState.stage1?.targetCampusPersona),
-    3: Boolean(labState.pricingTradeOff?.choice),
-    4: Boolean(labState.vlab?.calcAttempted),
-    5: Boolean(labState.reflectionChange),
-  }), [labState]);
-
-  const slides = labState.pitchDeck?.slides || [];
-  const currentSlide = slides[activeSlideIndex] || slides[0];
-
-  // Fixed 8 slide tab titles
-  const SLIDE_SHORT_TITLES = [
-    '1. Startup',
-    '2. Problem',
-    '3. Solution',
-    '4. Market',
-    '5. Model',
-    '6. Traction',
-    '7. Operations',
-    '8. Ask',
-  ];
-
-  // Live Unit Economics Calculation
-  const unitContributionMargin = unitSellingPrice - unitDirectCost;
-  const unitMarginPercent = unitSellingPrice > 0 ? ((unitContributionMargin / unitSellingPrice) * 100).toFixed(1) : '0';
+    2: Boolean(targetCustomer && solutionOffering && whyYou),
+    3: Boolean(sellingPrice > 0 && directCost >= 0),
+    4: Boolean(answerChecked),
+    5: Boolean(firstStepAction.trim()),
+  }), [labState, targetCustomer, solutionOffering, whyYou, sellingPrice, directCost, answerChecked, firstStepAction]);
 
   return (
     <div
@@ -772,17 +766,21 @@ export function Session01StartupJourney({
       {/* 3. TASK CONTAINERS (ONLY ACTIVE TASK RENDERED AT A TIME)                  */}
       {/* ========================================================================= */}
       <section id="vcep-area-opportunity" style={{ width: '100%' }}>
-        {/* TASK 01: PICK IDEA */}
+        {/* ========================================================================= */}
+        {/* STEP 1: PICK A REAL PROBLEM                                               */}
+        {/* ========================================================================= */}
         <TaskCard
           taskId="S01-T01"
           taskNumber="TASK 01"
-          title="Identify the Opportunity"
-          instruction="Select a relatable campus friction or propose your own venture."
-          whyMatters="Great ventures start from genuine daily friction. A focused customer persona saves development capital."
-          statusText={labState.stage1?.selectedProblemId ? 'Selected' : 'Choose 1'}
+          title="Pick a Real Problem"
+          instruction="Choose 1 campus friction below or enter your own original business idea."
+          learningTakeaway="Great businesses start by solving a real daily problem people will gladly pay to fix."
+          hintText="Focus on frequent hassles. Problems people face daily or weekly create natural repeat customers."
+          statusText={labState.stage1?.selectedProblemId ? 'Selected ✓' : 'Choose 1'}
           isActive={activeTaskId === 'S01-T01'}
           onSelectTask={() => setActiveTaskId('S01-T01')}
         >
+          {/* 4 Clean Scannable Cards */}
           <div
             style={{
               display: 'grid',
@@ -791,12 +789,14 @@ export function Session01StartupJourney({
               marginBottom: '16px',
             }}
           >
-            {COLLEGE_PROBLEM_OPTIONS.map((opt) => {
+            {/* Card 1: Laundry */}
+            {(() => {
+              const opt = COLLEGE_PROBLEM_OPTIONS[0];
               const isSelected = !isCustomIdea && labState.stage1?.selectedProblemId === opt.id;
               return (
                 <div
                   key={opt.id}
-                  onClick={() => handleSelectProblemOption(opt)}
+                  onClick={() => handleSelectProblemCard(opt)}
                   tabIndex={0}
                   role="button"
                   aria-pressed={isSelected}
@@ -816,29 +816,123 @@ export function Session01StartupJourney({
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: isSelected ? '#0f766e' : '#64748b' }}>
-                        {opt.category}
+                        Hostel Service
                       </span>
-                      {isSelected && <CheckCircle2 size={15} color="#0f766e" />}
+                      {isSelected && <CheckCircle2 size={16} color="#0f766e" />}
                     </div>
-                    <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
-                      {opt.title}
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                      Student Laundry Service
                     </div>
                     <p style={{ fontSize: '12px', color: '#475569', margin: 0, lineHeight: 1.4 }}>
-                      {opt.description}
+                      Students spend 4 hours hand-washing clothes or wait 6 days for local dhobis.
                     </p>
                   </div>
                   {isSelected && (
-                    <div style={{ marginTop: '10px', paddingTop: '6px', borderTop: '1px dashed #ccfbf1', fontSize: '11px', color: '#0f766e', fontWeight: 600 }}>
-                      Opportunity: {opt.opportunityHint}
+                    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #ccfbf1', fontSize: '11.5px', color: '#0f766e', fontWeight: 600 }}>
+                      ✨ Founder Insight: High repeat weekly demand with immediate upfront cash payment.
                     </div>
                   )}
                 </div>
               );
-            })}
+            })()}
 
-            {/* Custom Option Card */}
+            {/* Card 2: Food */}
+            {(() => {
+              const opt = COLLEGE_PROBLEM_OPTIONS[1];
+              const isSelected = !isCustomIdea && labState.stage1?.selectedProblemId === opt.id;
+              return (
+                <div
+                  key={opt.id}
+                  onClick={() => handleSelectProblemCard(opt)}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={isSelected}
+                  style={{
+                    padding: '14px 16px',
+                    borderRadius: '10px',
+                    background: isSelected ? '#f0fdfa' : '#ffffff',
+                    border: isSelected ? '2px solid #0f766e' : '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isSelected ? '0 4px 12px rgba(15, 118, 110, 0.08)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: isSelected ? '#0f766e' : '#64748b' }}>
+                        Food & Dining
+                      </span>
+                      {isSelected && <CheckCircle2 size={16} color="#0f766e" />}
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                      Hostel Mess Food Delivery
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#475569', margin: 0, lineHeight: 1.4 }}>
+                      Hostel food is unhygienic and oily; food delivery apps cost ₹250+ per meal.
+                    </p>
+                  </div>
+                  {isSelected && (
+                    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #ccfbf1', fontSize: '11.5px', color: '#0f766e', fontWeight: 600 }}>
+                      ✨ Founder Insight: Daily necessity with high frequency and zero customer acquisition cost on campus.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Card 3: Kirana / Stationery */}
+            {(() => {
+              const opt = COLLEGE_PROBLEM_OPTIONS[2];
+              const isSelected = !isCustomIdea && labState.stage1?.selectedProblemId === opt.id;
+              return (
+                <div
+                  key={opt.id}
+                  onClick={() => handleSelectProblemCard(opt)}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={isSelected}
+                  style={{
+                    padding: '14px 16px',
+                    borderRadius: '10px',
+                    background: isSelected ? '#f0fdfa' : '#ffffff',
+                    border: isSelected ? '2px solid #0f766e' : '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isSelected ? '0 4px 12px rgba(15, 118, 110, 0.08)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: isSelected ? '#0f766e' : '#64748b' }}>
+                        Campus Retail
+                      </span>
+                      {isSelected && <CheckCircle2 size={16} color="#0f766e" />}
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                      Campus Essentials & Stationery
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#475569', margin: 0, lineHeight: 1.4 }}>
+                      Campus stores run out of exam pens and notebooks right before morning tests.
+                    </p>
+                  </div>
+                  {isSelected && (
+                    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #ccfbf1', fontSize: '11.5px', color: '#0f766e', fontWeight: 600 }}>
+                      ✨ Founder Insight: Urgent deadline need where convenience beats price sensitivity.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Card 4: My Own Idea */}
             <div
-              onClick={() => setIsCustomIdea(true)}
+              onClick={handleCustomIdeaSelect}
               tabIndex={0}
               role="button"
               aria-pressed={isCustomIdea}
@@ -848,6 +942,7 @@ export function Session01StartupJourney({
                 background: isCustomIdea ? '#f0fdfa' : '#ffffff',
                 border: isCustomIdea ? '2px solid #0f766e' : '1px dashed #cbd5e1',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -858,25 +953,36 @@ export function Session01StartupJourney({
                   <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: isCustomIdea ? '#0f766e' : '#64748b' }}>
                     Custom Venture
                   </span>
-                  {isCustomIdea && <CheckCircle2 size={15} color="#0f766e" />}
+                  {isCustomIdea && <CheckCircle2 size={16} color="#0f766e" />}
                 </div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
-                  Enter Your Own Idea
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                  Enter My Own Idea
                 </div>
                 <p style={{ fontSize: '12px', color: '#475569', margin: 0, lineHeight: 1.4 }}>
-                  Have an original campus or market problem? Define your own venture.
+                  Have an original campus or business idea? Define your customer problem.
                 </p>
               </div>
 
               {isCustomIdea ? (
-                <div style={{ marginTop: '10px', display: 'flex', gap: '6px' }}>
+                <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <input
                     type="text"
-                    value={customIdeaText}
-                    onChange={(e) => setCustomIdeaText(e.target.value)}
-                    placeholder="Describe problem & solution..."
+                    value={customIdeaTitle}
+                    onChange={(e) => setCustomIdeaTitle(e.target.value)}
+                    placeholder="Venture name or service..."
                     style={{
-                      flex: 1,
+                      padding: '5px 8px',
+                      fontSize: '11.5px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={customIdeaFriction}
+                    onChange={(e) => setCustomIdeaFriction(e.target.value)}
+                    placeholder="Customer pain point..."
+                    style={{
                       padding: '5px 8px',
                       fontSize: '11.5px',
                       borderRadius: '6px',
@@ -887,7 +993,7 @@ export function Session01StartupJourney({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleCustomVentureSubmit();
+                      handleCustomIdeaSelect();
                     }}
                     style={{
                       padding: '5px 10px',
@@ -900,288 +1006,358 @@ export function Session01StartupJourney({
                       cursor: 'pointer',
                     }}
                   >
-                    Save
+                    Save My Idea
                   </button>
                 </div>
               ) : (
-                <div style={{ marginTop: '10px', paddingTop: '6px', borderTop: '1px dashed #e2e8f0', fontSize: '11px', color: '#0f766e', fontWeight: 600 }}>
-                  Click to type custom venture
+                <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '11.5px', color: '#0f766e', fontWeight: 600 }}>
+                  Click to define original idea
                 </div>
               )}
             </div>
           </div>
         </TaskCard>
 
-        {/* TASK 02: TEST IDEA */}
+        {/* ========================================================================= */}
+        {/* STEP 2: DEFINE YOUR SOLUTION                                              */}
+        {/* ========================================================================= */}
         <TaskCard
           taskId="S01-T02"
           taskNumber="TASK 02"
-          title="Test the Idea"
-          instruction="Answer these 4 fundamental commercial questions to structure your customer proposition."
-          whyMatters="Validating customer assumptions early prevents building products nobody will pay for."
-          statusText={labState.stage1?.opportunityStatement ? '4 Answers Set' : 'Drafting'}
+          title="Define Your Solution"
+          instruction="Define your target customer, product offering, and competitive advantage in 3 short inputs."
+          learningTakeaway="A strong pitch clearly states who pays you, what you sell, and why you are the best choice."
+          hintText="Keep it simple. You don't need a complex mobile app to solve an urgent problem on campus."
+          statusText={targetCustomer && solutionOffering && whyYou ? 'Pitch Ready ✓' : 'Drafting'}
           isActive={activeTaskId === 'S01-T02'}
           onSelectTask={() => setActiveTaskId('S01-T02')}
         >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '14px',
-            }}
-          >
-            {OPPORTUNITY_QUESTIONS.map((cfg) => {
-              let curValue = '';
-              let updateKey: 'targetCampusPersona' | 'opportunityStatement' | 'whyItMatters' | 'validationApproach' = 'targetCampusPersona';
-
-              if (cfg.id === 'q1-who') {
-                curValue = labState.stage1?.targetCampusPersona || '';
-                updateKey = 'targetCampusPersona';
-              } else if (cfg.id === 'q2-what') {
-                curValue = labState.stage1?.opportunityStatement || '';
-                updateKey = 'opportunityStatement';
-              } else if (cfg.id === 'q3-why') {
-                curValue = labState.stage1?.whyItMatters || '';
-                updateKey = 'whyItMatters';
-              } else if (cfg.id === 'q4-how') {
-                curValue = labState.stage1?.validationApproach || (labState.decisions?.decisionD ? 'Grassroots direct customer demonstration' : '');
-                updateKey = 'validationApproach';
-              }
-
-              return (
-                <div
-                  key={cfg.id}
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '10px',
-                    padding: '14px 16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase' }}>
-                        Question {cfg.number}
-                      </span>
-                      <span style={{ fontSize: '10px', color: '#94a3b8' }}>
-                        {curValue.split(/\s+/).filter(Boolean).length} words
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#17245c', marginBottom: '2px' }}>
-                      {cfg.question}
-                    </div>
-                    <div style={{ fontSize: '11.5px', color: '#64748b', marginBottom: '8px' }}>
-                      {cfg.prompt}
-                    </div>
-
-                    {/* Max 3 Quick Insert Chips */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
-                      {cfg.chips.slice(0, 3).map((chip, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleUpdateQuestion(updateKey, chip)}
-                          style={{
-                            fontSize: '11px',
-                            padding: '3px 8px',
-                            borderRadius: '12px',
-                            background: curValue === chip ? '#ccfbf1' : '#ffffff',
-                            border: curValue === chip ? '1px solid #0f766e' : '1px solid #cbd5e1',
-                            color: curValue === chip ? '#0f766e' : '#475569',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          + {chip}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <textarea
-                    rows={2}
-                    value={curValue}
-                    onChange={(e) => handleUpdateQuestion(updateKey, e.target.value)}
-                    placeholder={cfg.example}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      fontSize: '12.5px',
-                      borderRadius: '6px',
-                      border: '1px solid #cbd5e1',
-                      background: '#ffffff',
-                      color: '#1e293b',
-                      lineHeight: 1.4,
-                      boxSizing: 'border-box',
-                      fontFamily: 'inherit',
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </TaskCard>
-
-        {/* TASK 03: SHAPE MODEL */}
-        <TaskCard
-          taskId="S01-T03"
-          taskNumber="TASK 03"
-          title="Shape the Business"
-          instruction="Learn from real Indian founder models, calculate unit economics, and choose an early pricing trade-off."
-          whyMatters="Startups fail when contribution margin is negative or when unsustainable discounts exhaust cash."
-          statusText="Economics Set"
-          isActive={activeTaskId === 'S01-T03'}
-          onSelectTask={() => setActiveTaskId('S01-T03')}
-        >
-          {/* Part A: 3 Indian Startup Lessons in Tabs */}
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '12px', fontWeight: 800, color: '#17245c', textTransform: 'uppercase', marginBottom: '8px' }}>
-              1. Real Indian Startup Model Lessons (Select to Inspect)
-            </div>
-            {/* Case Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-              {STARTUP_STORIES.map((s) => {
-                const isSelected = activeStoryId === s.id;
-                return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Field 1: Target Customer */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                1. Target Customer (Who pays you?)
+              </label>
+              {/* Starter Chips */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                {[
+                  'Hostel students & PG residents without kitchen access',
+                  'Day scholars commuting daily via local trains/buses',
+                  'College club heads & fest organizing committees',
+                ].map((chip, idx) => (
                   <button
-                    key={s.id}
+                    key={idx}
                     type="button"
-                    onClick={() => setActiveStoryId(s.id as any)}
+                    onClick={() => {
+                      setTargetCustomer(chip);
+                      handleSaveStep2();
+                    }}
                     style={{
-                      padding: '6px 14px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: isSelected ? 700 : 500,
-                      background: isSelected ? '#17245c' : '#f1f5f9',
-                      color: isSelected ? '#ffffff' : '#334155',
-                      border: 'none',
+                      fontSize: '11px',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      background: targetCustomer === chip ? '#ccfbf1' : '#ffffff',
+                      border: targetCustomer === chip ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                      color: targetCustomer === chip ? '#0f766e' : '#475569',
                       cursor: 'pointer',
                     }}
                   >
-                    {s.company} ({s.foundingYear})
+                    + {chip}
                   </button>
-                );
-              })}
+                ))}
+              </div>
+              <input
+                type="text"
+                value={targetCustomer}
+                onChange={(e) => {
+                  setTargetCustomer(e.target.value);
+                  handleSaveStep2();
+                }}
+                placeholder="e.g. 1st & 2nd year undergraduates living in campus hostels"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  fontSize: '12.5px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  boxSizing: 'border-box',
+                }}
+              />
             </div>
 
-            {/* Active Story Card */}
-            {(() => {
-              const story = STARTUP_STORIES.find((s) => s.id === activeStoryId) || STARTUP_STORIES[0];
-              const userChoice = labState.storyDecisions?.[story.id] || '';
+            {/* Field 2: Your Solution */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                2. Your Solution (What are you selling?)
+              </label>
+              {/* Starter Chips */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                {[
+                  'Hot ₹90 homestyle meal box delivered at 1:15 PM sharp',
+                  '24-hour wash, dry, and fold laundry pass by bag weight',
+                  'Exam prep kits & emergency stationery delivered at hostel gate',
+                ].map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setSolutionOffering(chip);
+                      handleSaveStep2();
+                    }}
+                    style={{
+                      fontSize: '11px',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      background: solutionOffering === chip ? '#ccfbf1' : '#ffffff',
+                      border: solutionOffering === chip ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                      color: solutionOffering === chip ? '#0f766e' : '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + {chip}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={solutionOffering}
+                onChange={(e) => {
+                  setSolutionOffering(e.target.value);
+                  handleSaveStep2();
+                }}
+                placeholder="e.g. Standardized 24-hr wash and fold service priced by bag"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  fontSize: '12.5px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
 
-              return (
-                <div
+            {/* Field 3: Why You? */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+                3. Why You? (Why will they choose you over alternatives?)
+              </label>
+              {/* Starter Chips */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                {[
+                  'Guaranteed on-time delivery or 100% money-back refund',
+                  'Half the price of commercial apps with zero hidden delivery surcharges',
+                  'Direct campus gate access with zero lost items or delivery confusion',
+                ].map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setWhyYou(chip);
+                      handleSaveStep2();
+                    }}
+                    style={{
+                      fontSize: '11px',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      background: whyYou === chip ? '#ccfbf1' : '#ffffff',
+                      border: whyYou === chip ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                      color: whyYou === chip ? '#0f766e' : '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + {chip}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={whyYou}
+                onChange={(e) => {
+                  setWhyYou(e.target.value);
+                  handleSaveStep2();
+                }}
+                placeholder="e.g. Guaranteed punctuality at half the price of food delivery apps"
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  fontSize: '12.5px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            {/* Live 1-Sentence Pitch Preview Box */}
+            <div
+              style={{
+                background: '#f0fdfa',
+                border: '1px solid #5eead4',
+                borderRadius: '10px',
+                padding: '14px 18px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px',
+              }}
+            >
+              <Sparkles size={18} color="#0f766e" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: '#0f766e', letterSpacing: '0.04em' }}>
+                  Your Live 1-Sentence Pitch
+                </div>
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#134e4a', marginTop: '4px', lineHeight: 1.45 }}>
+                  &ldquo;{oneSentencePitch}&rdquo;
+                </div>
+              </div>
+            </div>
+          </div>
+        </TaskCard>
+
+        {/* ========================================================================= */}
+        {/* STEP 3: CHECK YOUR PRICING & PROFIT                                       */}
+        {/* ========================================================================= */}
+        <TaskCard
+          taskId="S01-T03"
+          taskNumber="TASK 03"
+          title="Check Your Pricing & Profit"
+          instruction="Inspect a proven Indian startup model, then calculate your unit economics and monthly profit."
+          learningTakeaway="Every product sold must earn a profit after direct costs—volume cannot fix negative margins."
+          hintText="Selling price minus direct cost is profit per unit. Aim to keep contribution margin above 20%."
+          statusText={unitProfit > 0 ? `₹${unitProfit}/unit (${unitMarginPercent}%)` : 'Calculate'}
+          isActive={activeTaskId === 'S01-T03'}
+          onSelectTask={() => setActiveTaskId('S01-T03')}
+        >
+          {/* Part A: 1 Concise Real-World Concept Card (Toggleable Zerodha vs Meesho) */}
+          <div style={{ marginBottom: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#17245c', textTransform: 'uppercase' }}>
+                Startup Business Model Lesson
+              </span>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setActiveStartupStory('zerodha')}
                   style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '10px',
-                    padding: '14px 16px',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: activeStartupStory === 'zerodha' ? 700 : 500,
+                    background: activeStartupStory === 'zerodha' ? '#17245c' : '#f1f5f9',
+                    color: activeStartupStory === 'zerodha' ? '#ffffff' : '#334155',
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase' }}>Friction:</div>
-                      <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px' }}>{story.problem}</div>
-                    </div>
-                    <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#0f766e', textTransform: 'uppercase' }}>Founder Moat:</div>
-                      <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px' }}>{story.model}</div>
-                    </div>
-                  </div>
+                  Zerodha (Transparent Pricing)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveStartupStory('meesho')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: activeStartupStory === 'meesho' ? 700 : 500,
+                    background: activeStartupStory === 'meesho' ? '#17245c' : '#f1f5f9',
+                    color: activeStartupStory === 'meesho' ? '#ffffff' : '#334155',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Meesho (Unit-Cost Discipline)
+                </button>
+              </div>
+            </div>
 
-                  {/* Decision Question */}
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#17245c', marginBottom: '6px' }}>
-                    Decision: {story.decisionPrompt}
+            {/* Active Story Card Content */}
+            <div
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '12px 14px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '10px',
+              }}
+            >
+              {activeStartupStory === 'zerodha' ? (
+                <>
+                  <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase' }}>
+                      Problem They Solved:
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px', lineHeight: 1.4 }}>
+                      Opaque brokerage fees (up to 1% per trade) and hidden charges blocked everyday Indians from investing.
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {story.options.map((opt) => {
-                      const isChosen = userChoice === opt.id;
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => handleSelectStoryDecision(story.id, opt.id)}
-                          style={{
-                            textAlign: 'left',
-                            padding: '7px 10px',
-                            borderRadius: '6px',
-                            fontSize: '11.5px',
-                            background: isChosen ? (opt.isOptimal ? '#f0fdf4' : '#fef2f2') : '#ffffff',
-                            border: isChosen ? (opt.isOptimal ? '1px solid #16a34a' : '1px solid #dc2626') : '1px solid #e2e8f0',
-                            color: '#1e293b',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <span style={{ fontWeight: 600 }}>{opt.text}</span>
-                          {isChosen && (
-                            <span style={{ display: 'block', marginTop: '3px', fontSize: '10.5px', color: opt.isOptimal ? '#166534' : '#991b1b' }}>
-                              {opt.feedback}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                  <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#0f766e', textTransform: 'uppercase' }}>
+                      Smart Business Model:
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px', lineHeight: 1.4 }}>
+                      Zero brokerage for long-term equity; flat ₹20 for intraday. Zero ad spend—transparent pricing drove viral customer trust.
+                    </div>
                   </div>
-                </div>
-              );
-            })()}
+                </>
+              ) : (
+                <>
+                  <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase' }}>
+                      Problem They Solved:
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px', lineHeight: 1.4 }}>
+                      Small manufacturers in Tier-2/3 towns could not afford 20%–30% platform commissions on existing marketplaces.
+                    </div>
+                  </div>
+                  <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#0f766e', textTransform: 'uppercase' }}>
+                      Smart Business Model:
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px', lineHeight: 1.4 }}>
+                      0% seller commission; monetizes via seller ads and built dedicated logistics (Valmo) to reduce shipping costs per order.
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Part B: Interactive Unit Economics Calculator */}
+          {/* Part B: Simple Unit Economics Calculator */}
           <div
             style={{
               background: '#f8fafc',
               border: '1px solid #e2e8f0',
               borderRadius: '10px',
               padding: '16px 18px',
-              marginBottom: '18px',
             }}
           >
-            <div style={{ fontWeight: 700, color: '#17245c', fontSize: '13px', marginBottom: '10px' }}>
-              2. Unit Economics & Pricing Calculator
+            <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#17245c', marginBottom: '12px' }}>
+              Unit Economics Calculator (Test Your Margins)
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '3px' }}>
-                  Revenue Model
-                </label>
-                <select
-                  value={labState.pricingTradeOff?.choice || 'pt-scope'}
-                  onChange={(e) => handleSelectPricingTradeOff(e.target.value, 'Commercial trade-off chosen')}
-                  style={{
-                    width: '100%',
-                    padding: '6px 8px',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '12px',
-                    background: '#ffffff',
-                  }}
-                >
-                  <option value="pt-scope">Subscription Pass (Weekly / Monthly)</option>
-                  <option value="pt-discount">Pay-per-Order / Pay-as-you-go</option>
-                  <option value="pt-value">Flat Monthly Convenience Fee</option>
-                </select>
-              </div>
-
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '3px' }}>
                   Selling Price / Unit (₹)
                 </label>
                 <input
                   type="number"
-                  value={unitSellingPrice}
-                  onChange={(e) => setUnitSellingPrice(Number(e.target.value) || 0)}
+                  value={sellingPrice}
+                  onChange={(e) => handleSaveStep3(Number(e.target.value) || 0, directCost, monthlyUnits)}
                   style={{
                     width: '100%',
-                    padding: '6px 8px',
+                    padding: '8px 10px',
                     borderRadius: '6px',
                     border: '1px solid #cbd5e1',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     background: '#ffffff',
                     boxSizing: 'border-box',
+                    fontWeight: 600,
                   }}
                 />
               </div>
@@ -1192,86 +1368,103 @@ export function Session01StartupJourney({
                 </label>
                 <input
                   type="number"
-                  value={unitDirectCost}
-                  onChange={(e) => setUnitDirectCost(Number(e.target.value) || 0)}
+                  value={directCost}
+                  onChange={(e) => handleSaveStep3(sellingPrice, Number(e.target.value) || 0, monthlyUnits)}
                   style={{
                     width: '100%',
-                    padding: '6px 8px',
+                    padding: '8px 10px',
                     borderRadius: '6px',
                     border: '1px solid #cbd5e1',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     background: '#ffffff',
                     boxSizing: 'border-box',
+                    fontWeight: 600,
                   }}
                 />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '3px' }}>
-                  Unit Contribution Margin
+                  Expected Monthly Sales (Units)
                 </label>
-                <div
+                <input
+                  type="number"
+                  value={monthlyUnits}
+                  onChange={(e) => handleSaveStep3(sellingPrice, directCost, Number(e.target.value) || 0)}
                   style={{
-                    padding: '6px 10px',
+                    width: '100%',
+                    padding: '8px 10px',
                     borderRadius: '6px',
-                    background: unitContributionMargin > 0 ? '#f0fdf4' : '#fef2f2',
-                    border: unitContributionMargin > 0 ? '1px solid #bbf7d0' : '1px solid #fecaca',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    color: unitContributionMargin > 0 ? '#166534' : '#b91c1c',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    background: '#ffffff',
+                    boxSizing: 'border-box',
+                    fontWeight: 600,
                   }}
-                >
-                  ₹{unitContributionMargin} / unit ({unitMarginPercent}%)
+                />
+              </div>
+            </div>
+
+            {/* Calculated Output Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                  Profit per Unit
+                </span>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: unitProfit > 0 ? '#166534' : '#dc2626', marginTop: '2px' }}>
+                  ₹{unitProfit}
+                </div>
+              </div>
+
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                  Profit Margin %
+                </span>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: Number(unitMarginPercent) >= 20 ? '#166534' : '#d97706', marginTop: '2px' }}>
+                  {unitMarginPercent}%
+                </div>
+              </div>
+
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                  Estimated Monthly Profit
+                </span>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: totalMonthlyProfit > 0 ? '#0f766e' : '#dc2626', marginTop: '2px' }}>
+                  ₹{totalMonthlyProfit.toLocaleString('en-IN')}
                 </div>
               </div>
             </div>
 
-            {/* Part C: Early Pricing Strategy */}
-            <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#17245c', marginBottom: '6px' }}>
-              Early Pricing Trade-Off Strategy:
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
-              {PRICING_TRADE_OFF_OPTIONS.map((pto) => {
-                const isChosen = (labState.pricingTradeOff?.choice || 'pt-scope') === pto.id;
-                return (
-                  <div
-                    key={pto.id}
-                    onClick={() => handleSelectPricingTradeOff(pto.id, pto.consequence)}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '6px',
-                      background: isChosen ? '#ffffff' : '#f8fafc',
-                      border: isChosen ? '2px solid #0f766e' : '1px solid #e2e8f0',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 700, color: pto.isOptimal ? '#0f766e' : '#b91c1c', textTransform: 'uppercase' }}>
-                        {pto.badge}
-                      </span>
-                      {isChosen && <Check size={13} color="#0f766e" strokeWidth={3} />}
-                    </div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#17245c' }}>{pto.title}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{pto.consequence}</div>
-                  </div>
-                );
-              })}
-            </div>
+            {/* Dynamic 1-Line Tip */}
+            {Number(unitMarginPercent) < 20 ? (
+              <div style={{ fontSize: '12px', color: '#b45309', background: '#fef3c7', padding: '8px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <AlertTriangle size={14} color="#d97706" style={{ flexShrink: 0 }} />
+                <span>⚠️ Warning: Margin is below 20%. Any delivery delay or small discount will cause you to lose money on every order.</span>
+              </div>
+            ) : (
+              <div style={{ fontSize: '12px', color: '#166534', background: '#f0fdf4', padding: '8px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={14} color="#16a34a" style={{ flexShrink: 0 }} />
+                <span>✅ Healthy Unit Economics: You earn ₹{unitProfit} per unit ({unitMarginPercent}%) to cover marketing and fixed costs.</span>
+              </div>
+            )}
           </div>
         </TaskCard>
 
-        {/* TASK 04: CASH CHECK */}
+        {/* ========================================================================= */}
+        {/* STEP 4: PROFIT VS. CASH REALITY CHECK                                     */}
+        {/* ========================================================================= */}
         <TaskCard
           taskId="S01-T04"
           taskNumber="TASK 04"
-          title="Check Business Reality"
-          instruction="Inspect Vayentra Labs September records to distinguish paper profit from cash solvency."
-          whyMatters="A venture can show healthy accounting profits while simultaneously running out of cash."
-          statusText={financialAuditRevealed ? 'Audit Complete' : 'Pending Check'}
+          title="Profit vs. Cash Reality Check"
+          instruction="Decide whether Vayentra Labs can safely pay a ₹15,000 vendor bill from its September cash flow."
+          learningTakeaway="Profit on paper does not equal cash in hand—bills can only be paid with real money in the bank."
+          hintText="Opening cash was ₹20,000, but net cash flow was negative (-₹10,000). Always protect the ₹5,000 safety buffer."
+          statusText={answerChecked ? 'Audit Verified ✓' : 'Decision Required'}
           isActive={activeTaskId === 'S01-T04'}
           onSelectTask={() => setActiveTaskId('S01-T04')}
         >
-          {/* 4-Metric Mini-Card */}
+          {/* 4-Stat Summary Card */}
           <div
             style={{
               display: 'grid',
@@ -1280,436 +1473,366 @@ export function Session01StartupJourney({
               marginBottom: '16px',
             }}
           >
-            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>1. Accrual Revenue</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#17245c' }}>₹1,00,000</div>
-              <div style={{ fontSize: '10.5px', color: '#64748b' }}>Earned in September</div>
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Revenue Earned</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#17245c', marginTop: '2px' }}>₹1,00,000</div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Invoiced in September</div>
             </div>
-            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>2. Accrual Expenses</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#17245c' }}>₹75,000</div>
-              <div style={{ fontSize: '10.5px', color: '#64748b' }}>Incurred in September</div>
+
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Expenses Incurred</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#17245c', marginTop: '2px' }}>₹75,000</div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Cost of operations</div>
             </div>
-            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>3. Cash Collected</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f766e' }}>₹60,000</div>
-              <div style={{ fontSize: '10.5px', color: '#64748b' }}>Cash paid out: ₹70,000</div>
+
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Cash Collected</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f766e', marginTop: '2px' }}>₹60,000</div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Cash paid out: ₹70,000</div>
             </div>
-            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>4. Bank Opening</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#17245c' }}>₹20,000</div>
-              <div style={{ fontSize: '10.5px', color: '#64748b' }}>Mandatory reserve: ₹5,000</div>
+
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Opening Bank</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#17245c', marginTop: '2px' }}>₹20,000</div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>Safety reserve: ₹5,000</div>
             </div>
           </div>
 
-          {/* Prediction Challenge */}
-          <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', marginBottom: '14px', border: '1px solid #e2e8f0' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#17245c', marginBottom: '6px' }}>
-              Founder Decision: Can Vayentra Labs safely pay this ₹15,000 equipment delivery bill today?
+          {/* Decision Prompt & Input */}
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px 18px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#17245c', marginBottom: '8px' }}>
+              Founder Decision: Can Vayentra Labs safely pay this ₹15,000 equipment bill today?
             </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {[
-                { id: 'yes', label: 'YES — ₹25,000 profit covers bill' },
-                { id: 'no', label: 'NO — Cash liquidity is insufficient' },
-                { id: 'not-sure', label: 'NOT SURE — Check cash timing' },
-              ].map((p) => {
-                const isSel = labState.vlab?.prediction === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => handleVlabCalcChange('prediction', p.id)}
-                    style={{
-                      padding: '5px 12px',
-                      borderRadius: '16px',
-                      fontSize: '11.5px',
-                      fontWeight: 600,
-                      background: isSel ? '#0f766e' : '#ffffff',
-                      border: isSel ? '1px solid #0f766e' : '1px solid #cbd5e1',
-                      color: isSel ? '#ffffff' : '#334155',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {p.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
-          {/* 5 Financial Calculations */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginBottom: '14px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
-                1. Accounting Profit
-              </label>
-              <input
-                type="text"
-                value={labState.vlab?.calcProfit || ''}
-                onChange={(e) => handleVlabCalcChange('calcProfit', e.target.value)}
-                placeholder="₹25,000"
-                style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
-                2. Net Cash Movement
-              </label>
-              <input
-                type="text"
-                value={labState.vlab?.calcNetCash || ''}
-                onChange={(e) => handleVlabCalcChange('calcNetCash', e.target.value)}
-                placeholder="-₹10,000"
-                style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
-                3. Closing Bank Balance
-              </label>
-              <input
-                type="text"
-                value={labState.vlab?.calcClosingBank || ''}
-                onChange={(e) => handleVlabCalcChange('calcClosingBank', e.target.value)}
-                placeholder="₹10,000"
-                style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
-                4. Free Cash (Above Reserve)
-              </label>
-              <input
-                type="text"
-                value={labState.vlab?.calcAvailableAboveReserve || ''}
-                onChange={(e) => handleVlabCalcChange('calcAvailableAboveReserve', e.target.value)}
-                placeholder="₹5,000"
-                style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>
-                5. Payment Shortfall
-              </label>
-              <input
-                type="text"
-                value={labState.vlab?.calcPaymentShortfall || ''}
-                onChange={(e) => handleVlabCalcChange('calcPaymentShortfall', e.target.value)}
-                placeholder="₹10,000"
-                style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
-              />
-            </div>
-          </div>
-
-          {/* Reveal Button if answer not revealed */}
-          {!financialAuditRevealed ? (
-            <div style={{ textAlign: 'center', margin: '14px 0' }}>
+            {/* Yes / No Toggle */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
               <button
                 type="button"
-                onClick={() => setFinancialAuditRevealed(true)}
+                onClick={() => setCashDecision('yes')}
                 style={{
-                  padding: '8px 18px',
+                  flex: 1,
+                  padding: '8px 14px',
                   borderRadius: '8px',
-                  background: '#0f766e',
-                  color: '#ffffff',
-                  fontSize: '12.5px',
+                  border: cashDecision === 'yes' ? '2px solid #0f766e' : '1px solid #cbd5e1',
+                  background: cashDecision === 'yes' ? '#f0fdfa' : '#ffffff',
+                  color: cashDecision === 'yes' ? '#0f766e' : '#475569',
                   fontWeight: 700,
-                  border: 'none',
+                  fontSize: '12.5px',
                   cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
                 }}
               >
-                <Sparkles size={14} />
-                <span>Check My Answer & Reveal Audit</span>
+                Yes (Pay the ₹15,000 bill)
+              </button>
+              <button
+                type="button"
+                onClick={() => setCashDecision('no')}
+                style={{
+                  flex: 1,
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  border: cashDecision === 'no' ? '2px solid #0f766e' : '1px solid #cbd5e1',
+                  background: cashDecision === 'no' ? '#f0fdfa' : '#ffffff',
+                  color: cashDecision === 'no' ? '#0f766e' : '#475569',
+                  fontWeight: 700,
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                }}
+              >
+                No (Insufficient free cash)
               </button>
             </div>
-          ) : (
-            <div
-              style={{
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: '8px',
-                padding: '12px 14px',
-                fontSize: '12px',
-                color: '#991b1b',
-                lineHeight: 1.45,
-                marginBottom: '16px',
-              }}
-            >
-              <strong>The Reality Check Lesson:</strong> Vayentra Labs earned ₹25,000 profit, but experienced a −₹10,000 net cash outflow. After protecting the ₹5,000 safety reserve, only ₹5,000 free cash remains. Paying ₹15,000 today would create a <strong>₹10,000 deficit</strong> risking payroll insolvency.
-              <div style={{ marginTop: '6px', color: '#0f766e', fontWeight: 600 }}>
-                Recommendation: <strong>Reschedule / Defer</strong>. Pay ₹5,000 now; defer ₹10,000 until customer receivables are collected.
-              </div>
-            </div>
-          )}
 
-          {/* Compact Order-to-Cash 6-Row Table */}
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#17245c', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Workflow size={14} color="#0f766e" />
-              <span>Order-to-Cash Process Handoffs</span>
-            </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', fontSize: '11.5px', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', textAlign: 'left', color: '#475569' }}>
-                    <th style={{ padding: '6px 8px' }}>Stage</th>
-                    <th style={{ padding: '6px 8px' }}>Step Name</th>
-                    <th style={{ padding: '6px 8px' }}>Responsible Role</th>
-                    <th style={{ padding: '6px 8px' }}>Risk if Missing</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ORDER_TO_CASH_STEPS.map((step) => {
-                    const currentOwner = labState.vlab?.processOwners?.[step.id] || step.defaultOwner;
-                    return (
-                      <tr key={step.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                        <td style={{ padding: '6px 8px', fontWeight: 700, color: '#0f766e' }}>0{step.stepNumber}</td>
-                        <td style={{ padding: '6px 8px', fontWeight: 600, color: '#1e293b' }}>{step.title}</td>
-                        <td style={{ padding: '6px 8px' }}>
-                          <select
-                            value={currentOwner}
-                            onChange={(e) => handleProcessOwnerChange(step.id, e.target.value)}
-                            style={{ fontSize: '11px', padding: '2px 4px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                          >
-                            {step.roleOptions.map((r) => (
-                              <option key={r} value={r}>{r}</option>
-                            ))}
-                          </select>
-                        </td>
-                        <td style={{ padding: '6px 8px', color: '#64748b' }}>{step.riskIfMissing}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </TaskCard>
-      </section>
-
-      {/* AREA B: PITCH DECK */}
-      <section id="vcep-area-pitch-deck" style={{ width: '100%' }}>
-        {/* TASK 05: PITCH DECK */}
-        <TaskCard
-          taskId="S01-T05"
-          taskNumber="TASK 05"
-          title="Build the Pitch Deck"
-          instruction="Synthesize your business decisions into an 8-slide executive pitch deck."
-          whyMatters="Defensible unit economics and clear communication convince investors that your model works."
-          statusText="8 Slides Active"
-          isActive={activeTaskId === 'S01-T05'}
-          onSelectTask={() => setActiveTaskId('S01-T05')}
-        >
-          {/* 8-Slide Selector Tabs */}
-          <div
-            style={{
-              display: 'flex',
-              overflowX: 'auto',
-              gap: '6px',
-              paddingBottom: '8px',
-              marginBottom: '16px',
-            }}
-          >
-            {slides.map((s, idx) => {
-              const isActive = activeSlideIndex === idx;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setActiveSlideIndex(idx)}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    background: isActive ? '#17245c' : '#f8fafc',
-                    border: isActive ? '1px solid #17245c' : '1px solid #e2e8f0',
-                    color: isActive ? '#ffffff' : '#475569',
-                    fontSize: '11.5px',
-                    fontWeight: isActive ? 700 : 500,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    flex: '0 0 auto',
-                  }}
-                >
-                  {SLIDE_SHORT_TITLES[idx] || s.title}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Slide Canvas */}
-          {currentSlide && (
-            <div
-              style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                marginBottom: '16px',
-              }}
-            >
-              {/* Slide Topbar */}
-              <div
-                style={{
-                  background: '#17245c',
-                  padding: '12px 18px',
-                  color: '#ffffff',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                }}
-              >
-                <div>
-                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#e5af2e', textTransform: 'uppercase' }}>
-                    SLIDE 0{activeSlideIndex + 1} OF 08 · {currentSlide.subtitle}
-                  </span>
-                  <h4 style={{ fontSize: '16px', fontWeight: 800, margin: '2px 0 0', color: '#ffffff' }}>
-                    {currentSlide.title}
-                  </h4>
-                </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setDeckPreviewMode(!deckPreviewMode)}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '4px',
-                      background: deckPreviewMode ? '#0f766e' : 'rgba(255,255,255,0.15)',
-                      border: 'none',
-                      color: '#ffffff',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    {deckPreviewMode ? <EyeOff size={12} /> : <Eye size={12} />}
-                    <span>{deckPreviewMode ? 'Edit Mode' : 'Preview Deck'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={activeSlideIndex === 0}
-                    onClick={() => setActiveSlideIndex(activeSlideIndex - 1)}
-                    style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      background: 'rgba(255,255,255,0.15)',
-                      border: 'none',
-                      color: '#ffffff',
-                      fontSize: '11px',
-                      cursor: activeSlideIndex === 0 ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    ←
-                  </button>
-                  <button
-                    type="button"
-                    disabled={activeSlideIndex === slides.length - 1}
-                    onClick={() => setActiveSlideIndex(activeSlideIndex + 1)}
-                    style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      background: 'rgba(255,255,255,0.15)',
-                      border: 'none',
-                      color: '#ffffff',
-                      fontSize: '11px',
-                      cursor: activeSlideIndex === slides.length - 1 ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-
-              {/* Slide Body */}
-              <div style={{ padding: '16px 18px' }}>
-                {!deckPreviewMode ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {currentSlide.fields.map((f) => (
-                      <div key={f.key}>
-                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '3px' }}>
-                          {f.label}
-                        </label>
-                        {f.isTextArea ? (
-                          <textarea
-                            rows={2}
-                            value={f.value}
-                            onChange={(e) => handleUpdateSlideField(activeSlideIndex, f.key, e.target.value)}
-                            placeholder={f.placeholder}
-                            style={{
-                              width: '100%',
-                              padding: '8px 10px',
-                              fontSize: '12.5px',
-                              borderRadius: '6px',
-                              border: '1px solid #cbd5e1',
-                              boxSizing: 'border-box',
-                              fontFamily: 'inherit',
-                            }}
-                          />
-                        ) : (
-                          <input
-                            type="text"
-                            value={f.value}
-                            onChange={(e) => handleUpdateSlideField(activeSlideIndex, f.key, e.target.value)}
-                            placeholder={f.placeholder}
-                            style={{
-                              width: '100%',
-                              padding: '8px 10px',
-                              fontSize: '12.5px',
-                              borderRadius: '6px',
-                              border: '1px solid #cbd5e1',
-                              boxSizing: 'border-box',
-                              fontFamily: 'inherit',
-                            }}
-                          />
-                        )}
-                      </div>
-                    ))}
-                    <div style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic', borderLeft: '3px solid #e5af2e', paddingLeft: '8px' }}>
-                      Coach Note: {currentSlide.speakerNotes}
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ background: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#17245c', marginBottom: '12px' }}>
-                      {currentSlide.title}
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                      {currentSlide.fields.map((f) => (
-                        <div key={f.key} style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '6px' }}>
-                          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>{f.label}</div>
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b', marginTop: '2px' }}>{f.value || '—'}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Founder Self-Reflection Input */}
-          <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
-              Founder Reflection: "One decision I would change or test further before launching is..."
+            {/* Why Textarea */}
+            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+              Why? (Explain your reasoning in 1–2 sentences)
             </label>
             <textarea
               rows={2}
-              value={labState.reflectionChange || ''}
-              onChange={(e) => {
-                const nextState: StartupLabState = {
-                  ...labState,
-                  reflectionChange: e.target.value,
-                };
-                saveLabState(nextState);
+              value={cashRationale}
+              onChange={(e) => setCashRationale(e.target.value)}
+              placeholder="e.g. No, because closing bank balance is only ₹10,000, leaving just ₹5,000 free cash after the safety reserve."
+              style={{
+                width: '100%',
+                padding: '8px 10px',
+                fontSize: '12.5px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                background: '#ffffff',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
               }}
-              placeholder="e.g., I would spend more time interviewing early customers directly rather than assuming their willingness to pay upfront."
+            />
+
+            {/* Check Answer Button */}
+            {!answerChecked && (
+              <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                <button
+                  type="button"
+                  onClick={handleCheckAnswer}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    background: '#0f766e',
+                    color: '#ffffff',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Sparkles size={14} />
+                  <span>Check Answer</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Visual Breakdown Revealed Only After Check Answer */}
+          {answerChecked && (
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #bbf7d0',
+                borderRadius: '10px',
+                padding: '16px 18px',
+                marginBottom: '10px',
+              }}
+            >
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#166534', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={16} color="#16a34a" />
+                <span>Financial Reality Breakdown</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '10px', color: '#64748b' }}>Paper Profit:</span>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#166534' }}>+₹25,000</div>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '10px', color: '#64748b' }}>Net Cash Flow:</span>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#dc2626' }}>-₹10,000</div>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '10px', color: '#64748b' }}>Closing Bank:</span>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>₹10,000</div>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '10px', color: '#64748b' }}>Safety Buffer:</span>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#d97706' }}>₹5,000</div>
+                </div>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '8px 10px', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '10px', color: '#166534', fontWeight: 700 }}>Free Cash:</span>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#166534' }}>₹5,000</div>
+                </div>
+              </div>
+
+              {/* Highlighted 1-Sentence Lesson */}
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  fontSize: '12.5px',
+                  color: '#991b1b',
+                  lineHeight: 1.45,
+                }}
+              >
+                <strong>📌 The Golden Lesson:</strong> Profit on paper doesn&rsquo;t pay bills—cash in the bank does.
+                <div style={{ marginTop: '4px', color: '#0f766e', fontWeight: 600 }}>
+                  Recommendation: Reschedule payment. Pay ₹5,000 from available free cash today; defer remaining ₹10,000 until customer receivables arrive.
+                </div>
+              </div>
+            </div>
+          )}
+        </TaskCard>
+      </section>
+
+      {/* AREA B: PITCH DECK & EXECUTIVE 1-PAGE SUMMARY */}
+      <section id="vcep-area-pitch-deck" style={{ width: '100%' }}>
+        {/* ========================================================================= */}
+        {/* STEP 5: YOUR 1-PAGE BUSINESS PITCH                                        */}
+        {/* ========================================================================= */}
+        <TaskCard
+          taskId="S01-T05"
+          taskNumber="TASK 05"
+          title="Your 1-Page Business Pitch"
+          instruction="Review your executive pitch card, set your 1st customer test this week, and submit Session 1."
+          learningTakeaway="A simple 1-page business pitch helps you test assumptions with real customers before spending money."
+          hintText="Test your offer directly with 5 real people before building anything complex or expensive."
+          statusText={firstStepAction ? 'Ready to Submit ✓' : 'Drafting'}
+          isActive={activeTaskId === 'S01-T05'}
+          onSelectTask={() => setActiveTaskId('S01-T05')}
+        >
+          {/* Executive 1-Page Pitch Card */}
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              marginBottom: '16px',
+            }}
+          >
+            {/* Pitch Card Header */}
+            <div
+              style={{
+                background: '#17245c',
+                padding: '12px 18px',
+                color: '#ffffff',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div>
+                <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#e5af2e', textTransform: 'uppercase' }}>
+                  Founder Executive Summary
+                </span>
+                <h4 style={{ fontSize: '16px', fontWeight: 800, margin: '2px 0 0', color: '#ffffff' }}>
+                  {labState.stage1?.selectedProblemId === 'prob-laundry' ? 'Student Laundry Service' :
+                   labState.stage1?.selectedProblemId === 'prob-food' ? 'Hostel Mess Food Delivery' :
+                   labState.stage1?.selectedProblemId === 'prob-inventory' ? 'Campus Essentials & Stationery' :
+                   customIdeaTitle || 'Campus Venture Pitch'}
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPitchPreviewMode(!pitchPreviewMode)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  background: pitchPreviewMode ? '#0f766e' : 'rgba(255,255,255,0.15)',
+                  border: 'none',
+                  color: '#ffffff',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                }}
+              >
+                {pitchPreviewMode ? <EyeOff size={12} /> : <Eye size={12} />}
+                <span>{pitchPreviewMode ? 'Edit Mode' : 'Preview Pitch Card'}</span>
+              </button>
+            </div>
+
+            {/* 4 Clean Sections in Pitch Card */}
+            <div style={{ padding: '16px 18px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '12px',
+                  marginBottom: '14px',
+                }}
+              >
+                {/* Section 1: Customer & Problem */}
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px' }}>
+                  <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    1. Beachhead Customer
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#17245c' }}>
+                    {targetCustomer}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
+                    <strong>Friction:</strong> {labState.stage1?.opportunityStatement || 'High cost & daily inconvenience'}
+                  </div>
+                </div>
+
+                {/* Section 2: Solution & Pitch */}
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px' }}>
+                  <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    2. Core Proposition
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#17245c' }}>
+                    {solutionOffering}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
+                    <strong>Advantage:</strong> {whyYou}
+                  </div>
+                </div>
+
+                {/* Section 3: Unit Economics */}
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px' }}>
+                  <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    3. Unit Economics
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#17245c' }}>
+                    ₹{sellingPrice} Price · ₹{directCost} Direct Cost
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#166534', fontWeight: 700, marginTop: '4px' }}>
+                    ₹{unitProfit}/unit profit ({unitMarginPercent}% margin) · ~₹{totalMonthlyProfit.toLocaleString('en-IN')}/mo
+                  </div>
+                </div>
+
+                {/* Section 4: Cash Management Rule */}
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px' }}>
+                  <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    4. Cash Solvency Rule
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#17245c' }}>
+                    Profit ≠ Liquid Cash
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', lineHeight: 1.4 }}>
+                    Preserve ₹5,000 emergency buffer; defer capital outlays until receivables clear.
+                  </div>
+                </div>
+              </div>
+
+              {/* Live 1-Sentence Pitch in Pitch Card */}
+              <div style={{ background: '#f0fdfa', border: '1px solid #ccfbf1', borderRadius: '8px', padding: '10px 14px' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase' }}>
+                  Executive Pitch Line:
+                </span>
+                <p style={{ fontSize: '12.5px', color: '#134e4a', margin: '3px 0 0', fontWeight: 600, fontStyle: 'italic' }}>
+                  &ldquo;{oneSentencePitch}&rdquo;
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 1 Final Input: My First Step This Week */}
+          <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#17245c', marginBottom: '4px' }}>
+              My First Step This Week (How will you test this with 5 real customers?)
+            </label>
+            {/* Starter Chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              {[
+                'Set up a free tasting table outside the hostel on Sunday',
+                'Interview 5 classmates about their biggest daily laundry delay',
+                'Offer a 3-day prepaid meal trial with 100% money-back guarantee',
+              ].map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSaveFirstStep(chip)}
+                  style={{
+                    fontSize: '11px',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    background: firstStepAction === chip ? '#ccfbf1' : '#ffffff',
+                    border: firstStepAction === chip ? '1px solid #0f766e' : '1px solid #cbd5e1',
+                    color: firstStepAction === chip ? '#0f766e' : '#475569',
+                    cursor: 'pointer',
+                  }}
+                >
+                  + {chip}
+                </button>
+              ))}
+            </div>
+            <textarea
+              rows={2}
+              value={firstStepAction}
+              onChange={(e) => handleSaveFirstStep(e.target.value)}
+              placeholder="e.g. Talk to 5 hostel students in Block A this evening to confirm willingness to pay ₹90 for a delivered homestyle lunch."
               style={{
                 width: '100%',
                 padding: '8px 10px',
@@ -1785,8 +1908,8 @@ export function Session01StartupJourney({
             boxShadow: '0 2px 6px rgba(15, 118, 110, 0.2)',
           }}
         >
-          <span>{currentStepIdx < WIZARD_STEPS.length - 1 ? 'Save & Continue' : 'Review & Submit Session'}</span>
-          {currentStepIdx < WIZARD_STEPS.length - 1 ? <ArrowRight size={14} /> : <ChevronDown size={14} />}
+          <span>{currentStepIdx < WIZARD_STEPS.length - 1 ? 'Save & Continue' : 'Review & Submit Session 1'}</span>
+          {currentStepIdx < WIZARD_STEPS.length - 1 ? <ArrowRight size={14} /> : <Send size={14} />}
         </button>
       </footer>
     </div>
